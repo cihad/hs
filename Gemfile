@@ -20,4 +20,5 @@ group :development, :test do
   gem 'rspec-rails', '~> 3.0.0'
   gem 'factory_girl_rails', '~> 4.4'
   gem 'faker', '~> 1.4'
+  gem 'capybara', '~> 2.4'
 end
