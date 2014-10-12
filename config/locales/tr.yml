@@ -1,0 +1,34 @@
+tr:
+  site_name: "HalkınSesi"
+
+  errors:
+    messages:
+      taken: "daha önce alındı."
+      blank: "boş bırakılamaz."
+
+
+  helpers:
+    select:
+      prompt: "Lütfen seçiniz"
+    submit:
+      submit: "Gönder"
+      create: "Ekle"
+      update: "Güncelle"
+      node_filter:
+        submit: "Filtrele"
+
+  activerecord:
+    errors:
+      models:
+        node:
+          blank: "alanı gerekli."
+    attributes:
+      node:
+        title: "Başlık"
+        body: "Gövde"
+        tldr: "Tldr"
+
+
+  nodes:
+    flash:
+      created: "Yeni haber başarıyla eklendi."
