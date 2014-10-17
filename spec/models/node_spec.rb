@@ -15,4 +15,12 @@ RSpec.describe Node, type: :model do
   it "has body" do
     expect(subject.body).to be
   end
+
+  it do
+    expect(subject).to validate_presence_of :title
+  end
+
+  it do
+    expect(subject).to validate_presence_of :body
+  end
 end
