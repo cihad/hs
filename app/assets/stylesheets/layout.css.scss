@@ -1,9 +1,12 @@
-header {
-  border-bottom: 1px solid #ccc;
-  padding-top: 20px;
-  padding-bottom: 10px;
+.navbar-brand {
+  letter-spacing: 3px;
+  font-size: 100%;
 }
 
 .body {
   padding-top: 20px;
+}
+
+.hs-nav {
+  border-bottom: 1px solid $gray-lighter;
 }
