@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20141011200939) do
+ActiveRecord::Schema.define(version: 20141018164758) do
 
   create_table "nodes", force: true do |t|
     t.string   "title"
@@ -19,6 +19,9 @@ ActiveRecord::Schema.define(version: 20141011200939) do
     t.text     "body"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string   "status"
   end
+
+  add_index "nodes", ["status"], name: "index_nodes_on_status"
 
 end
