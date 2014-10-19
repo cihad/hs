@@ -28,7 +28,29 @@ tr:
         body: "Gövde"
         tldr: "Tldr"
 
+  simple_form:
+    options:
+      node_filter:
+        status:
+          awaiting_review: "İnceleme bekliyor"
+          being_reviewed: "İnceleniyor..."
+          published: "Yayında"
+          trashed: "Çöp kutusunda"
 
   nodes:
     flash:
       created: "Yeni haber başarıyla eklendi."
+    index:
+      status: "Durum"
+      nodes: "Haberler"
+      node: "Haber"
+      actions: "Aksiyonlar"
+    status:
+      awaiting_review: "İnceleme gerekiyor"
+      being_reviewed: "İnceleniyor"
+      published: "Yayınlandı"
+      trashed: "Çöp kutusunda"
+    events:
+      review: "İncele"
+      accept: "Yayınla"
+      reject: "Reddet"
