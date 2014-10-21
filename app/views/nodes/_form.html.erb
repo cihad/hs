@@ -1,0 +1,10 @@
+<%= simple_form_for @node, html: { class: 'form-horizontal' } do |f| %>
+  <%= f.input :title, autofocus: true %>
+  <%= f.input :tldr, as: :text %>
+  <%= f.input :body, as: :text %>
+   <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <%= f.button :submit, class: "btn-primary" %>
+    </div>
+  </div>
+<% end %>

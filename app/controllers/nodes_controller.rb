@@ -1,4 +1,7 @@
 class NodesController < ApplicationController
+
+  before_filter :node, only: [:show, :edit, :update]
+
   def index
   end
 
@@ -17,13 +20,17 @@ class NodesController < ApplicationController
   end
 
   def show
-    @node = Node.find(params[:id])
   end
 
   def edit
   end
 
   def update
+    if @node.update(node_params)
+      redirect_to @node, notice: I18n.t('nodes.flast.updated')
+    else
+      render action: :new
+    end
   end
 
   def destroy
@@ -33,5 +40,9 @@ class NodesController < ApplicationController
 
     def node_params
       params.require(:node).permit(:title, :tldr, :body)
+    end
+
+    def node
+      @node = Node.find(params[:id])
     end
 end
