@@ -3,6 +3,7 @@ class NodesController < ApplicationController
   before_filter :node, only: [:show, :edit, :update]
 
   def index
+    @nodes = Node.with_published_state.order(created_at: :desc)
   end
 
   def new

@@ -1,0 +1,13 @@
+<%= div_for node, class: "row" do %>
+  <div class="col-md-1 node-left">
+    <time><%= node.created_at.strftime("%H:%M") %></time>
+  </div>
+
+  <div class="col-md-11 node-right">
+    <article>
+      <h1><%= node.title %></h1>
+      <p class="lead"><%= node.tldr %></p>
+      <%= simple_format node.body %>
+    </article>
+  </div>
+<% end %>
