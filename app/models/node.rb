@@ -4,6 +4,13 @@ class Node < ActiveRecord::Base
   validates :title, presence: true
   validates :body, presence: true
 
+  # Associations
+  has_many :node_images
+  accepts_nested_attributes_for :node_images,
+    reject_if: proc { |attrs| attrs[:image_attributes].has_key?(:title) and attrs[:image_attributes][:title].blank? },
+    allow_destroy: true
+  has_many :images, -> { order 'node_images.position' }, through: :node_images
+
   # Workflow
   include Workflow
   workflow_column :status

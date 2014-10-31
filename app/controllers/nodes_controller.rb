@@ -8,6 +8,7 @@ class NodesController < ApplicationController
 
   def new
     @node = Node.new
+    5.times { @node.node_images.build.build_image }
   end
 
   def create
@@ -24,11 +25,12 @@ class NodesController < ApplicationController
   end
 
   def edit
+    5.times { @node.node_images.build.build_image }
   end
 
   def update
     if @node.update(node_params)
-      redirect_to @node, notice: I18n.t('nodes.flast.updated')
+      redirect_to @node, notice: I18n.t('nodes.flash.updated')
     else
       render action: :new
     end
@@ -40,7 +42,8 @@ class NodesController < ApplicationController
   private
 
     def node_params
-      params.require(:node).permit(:title, :tldr, :body)
+      params.require(:node).permit(:title, :tldr, :body,
+        node_images_attributes: [:_destroy, :id, image_attributes: [:id, :image, :title]])
     end
 
     def node

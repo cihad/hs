@@ -6,7 +6,6 @@ tr:
       taken: "daha önce alındı."
       blank: "boş bırakılamaz."
 
-
   helpers:
     select:
       prompt: "Lütfen seçiniz"
@@ -27,6 +26,8 @@ tr:
         title: "Başlık"
         body: "Gövde"
         tldr: "Tldr"
+      node_image:
+        _destroy: "Sil"
 
   simple_form:
     options:
@@ -54,3 +55,7 @@ tr:
       review: "İncele"
       accept: "Yayınla"
       reject: "Reddet"
+
+  images:
+    select_image: "Resim seç"
+    change: "Değiştir"

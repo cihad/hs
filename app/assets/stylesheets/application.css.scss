@@ -13,9 +13,11 @@
  *= require_self
  */
 
+
 @import "bootstrap-sprockets";
 @import "bootstrap-custom";
 @import "bootstrap/theme";
+@import "css/jasny-bootstrap";
 
 @import "article";
 @import "layout";

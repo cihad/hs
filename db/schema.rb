@@ -11,7 +11,33 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20141018164758) do
+ActiveRecord::Schema.define(version: 20141026145529) do
+
+  create_table "images", force: true do |t|
+    t.string   "image"
+    t.string   "title"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "images_nodes", id: false, force: true do |t|
+    t.integer "image_id", null: false
+    t.integer "node_id",  null: false
+  end
+
+  add_index "images_nodes", ["image_id", "node_id"], name: "index_images_nodes_on_image_id_and_node_id"
+  add_index "images_nodes", ["node_id", "image_id"], name: "index_images_nodes_on_node_id_and_image_id"
+
+  create_table "node_images", force: true do |t|
+    t.integer  "node_id"
+    t.integer  "image_id"
+    t.integer  "position",   default: 0
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
+
+  add_index "node_images", ["image_id"], name: "index_node_images_on_image_id"
+  add_index "node_images", ["node_id", "position"], name: "index_node_images_on_node_id_and_position"
 
   create_table "nodes", force: true do |t|
     t.string   "title"

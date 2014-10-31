@@ -10,8 +10,9 @@ gem 'turbolinks'
 gem 'jbuilder', '~> 2.0'
 
 gem 'bootstrap-sass', '~> 3.2.0'
-gem 'simple_form', '~> 3.0'
+gem 'simple_form', '~> 3.1.0.rc1', github: 'plataformatec/simple_form', branch: 'master'
 gem 'workflow', '~> 1.1.0'
+gem 'carrierwave', '0.10.0'
 
 group :development, :test do
   gem 'byebug'
@@ -24,4 +25,6 @@ group :development, :test do
   gem 'faker', '~> 1.4'
   gem 'capybara', '~> 2.4'
   gem 'shoulda-matchers', '~> 2.7', require: false
+  gem 'awesome_print'
+  gem 'capybara-webkit', '1.3.1'
 end

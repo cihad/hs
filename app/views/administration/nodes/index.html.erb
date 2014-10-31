@@ -1,7 +1,6 @@
 <%= simple_form_for :node_filter,
                     url: administration_nodes_path,
                     method: :get,
-                    wrapper: :inline,
                     html: {class: "form-inline"} do |f| %>
 
   <%= f.input :status,
