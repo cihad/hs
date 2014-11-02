@@ -13,6 +13,7 @@ gem 'bootstrap-sass', '~> 3.2.0'
 gem 'simple_form', '~> 3.1.0.rc1', github: 'plataformatec/simple_form', branch: 'master'
 gem 'workflow', '~> 1.1.0'
 gem 'carrierwave', '0.10.0'
+gem 'unicorn', '~> 4.8.3'
 
 group :development, :test do
   gem 'byebug'
@@ -27,4 +28,11 @@ group :development, :test do
   gem 'shoulda-matchers', '~> 2.7', require: false
   gem 'awesome_print'
   gem 'capybara-webkit', '1.3.1'
+end
+
+group :development do
+  gem 'sunzi', '1.5.2'
+  gem 'capistrano', '~> 3.2.0'
+  gem 'capistrano-rails', '~> 1.1'
+  gem 'capistrano-rbenv', '~> 2.0'
 end

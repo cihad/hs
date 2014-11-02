@@ -1,0 +1,6 @@
+<%= fetch(:rails_env) %>:
+  adapter: postgresql
+  encoding: unicode
+  database: <%= "#{fetch(:application)}_#{fetch(:rails_env)}" %>
+  username: <%= fetch(:database_username) %>
+  password: <%= fetch(:database_password) %>

@@ -81,5 +81,5 @@ test:
 production:
   <<: *default
   database: hs_production
-  username: hs
-  password: 445001576338
+  username: myusername
+  password: mypassword
