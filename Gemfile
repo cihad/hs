@@ -14,6 +14,7 @@ gem 'simple_form', '~> 3.1.0.rc1', github: 'plataformatec/simple_form', branch: 
 gem 'workflow', '~> 1.1.0'
 gem 'carrierwave', '0.10.0'
 gem 'unicorn', '~> 4.8.3'
+gem 'faker', '~> 1.4'
 
 group :development, :test do
   gem 'byebug'
@@ -23,7 +24,6 @@ group :development, :test do
   gem 'spring-commands-rspec', '~> 1.0.0'
   gem 'rspec-rails', '~> 3.0.0'
   gem 'factory_girl_rails', '~> 4.4'
-  gem 'faker', '~> 1.4'
   gem 'capybara', '~> 2.4'
   gem 'shoulda-matchers', '~> 2.7', require: false
   gem 'awesome_print'
