@@ -1,0 +1,15 @@
+.img-scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+
+  .thumbnail {
+    margin-right: 15px;
+    display:inline-block;
+    vertical-align: top;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}

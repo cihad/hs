@@ -7,7 +7,9 @@
     <article>
       <h1><%= node.title %></h1>
       <p class="lead"><%= node.tldr %></p>
-      <%= render node.images %>
+      <div class="img-scroller">
+        <%= render node.images %>
+      </div>
       <%= simple_format node.body %>
     </article>
   </div>
