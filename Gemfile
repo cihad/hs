@@ -15,6 +15,7 @@ gem 'workflow', '~> 1.1.0'
 gem 'carrierwave', '0.10.0'
 gem 'unicorn', '~> 4.8.3'
 gem 'faker', '~> 1.4'
+gem 'rails-i18n', '~> 4.0.0'
 
 group :development, :test do
   gem 'byebug'

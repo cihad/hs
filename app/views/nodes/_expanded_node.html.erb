@@ -1,6 +1,6 @@
 <%= div_for node, class: "row" do %>
   <div class="col-md-1 node-left">
-    <time><%= node.created_at.strftime("%H:%M") %></time>
+    <%= time_tag node.created_at %>
   </div>
 
   <div class="col-md-11 node-right">

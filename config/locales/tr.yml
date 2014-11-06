@@ -1,6 +1,14 @@
 tr:
   site_name: "HALKINSESİ"
 
+  time:
+    today: "Bugün"
+    ago: "%{time} önce"
+    formats:
+      summary: "%e %b %y"
+      time: "%H:%M"
+      generic: '%e %b %Y, %A'
+
   errors:
     messages:
       taken: "daha önce alındı."
