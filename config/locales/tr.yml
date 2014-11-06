@@ -65,5 +65,6 @@ tr:
       reject: "Reddet"
 
   images:
+    noimage: "Resim yok"
     select_image: "Resim seç"
     change: "Değiştir"

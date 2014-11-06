@@ -1,14 +1,9 @@
 .node {
   margin-bottom: 20px;
 
-  .node-right .node-title {
+  .node-body .node-title {
     font-size: 18px;
     margin: 0 0 5px;
     line-height: 20px;
   }
-}
-
-
-.node-left {
-  color: $gray-light;
 }

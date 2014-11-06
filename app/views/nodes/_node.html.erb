@@ -1,17 +1,28 @@
 <%= div_for node, class: "row" do %>
-  <div class="col-md-1 node-left">
-    <%= time_tag node.created_at do %>
-      <% if node.created_at.today? %>
-        <%= l node.created_at, format: :time %><br />
-        <%= t 'time.today' %>
-      <% else %>
-        <%= l node.created_at, format: :summary %>
-      <% end %>
+
+  <div class="col-md-2">
+    <% if node.images.count >= 1 %>
+      <%= image_tag node.images.first.image_url, class: "img-rounded img-responsive" %>
+    <% else %>
+      <div class="img-rounded no-image bg-primary"><%= t 'images.noimage' %></div>
     <% end %>
   </div>
 
-  <div class="col-md-11 node-right">
-    <h2 class="node-title"><%= link_to node.title, node %></h2>
+  <div class="col-md-9 node-body">
+    <h2 class="node-title">
+      <%= link_to node.title, node %>
+      <% node.created_at.tap do |created_at| %>
+        <%= time_tag created_at, class: "small" do %>
+          <% if created_at.today? %>
+            <%= t 'time.today' %>
+            <%= l node.created_at, format: :time %>
+          <% else %>
+            <%= l(node.created_at, format: :summary)  %>
+          <% end %>
+        <% end %>
+      <% end %>
+    </h2>
+
     <p><%= node.tldr %></p>
   </div>
 <% end %>
