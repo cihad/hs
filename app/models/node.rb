@@ -10,6 +10,7 @@ class Node < ActiveRecord::Base
     reject_if: proc { |attrs| attrs[:image_attributes].has_key?(:title) and attrs[:image_attributes][:title].blank? },
     allow_destroy: true
   has_many :images, -> { order 'node_images.position' }, through: :node_images
+  include Taggable
 
   # Workflow
   include Workflow

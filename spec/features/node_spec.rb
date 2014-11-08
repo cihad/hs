@@ -8,6 +8,7 @@ RSpec.describe "Node process", type: :feature do
       fill_in "node_title", with: "Dynamic Branding Facilitator"
       fill_in "node_tldr",  with: "Animi tempora ad magni provident enim ex est."
       fill_in "node_body",  with: "Aut iure blanditiis impedit earum. Porro vel molestias temporibus. Voluptatem ea et aut quaerat illum est.\n\nnPorro aliquid neque. Inventore nemo dolores non quia. Voluptatem recusandae vero nesciunt exercitationem sunt. Rerum laboriosam labore. Velit aliquid provident suscipit dolorem qui.\n\nVoluptatum earum exercitationem et optio. Autem suscipit aut impedit quia et. Possimus ut aut ipsam."
+      fill_in "node_tag_list",  with: "Dynamic, Branding, Facilitator"
       attach_file "node_node_images_attributes_1_image_attributes_image", "#{images_dir}/sample_image_1.jpg"
       fill_in "node_node_images_attributes_1_image_attributes_title", with: "There are many variations of passages of Lorem Ipsum available"
       click_on I18n.t('helpers.submit.create')
@@ -43,6 +44,19 @@ RSpec.describe "Node process", type: :feature do
       click_on I18n.t('helpers.submit.update')
       node.reload
     }.to change { node.images.count }.by(-1)
+  end
+
+  it "adds tags" do
+    node = create :node_with_tags
+
+    expect {
+      visit edit_node_path(node)
+
+      fill_in "node_tag_list", with: "example,tag"
+
+      click_on I18n.t('helpers.submit.update')
+      node.reload
+    }.to change { node.tags.count }.from(3).to(2)
   end
 
 end

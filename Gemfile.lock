@@ -224,6 +224,7 @@ GEM
     tilt (1.4.1)
     turbolinks (2.4.0)
       coffee-rails
+    turkish_support (0.2.3)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     uglifier (2.5.3)
@@ -273,6 +274,7 @@ DEPENDENCIES
   spring-commands-rspec (~> 1.0.0)
   sunzi (= 1.5.2)
   turbolinks
+  turkish_support
   uglifier (>= 1.3.0)
   unicorn (~> 4.8.3)
   web-console (~> 2.0.0.beta4)

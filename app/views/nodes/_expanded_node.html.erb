@@ -1,6 +1,7 @@
 <%= div_for node, class: "row" do %>
   <div class="col-md-1 node-left">
     <%= time_tag node.created_at %>
+
   </div>
 
   <div class="col-md-11 node-body">
@@ -11,6 +12,7 @@
         <%= render node.images %>
       </div>
       <%= markdown node.body %>
+      <%= render node.tags %>
     </article>
   </div>
 <% end %>
