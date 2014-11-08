@@ -1,11 +1,266 @@
 article {
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  color: #333;
+  overflow: hidden;
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+article h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+article hr {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 0;
+}
+
+article pre {
+  overflow: auto;
+}
+
+article code,
+article kbd,
+article pre {
+  font-family: monospace, monospace;
+  font-size: 1em;
+}
+
+article table {
+  @extend .table;
+  @extend .table-bordered;
+  @extend .table-striped;
+  @extend .table-hover;
+}
+
+article * {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+article hr {
+  height: 0;
+  margin: 15px 0;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #ddd;
+}
+
+article hr:before {
+  display: table;
+  content: "";
+}
+
+article hr:after {
+  display: table;
+  clear: both;
+  content: "";
+}
+
+article h1,
+article h2,
+article h3,
+article h4,
+article h5,
+article h6 {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  line-height: 1.1;
+}
+
+article h1 {
+  font-size: 30px;
+}
+
+article h2 {
+  font-size: 21px;
+}
+
+article h3 {
   font-size: 16px;
 }
 
-article > *:first-child {
-  margin-top:0 !important
+article h4 {
+  font-size: 14px;
 }
 
-article > *:last-child {
-  margin-bottom:0 !important
+article h5 {
+  font-size: 12px;
+}
+
+article h6 {
+  font-size: 11px;
+}
+
+article blockquote {
+  margin: 0;
+}
+
+article ul,
+article ol {
+  padding: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+article ol ol,
+article ul ol {
+  list-style-type: lower-roman;
+}
+
+article ul ul ol,
+article ul ol ol,
+article ol ul ol,
+article ol ol ol {
+  list-style-type: lower-alpha;
+}
+
+article dd {
+  margin-left: 0;
+}
+
+article>*:first-child {
+  margin-top: 0 !important;
+}
+
+article>*:last-child {
+  margin-bottom: 0 !important;
+}
+
+article h1,
+article h2,
+article h3,
+article h4,
+article h5,
+article h6 {
+  margin-top: 1em;
+  margin-bottom: 16px;
+  font-weight: bold;
+  line-height: 1.4;
+}
+
+article h1 {
+  padding-bottom: 0.3em;
+  font-size: 2.25em;
+  line-height: 1.2;
+  border-bottom: 1px solid #eee;
+}
+
+article h2 {
+  padding-bottom: 0.3em;
+  font-size: 1.75em;
+  line-height: 1.225;
+  border-bottom: 1px solid #eee;
+}
+
+article h3 {
+  font-size: 1.5em;
+  line-height: 1.43;
+}
+
+article h4 {
+  font-size: 1.25em;
+}
+
+article h5 {
+  font-size: 1em;
+}
+
+article h6 {
+  font-size: 1em;
+  color: #777;
+}
+
+article p,
+article blockquote,
+article ul,
+article ol,
+article dl,
+article table,
+article pre {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+article hr {
+  height: 4px;
+  padding: 0;
+  margin: 16px 0;
+  background-color: #e7e7e7;
+  border: 0 none;
+}
+
+article ul,
+article ol {
+  padding-left: 2em;
+}
+
+article ul ul,
+article ul ol,
+article ol ol,
+article ol ul {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+article li>p {
+  margin-top: 16px;
+}
+
+article dl {
+  padding: 0;
+}
+
+article dl dt {
+  padding: 0;
+  margin-top: 16px;
+  font-size: 1em;
+  font-style: italic;
+  font-weight: bold;
+}
+
+article dl dd {
+  padding: 0 16px;
+  margin-bottom: 16px;
+}
+
+article blockquote {
+  padding: 0 15px;
+  color: #777;
+  border-left: 4px solid #ddd;
+}
+
+article blockquote>:first-child {
+  margin-top: 0;
+}
+
+article blockquote>:last-child {
+  margin-bottom: 0;
+}
+
+article table {
+  word-break: normal;
+  word-break: keep-all;
+}
+
+article img {
+  max-width: 100%;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+article pre {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: #f7f7f7;
+  border-radius: 3px;
+  word-wrap: normal;
 }

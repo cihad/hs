@@ -68,3 +68,9 @@ tr:
     noimage: "Resim yok"
     select_image: "Resim seç"
     change: "Değiştir"
+
+
+  simple_form:
+    hints:
+      node:
+        body: "Markdown formatında giriş yapınız. Bilgi için: http://en.wikipedia.org/wiki/Markdown"
