@@ -1,9 +1,34 @@
 .node {
   margin-bottom: 20px;
+}
 
-  .node-body .node-title {
-    font-size: 18px;
-    margin: 0 0 5px;
-    line-height: 20px;
+.node .node-body .node-title {
+  font-size: 18px;
+  margin: 0 0 5px;
+  line-height: 20px;
+}
+
+.node-left {
+  padding-top: 10px;
+  word-wrap: break-word;
+}
+
+.node .popover {
+  position: relative;
+  display: block;
+  width: auto;
+  max-width: 100%;
+  @include box-shadow(none);
+
+  .popover-content {
+    padding: 20px;
+  }
+
+  .arrow {
+    top: 42px;
+  }
+
+  &.right {
+    margin-left: 0;
   }
 }

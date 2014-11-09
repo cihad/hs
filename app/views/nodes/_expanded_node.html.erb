@@ -1,18 +1,26 @@
 <%= div_for node, class: "row" do %>
-  <div class="col-md-1 node-left">
+  <div class="col-md-1 col-sm-1 node-left">
+    <%= image_tag "user.jpg", class: "img-circle img-responsive" %>
+    <a href="#">Demostration</a><br>
     <%= time_tag node.created_at %>
-
   </div>
 
-  <div class="col-md-11 node-body">
-    <article>
-      <h1><%= node.title %> </h1>
-      <p class="lead"><%= node.tldr %></p>
-      <div class="img-scroller">
-        <%= render node.images %>
+  <div class="col-md-11 col-sm-11 node-body">
+
+    <div class="popover right">
+      <div class="arrow"></div>
+      <div class="popover-content">
+        <article>
+          <h1><%= node.title %></h1>
+          <p class="lead"><%= node.tldr %></p>
+          <div class="img-scroller">
+            <%= render node.images %>
+          </div>
+          <%= markdown node.body %>
+          <%= render node.tags %>
+        </article>
       </div>
-      <%= markdown node.body %>
-      <%= render node.tags %>
-    </article>
+    </div>
+    
   </div>
 <% end %>
