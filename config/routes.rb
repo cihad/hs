@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   root "nodes#index"
 
   resources :nodes
+  resources :images, only: :show
 
   namespace :administration do
     get "/" => "base#index"

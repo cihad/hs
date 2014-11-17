@@ -74,6 +74,7 @@ tr:
     noimage: "Resim yok"
     select_image: "Resim seç"
     change: "Değiştir"
+    used_nodes: "Görselin Kullanıldığı Sayfalar"
 
 
   simple_form:
