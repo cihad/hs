@@ -1,5 +1,5 @@
 <div class="thumbnail" id="image_<%= i.object.id %>">
-  <%= image_tag i.object.image_url %>
+  <%= image_tag i.object.image_url(:thumb) %>
   <div class="caption">
     <p><%= i.object.title %></p>
     <p><%= ni.check_box :_destroy %> <%= ni.label :_destroy %></p>

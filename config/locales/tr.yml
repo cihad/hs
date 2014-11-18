@@ -71,6 +71,7 @@ tr:
       reject: "Reddet"
 
   images:
+    title: "Başlık"
     noimage: "Resim yok"
     select_image: "Resim seç"
     change: "Değiştir"

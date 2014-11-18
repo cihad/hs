@@ -1,6 +1,9 @@
 <%= div_for image, class: "thumbnail" do %>
-  <%= image_tag image.image_url, class: "img-responsive" %>
+  <%= image_tag image.image_url,
+                class: "img-responsive",
+                alt: image.title,
+                title: image.title %>
   <div class="caption">
-    <p><%= image.title %></p>
+    <p><%= link_to_unless current_page?(image), image.title, image %></p>
   </div>  
 <% end %>

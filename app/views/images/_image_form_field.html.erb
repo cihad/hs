@@ -1,13 +1,17 @@
 <div class="thumbnail">
   <div class="fileinput fileinput-new" data-provides="fileinput">
-    <div class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 150px;"></div>
+    <div class="fileinput-preview thumbnail" data-trigger="fileinput"></div>
     <div>
-      <%= i.text_field :title, class: "form-control" %>
+      <%= i.text_field  :title,
+                        class: "form-control",
+                        placeholder: t('images.title') %>
+                        
       <span class="btn btn-default btn-file">
         <span class="fileinput-new"><%= t 'images.select_image' %></span>
         <span class="fileinput-exists"><%= t 'images.change_image' %></span>
         <%= i.file_field :image %>
       </span>
+
       <a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
     </div>
   </div>
