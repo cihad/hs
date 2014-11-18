@@ -13,8 +13,8 @@ class ImageUploader < CarrierWave::Uploader::Base
   # Override the directory where uploaded files will be stored.
   # This is a sensible default for uploaders that are meant to be mounted:
   def store_dir
-    now = Time.now
-    "uploads/images/#{now.year}/#{now.month}/#{now.day}"
+    date = model.persisted? ? model.created_at : Time.current
+    "uploads/images/#{date.year}/#{date.month}/#{date.day}"
   end
 
   # Provide a default URL as a default if there hasn't been a file uploaded:
