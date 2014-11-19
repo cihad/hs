@@ -45,15 +45,6 @@ tr:
       node_image:
         _destroy: "Sil"
 
-  simple_form:
-    options:
-      node_filter:
-        status:
-          awaiting_review: "İnceleme bekliyor"
-          being_reviewed: "İnceleniyor..."
-          published: "Yayında"
-          trashed: "Çöp kutusunda"
-
   nodes:
     flash:
       created: "Yeni haber başarıyla eklendi."
@@ -81,6 +72,14 @@ tr:
 
 
   simple_form:
+    options:
+      node_filter:
+        status:
+          awaiting_review: "İnceleme bekliyor"
+          being_reviewed: "İnceleniyor..."
+          published: "Yayında"
+          trashed: "Çöp kutusunda"
     hints:
       node:
         body: "Markdown formatında giriş yapınız. Bilgi için: http://en.wikipedia.org/wiki/Markdown"
+        tag_list: "Etiketleri virgül ile ayırın."
