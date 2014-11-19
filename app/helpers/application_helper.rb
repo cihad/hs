@@ -1,5 +1,13 @@
 module ApplicationHelper
 
+  def full_title page_title
+    page_title.empty? ? t('site_name') : "#{page_title} - #{t('site_name')}"
+  end
+
+  def title title
+    provide :title, title
+  end
+
   def is_active_page_current?
     current_page?({
       controller: controller_name,
