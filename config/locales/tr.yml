@@ -40,6 +40,8 @@ tr:
         title: "Başlık"
         body: "Gövde"
         tldr: "Tldr"
+        tag_list: "Etiketler"
+        images: "Görseller"
       node_image:
         _destroy: "Sil"
 
