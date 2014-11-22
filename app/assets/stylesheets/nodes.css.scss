@@ -1,5 +1,15 @@
+.box .node:first-child {
+  padding-top: 0
+}
+
+.box .node:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
 .node {
-  margin-bottom: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid $box-border-color;
 }
 
 .node .node-body .node-title {
@@ -9,8 +19,8 @@
 }
 
 .node-left {
-  padding-top: 10px;
   word-wrap: break-word;
+  font-size: .9em;
 }
 
 .node .popover {
@@ -26,7 +36,7 @@
 
   .arrow {
     top: 42px;
-  }
+    }
 
   &.right {
     margin-left: 0;

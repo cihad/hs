@@ -8,6 +8,14 @@ module ApplicationHelper
     provide :title, title
   end
 
+  def bubble_box &block
+    render layout: 'bubble_box', &block
+  end
+
+  def box &block
+    render layout: 'box', &block
+  end
+
   def is_active_page_current?
     current_page?({
       controller: controller_name,
