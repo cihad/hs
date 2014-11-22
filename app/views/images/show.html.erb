@@ -11,4 +11,7 @@
 <div class="page-header">
   <h2><%= t 'images.used_nodes' %></h2>
 </div>
-<%= render @image.nodes %>
+
+<%= box do %>
+  <%= render @image.nodes %>
+<% end %>
