@@ -27,6 +27,8 @@ tr:
       submit: "Gönder"
       create: "Ekle"
       update: "Güncelle"
+      user:
+        create: "Giriş yap"
       node_filter:
         submit: "Filtrele"
 
@@ -42,6 +44,15 @@ tr:
         tldr: "Tldr"
         tag_list: "Etiketler"
         images: "Görseller"
+      user:
+        first_name: "Ad"
+        last_name: "Soyad"
+        username: "Kullanıcı adı"
+        email: "Email"
+        password: "Parola"
+        password_confirmation: "Parola tekrar"
+        current_password: "Şimdiki parola"
+        remember_me: "Hatırla beni"
       node_image:
         _destroy: "Sil"
 
@@ -70,8 +81,26 @@ tr:
     change: "Değiştir"
     used_nodes: "Görselin Kullanıldığı Sayfalar"
 
+  sessions:
+    login: "Giriş yap"
+    logout: "Çıkış yap"
+    forgot_password: "Parolanı mı unuttun?"
+    send_reset_password_instructions: "Parola sıfırlama talimatlarını gönder"
+
+  registrations:
+    register: "Kaydol"
+    edit: "Bilgilerimi güncelle"
+
+
 
   simple_form:
+    "yes": "Evet"
+    "no": "Hayır"
+    required:
+      text: "gerekli"
+      martk: "*"
+    error_notification:
+      default_message: "Lütfen aşağıdaki hataları giderin"
     options:
       node_filter:
         status:
@@ -83,3 +112,10 @@ tr:
       node:
         body: "Markdown formatında giriş yapınız. Bilgi için: http://en.wikipedia.org/wiki/Markdown"
         tag_list: "Etiketleri virgül ile ayırın."
+      user:
+        password: "değiştirmek istemiyorsan boş bırak"
+        current_password: "değişiklikleri onaylamak için şimdiki parolan gerekli"
+    placeholders:
+      user:
+        email: "Email"
+        password: "Parola"

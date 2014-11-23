@@ -19,6 +19,7 @@ gem 'faker', '~> 1.4'
 gem 'rails-i18n', '~> 4.0.0'
 gem 'redcarpet', '~> 3.2.0'
 gem 'turkish_support'
+gem 'devise', '~> 3.4'
 
 group :development, :test do
   gem 'byebug'

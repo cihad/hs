@@ -108,6 +108,14 @@ SimpleForm.setup do |config|
     end
   end
 
+  config.wrappers :horizontal_submit, tag: 'div', class: 'form-group' do |b|
+    b.use :html5
+
+    b.wrapper tag: 'div', class: 'col-sm-offset-2 col-sm-10' do |ba|
+      ba.use :input
+    end
+  end
+
   config.wrappers :inline_form, tag: 'div', class: 'form-group', error_class: 'has-error' do |b|
     b.use :html5
     b.use :placeholder
@@ -120,6 +128,22 @@ SimpleForm.setup do |config|
     b.use :input, class: 'form-control'
     b.use :error, wrap_with: { tag: 'span', class: 'help-block' }
     b.use :hint,  wrap_with: { tag: 'p', class: 'help-block' }
+  end
+
+  config.wrappers :login_form, error_class: 'has-error' do |b|
+    b.use :html5
+    b.use :placeholder
+    b.use :label, class: 'sr-only'
+    b.use :input, class: 'form-control'
+  end
+
+  config.wrappers :login_boolean, error_class: 'has-error' do |b|
+    b.use :html5
+    b.optional :readonly
+
+    b.wrapper tag: 'div', class: 'checkbox' do |wr|
+      wr.use :label_input
+    end
   end
 
   # Wrappers for forms and inputs using the Bootstrap toolkit.
