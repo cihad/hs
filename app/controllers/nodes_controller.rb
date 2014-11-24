@@ -47,6 +47,7 @@ class NodesController < ApplicationController
     end
 
     def node
-      @node = Node.includes(:author).find(params[:id])
+      @node = Node.includes(:author, :comments).find(params[:id])
+      # byebug
     end
 end

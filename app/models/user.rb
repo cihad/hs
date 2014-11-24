@@ -14,6 +14,7 @@ class User < ActiveRecord::Base
 
   # Associations
   has_many :nodes, dependent: :nullify
+  has_many :comments, dependent: :nullify
 
   def name
     "#{first_name} #{last_name}"

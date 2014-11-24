@@ -53,6 +53,8 @@ tr:
         password_confirmation: "Parola tekrar"
         current_password: "Şimdiki parola"
         remember_me: "Hatırla beni"
+      comment:
+        body: "Yorum"
       node_image:
         _destroy: "Sil"
 

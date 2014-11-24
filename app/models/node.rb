@@ -12,6 +12,7 @@ class Node < ActiveRecord::Base
   has_many :images, -> { order 'node_images.position' }, through: :node_images
   include Taggable
   belongs_to :author, class_name: "User"
+  has_many :comments, dependent: :destroy
 
   # Workflow
   include Workflow
