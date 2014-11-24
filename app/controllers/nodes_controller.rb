@@ -7,12 +7,12 @@ class NodesController < ApplicationController
   end
 
   def new
-    @node = Node.new
+    @node = Node.new author: current_user
     5.times { @node.node_images.build.build_image }
   end
 
   def create
-    @node = Node.new(node_params)
+    @node = current_user.nodes.new(node_params)
 
     if @node.save
       redirect_to @node, notice: I18n.t('nodes.flash.created')
@@ -47,6 +47,6 @@ class NodesController < ApplicationController
     end
 
     def node
-      @node = Node.find(params[:id])
+      @node = Node.includes(:author).find(params[:id])
     end
 end

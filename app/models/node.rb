@@ -11,6 +11,7 @@ class Node < ActiveRecord::Base
     allow_destroy: true
   has_many :images, -> { order 'node_images.position' }, through: :node_images
   include Taggable
+  belongs_to :author, class_name: "User"
 
   # Workflow
   include Workflow

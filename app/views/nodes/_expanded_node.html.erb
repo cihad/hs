@@ -1,7 +1,7 @@
 <div class="row">
   <div class="col-md-1 col-sm-1 node-left">
-    <%= image_tag "user.jpg", class: "img-circle img-responsive" %>
-    <a href="#">Demostration</a><br>
+    <%= image_tag gravatar_url_for(node.author.email), class: "img-circle img-responsive" %>
+    <%= node.author.username %><br>
     <%= time_tag node.created_at %>
   </div>
 

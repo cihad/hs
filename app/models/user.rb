@@ -12,6 +12,9 @@ class User < ActiveRecord::Base
 
   before_create :downcase_username
 
+  # Associations
+  has_many :nodes, dependent: :nullify
+
   def name
     "#{first_name} #{last_name}"
   end

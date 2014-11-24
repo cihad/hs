@@ -16,6 +16,11 @@ module ApplicationHelper
     render layout: 'box', &block
   end
 
+  def gravatar_url_for email, size = 120
+    hash = Digest::MD5.hexdigest(email)
+    "http://www.gravatar.com/avatar/#{hash}?size=#{size}"
+  end
+
   def submit_button f: nil, button_text: nil
     render 'submit_button', f: f, button_text: button_text
   end
