@@ -1,6 +1,6 @@
 <% if user_signed_in? %>
 
-  <div class="row">
+  <div class="row fragment">
     <%= simple_form_for [@node, @node.comments.build(author: current_user)],
                         wrapper: :vertical_form,
                         html: { class: 'form-vertial' } do |f| %>
