@@ -16,6 +16,9 @@ class User < ActiveRecord::Base
   has_many :nodes, dependent: :nullify
   has_many :comments, dependent: :nullify
 
+  # default role is authenticated
+  enum role: [:anonymous, :authenticated, :admin, :superadmin]
+
   def name
     "#{first_name} #{last_name}"
   end
