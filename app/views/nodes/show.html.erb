@@ -3,5 +3,9 @@
 <div class="page">
   <%= render partial: "expanded_node", locals: { node: @node } %>
   <%= render @node.comments %>
-  <%= render 'comments/form' %>
+  <% if user_signed_in? %>
+    <%= render 'comments/form' %>
+  <% else %>
+    <%= render 'comments/user_not_signed_in' %>
+  <% end %>
 </div>

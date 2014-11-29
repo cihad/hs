@@ -1,5 +1,5 @@
 <%= div_for comment, class: "row fragment" do %>
-  <div class="col-md-1 col-sm-1 node-left">
+  <div class="col-md-1 col-sm-1 hidden-xs node-left">
     <%= image_tag gravatar_url_for(comment.author.email), class: "img-circle img-responsive" %>
     <%#= time_tag comment.created_at %>
   </div>

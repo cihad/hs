@@ -1,0 +1,13 @@
+<div class="row fragment hidden-print">
+  <div class="col-md-1 col-sm-1 hidden-xs node-left">
+    <%= image_tag "user.jpg", class: "img-circle img-responsive" %>
+  </div>
+
+  <div class="col-md-11 col-sm-11 col-xs-12">
+    <%= bubble_box do %>
+      <article>
+        Yorum yapabilmek icin <%= link_to t('sessions.login'), new_user_session_path %>
+      </article>
+    <% end %>
+  </div>
+</div>
