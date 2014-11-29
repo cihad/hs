@@ -1,5 +1,5 @@
 <%= div_for image, class: "thumbnail" do %>
-  <%= image_tag image.image_url,
+  <%= image_tag image.image_url(:medium),
                 class: "img-responsive",
                 alt: image.title,
                 title: image.title %>
