@@ -1,15 +1,25 @@
-<div class="row fragment">
+<%= div_for comment, class: "row fragment" do %>
   <div class="col-md-1 col-sm-1 node-left">
     <%= image_tag gravatar_url_for(comment.author.email), class: "img-circle img-responsive" %>
-    <%= comment.author.username %><br>
     <%#= time_tag comment.created_at %>
   </div>
 
   <div class="col-md-11 col-sm-11">
     <%= bubble_box do %>
       <article>
-        <%= markdown comment.body %>
+        <%= markdown comment.author.username + ": " + comment.body %>
       </article>
+
+      <div class="meta text-muted">
+        <%= link_to "##{comment.id}",
+                    node_path(comment.node, anchor: dom_id(comment)) %>
+
+        <%= time_tag comment.created_at, title: comment.created_at do %>
+          <%= t 'time.ago', time: time_ago_in_words(comment.created_at) %>
+        <% end %>
+
+      </div>
+
     <% end %>
   </div>
-</div>
+<% end %>
