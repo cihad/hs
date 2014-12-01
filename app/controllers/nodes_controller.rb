@@ -12,7 +12,9 @@ class NodesController < ApplicationController
   end
 
   def create
-    @node = current_user.nodes.new(node_params)
+    @node = Node.new(node_params).tap do |n|
+      n.author = current_user
+    end
 
     if @node.save
       redirect_to @node, notice: I18n.t('nodes.flash.created')
