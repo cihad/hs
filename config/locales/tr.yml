@@ -1,11 +1,5 @@
 tr:
   site_name: "HALKINSESİ"
-  home: "Anasayfa"
-  education: "Eğitim"
-  news: "Haber"
-  forum: "Forum"
-  file_archive: "Dosya Arşivi"
-  desk: "HİMER"
 
   time:
     today: "Bugün"

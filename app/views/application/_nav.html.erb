@@ -12,15 +12,6 @@
     </div>
 
     <div class="navbar-collapse collapse" id="navbar">
-      <ul class="nav navbar-nav">
-        <li class="<%= "active" if is_active_page_current? %>"><%= link_to t('home'), root_path %></li>
-        <li><p class="navbar-text"><%= t 'forum' %></p></li>
-        <li><p class="navbar-text"><%= t 'news' %></p></li>
-        <li><p class="navbar-text"><%= t 'desk' %></p></li>
-        <li><p class="navbar-text"><%= t 'file_archive' %></p></li>
-        <li><p class="navbar-text"><%= t 'education' %></p></li>
-      </ul>
-
       <ul class="nav navbar-nav navbar-right">
         <% if user_signed_in? %>
           <li class="dropdown">
