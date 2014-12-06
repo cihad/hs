@@ -1,7 +1,9 @@
-<div class="thumbnail" id="image_<%= i.object.id %>">
-  <%= image_tag i.object.image_url(:thumb) %>
-  <div class="caption">
-    <p><%= i.object.title %></p>
+<div class="thumbnail fileinput" id="image_<%= i.object.id %>">
+  <div class="thumbnail">
+    <%= image_tag i.object.image_url(:thumb) %>
+  </div>
+  <div>
+    <%= text_field_tag 'persisted_image', i.object.title, class: "form-control input-sm", readonly: true %>
     <p><%= ni.check_box :_destroy %> <%= ni.label :_destroy %></p>
   </div>
 </div>
