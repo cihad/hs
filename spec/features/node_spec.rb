@@ -3,6 +3,9 @@ require 'rails_helper'
 RSpec.describe "Node process", type: :feature do
   
   it "creates a new node" do
+    user = create(:user)
+    login_as(user, :scope => :user)
+
     expect {
       visit new_node_path
       fill_in "node_title", with: "Dynamic Branding Facilitator"

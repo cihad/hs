@@ -28,12 +28,16 @@ group :development, :test do
   gem 'web-console', '~> 2.0.0.beta4'
   gem 'spring'
   gem 'spring-commands-rspec', '~> 1.0.0'
+  gem 'awesome_print'
+end
+
+group :test do
   gem 'rspec-rails', '~> 3.0.0'
   gem 'factory_girl_rails', '~> 4.4'
   gem 'capybara', '~> 2.4'
   gem 'shoulda-matchers', '~> 2.7', require: false
-  gem 'awesome_print'
   gem 'capybara-webkit', '1.3.1'
+  gem 'launchy', '~> 2.4'
 end
 
 group :development do
