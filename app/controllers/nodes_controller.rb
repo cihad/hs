@@ -7,6 +7,7 @@ class NodesController < ApplicationController
   end
 
   def new
+    authorize Node
     @node = Node.new author: current_user
     5.times { @node.node_images.build.build_image }
   end
