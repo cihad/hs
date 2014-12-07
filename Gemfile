@@ -21,6 +21,7 @@ gem 'redcarpet', '~> 3.2.0'
 gem 'turkish_support'
 gem 'devise', '~> 3.4'
 gem 'pundit', '~> 0.3'
+gem 'nprogress-rails'
 
 group :development, :test do
   gem 'byebug'
