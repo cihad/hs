@@ -55,6 +55,7 @@ tr:
   nodes:
     flash:
       created: "Yeni haber başarıyla eklendi."
+      updated: "Güncellendi."
     index:
       status: "Durum"
       nodes: "Haberler"
