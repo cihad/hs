@@ -81,7 +81,7 @@ tr:
   sessions:
     login: "Giriş yap"
     logout: "Çıkış yap"
-    forgot_password: "Parolanı mı unuttun?"
+    forgot_password: "Unuttun mu?"
     send_reset_password_instructions: "Parola sıfırlama talimatlarını gönder"
 
   registrations:
