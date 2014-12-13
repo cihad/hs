@@ -16,7 +16,7 @@ module ApplicationHelper
     render layout: 'box', &block
   end
 
-  def gravatar_url_for email, size = 120
+  def gravatar_url_for email, size: 120
     hash = Digest::MD5.hexdigest(email)
     "http://www.gravatar.com/avatar/#{hash}?size=#{size}"
   end
