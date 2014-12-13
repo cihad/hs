@@ -31,7 +31,9 @@
             <div class="checkbox pull-left">
               <label>
                 <%= f.check_box :remember_me %>
-                Remember me
+                <abbr title="<%= t 'sessions.remember_me_info' %>">
+                  <%= t 'sessions.remember_me' %>
+                </abbr>
               </label>
             </div>
 

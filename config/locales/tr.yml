@@ -46,7 +46,6 @@ tr:
         password: "Parola"
         password_confirmation: "Parola tekrar"
         current_password: "Şimdiki parola"
-        remember_me: "Hatırla beni"
       comment:
         body: "Yorum"
       node_image:
@@ -83,6 +82,8 @@ tr:
     logout: "Çıkış yap"
     forgot_password: "Unuttun mu?"
     send_reset_password_instructions: "Parola sıfırlama talimatlarını gönder"
+    remember_me: "Hatırla beni"
+    remember_me_info: "Bunu işaretlemeniz halinde bir dahaki siteye ziyaretinizde sizi hatırlayacağız."
 
   registrations:
     register: "Kaydol"
