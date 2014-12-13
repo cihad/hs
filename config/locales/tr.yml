@@ -89,7 +89,7 @@ tr:
     edit: "Bilgilerimi güncelle"
     avatar: "Avatar"
     change_avatar:
-      html: "Avatar resminizi <a href='gravatar.com'>gravatar.com</a>'dan alıyoruz. Buradan değiştirebilirsiniz."
+      html: "Avatar resminizi <a href='http://gravatar.com'>gravatar.com</a>'dan alıyoruz. Buradan değiştirebilirsiniz."
 
 
 
