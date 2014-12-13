@@ -28,11 +28,21 @@ class NodesController < ApplicationController
   end
 
   def edit
+    @node.review! if @node.awaiting_review?
     5.times { @node.node_images.build.build_image }
   end
 
   def update
     if @node.update(node_params)
+      # fix
+      case params[:commit]
+      when "review"
+        @node.review!
+      when "accept"
+        @node.accept!
+      when "reject"
+        @node.reject!
+      end
       redirect_to @node, notice: I18n.t('nodes.flash.updated')
     else
       render action: :new

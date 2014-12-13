@@ -3,6 +3,7 @@
 <%= simple_form_for :node_filter,
                     url: administration_nodes_path,
                     method: :get,
+                    wrapper: :inline_form,
                     html: {class: "form-inline"} do |f| %>
 
   <%= f.input :status,
@@ -27,10 +28,12 @@
       <td><%=t "nodes.status.#{node.status}" %></td>
       <td class="actions">
         <% node.current_state.events.each do |event, _| %>
-          <%= button_to t("nodes.events.#{event}"),
-                        administration_node_path(node, event: event),
+          <%= button_to administration_node_path(node, event: event),
                         method: :put,
-                        class: "btn btn-default btn-xs" %>
+                        class: "btn btn-#{event} btn-xs" do %>
+            <span class="glyphicon glyphicon-<%= event %>" aria-hidden="true"></span>
+            <%= t "nodes.events.#{event}" %>
+          <% end -%>
         <% end %>
       </td>
     <% end %>

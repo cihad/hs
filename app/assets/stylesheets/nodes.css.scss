@@ -46,3 +46,27 @@
 .page .fragment {
   margin-bottom: 20px;
 }
+
+.btn-review {
+  @extend .btn-primary;
+}
+
+.btn-accept {
+  @extend .btn-success;
+}
+
+.btn-reject {
+  @extend .btn-danger;
+}
+
+.glyphicon-review {
+  @extend .glyphicon-eye-open;
+}
+
+.glyphicon-accept {
+  @extend .glyphicon-ok;
+}
+
+.glyphicon-reject {
+  @extend .glyphicon-remove;
+}
