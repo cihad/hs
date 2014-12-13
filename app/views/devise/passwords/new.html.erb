@@ -1,18 +1,28 @@
-<h2><%= t 'sessions.forgot_password' %></h2>
+<div class="row">
+  <div class="col-sm-6 col-sm-offset-3">
+    <div class="panel panel-default panel-login">
+      <div class="panel-body">
 
-<%= simple_form_for resource,
-                    as: resource_name,
-                    url: password_path(resource_name),
-                    wrapper: :horizontal_form,
-                    html: { 
-                      class: "form-horizontal",
-                      method: :post } do |f| %>
 
-  <%= f.error_notification %>
+        <h2><%= t 'sessions.forgot_password' %></h2>
 
-  <%= f.input :email, required: true, autofocus: true %>
+        <%= simple_form_for resource,
+                            as: resource_name,
+                            url: password_path(resource_name),
+                            wrapper: :inline_form,
+                            html: { 
+                              class: "form-inline",
+                              method: :post } do |f| %>
 
-  <%= submit_button f: f, button_text: t('sessions.send_reset_password_instructions') %>
-<% end %>
+          <%= f.error_notification %>
 
-<%= render "devise/shared/links" %>
+          <%= f.input :email, required: true, autofocus: true %>
+
+          <%= f.button :submit, t('sessions.send_reset_password_instructions') %>
+        <% end %>
+
+      </div>
+    </div>
+    <%= render "devise/shared/links" %>
+  </div>
+</div>
