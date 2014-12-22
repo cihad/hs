@@ -1,7 +1,7 @@
 module ApplicationHelper
 
   def full_title page_title
-    page_title.empty? ? t('site_name') : "#{page_title} - #{t('site_name')}"
+    page_title.empty? ? t('site_name') : "#{page_title} - #{t('site_name')}".html_safe
   end
 
   def title title
