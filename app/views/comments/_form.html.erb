@@ -1,7 +1,7 @@
 <% if user_signed_in? %>
 
   <div class="row fragment hidden-print">
-    <%= simple_form_for [@node, @node.comments.build(author: current_user)],
+    <%= simple_form_for [@node, (@comment or @node.comments.build(author: current_user))],
                         wrapper: :vertical_form,
                         html: { class: 'form-vertial' } do |f| %>
       <div class="col-md-1 col-sm-1 hidden-xs node-left">

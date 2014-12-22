@@ -9,6 +9,11 @@ class ApplicationController < ActionController::Base
   # Pundit
   include Pundit
 
+  helper_method :comment_path
+  def comment_path comment
+    node_path comment.node, anchor: "comment_#{comment.id}"
+  end
+
 
   protected
 

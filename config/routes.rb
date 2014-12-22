@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   root "nodes#index"
 
   resources :nodes do
-    resources :comments, only: [:create, :update, :destroy]
+    resources :comments, only: [:create, :edit, :update, :destroy]
   end
 
   resources :comments, only: :show
