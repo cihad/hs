@@ -9,9 +9,7 @@ class CommentPolicy < Struct.new(:current_user, :comment)
   end
 
   def update?
-    (current_user == comment.author) or
-      current_user.try(:admin?) or
-        current_user.try(:superadmin?)
+    comment.owner?(current_user) or current_user.manager?
   end
 
   def edit?

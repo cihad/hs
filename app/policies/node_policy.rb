@@ -4,12 +4,17 @@ class NodePolicy < Struct.new(:current_user, :node)
     create?
   end
 
+  def update?
+    node.owner?(current_user) or
+      current_user.chef?(node.author)
+  end
+
+  def edit?
+    update?
+  end
+
   def create?
-    current_user.present? \
-      and
-    (current_user.authenticated? or
-      current_user.admin? or
-        current_user.superadmin?)
+    current_user.present? and current_user.manager?
   end
 
 end

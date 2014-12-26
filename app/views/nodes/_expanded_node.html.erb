@@ -17,7 +17,13 @@
       </article>
       <div class="meta text-muted">
         <%= time_tag node.created_at %>
+
         <%= render node.tags %>
+
+        <% if policy(node).edit? %>
+          <%= link_to t('common.edit'), edit_node_path(node) %>
+        <% end %>
+
       </div>
     <% end %>
     

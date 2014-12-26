@@ -12,15 +12,15 @@
 
       <div class="meta text-muted">
         <%= link_to "##{comment.id}", comment_path(comment) %>
-        <% if policy(comment).edit? %>
-          <%= link_to t('comments.edit.name'),
-                      edit_node_comment_path(comment.node, comment) %>
-        <% end %>
 
         <%= time_tag comment.created_at, title: comment.created_at do %>
           <%= t 'time.ago', time: time_ago_in_words(comment.created_at) %>
         <% end %>
 
+        <% if policy(comment).edit? %>
+          <%= link_to t('common.edit'),
+                      edit_node_comment_path(comment.node, comment) %>
+        <% end %>
       </div>
 
     <% end %>

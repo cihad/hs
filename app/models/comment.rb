@@ -6,4 +6,8 @@ class Comment < ActiveRecord::Base
 
   # Validations
   validates :body, :author_id, :node_id, presence: true
+
+  def owner? user
+    author_id == user.try(:id)
+  end
 end

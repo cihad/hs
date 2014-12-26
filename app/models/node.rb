@@ -35,4 +35,8 @@ class Node < ActiveRecord::Base
       event :accept, transitions_to: :published
     end
   end
+
+  def owner? user
+    author_id == user.try(:id)
+  end
 end

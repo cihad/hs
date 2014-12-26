@@ -1,4 +1,7 @@
 class User < ActiveRecord::Base
+
+  include Comparable
+
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable,
@@ -21,6 +24,18 @@ class User < ActiveRecord::Base
 
   def name
     "#{first_name} #{last_name}"
+  end
+
+  def manager?
+    admin? or superadmin?
+  end
+
+  def <=> other_user
+    self.class.roles[role] <=> self.class.roles[other_user.role]
+  end
+
+  def chef? other_user
+    self > other_user
   end
 
 

@@ -1,6 +1,9 @@
 tr:
   site_name: "HALKINSESİ"
 
+  common:
+    edit: "Düzenle"
+
   time:
     today: "Bugün"
     ago: "%{time} önce"
