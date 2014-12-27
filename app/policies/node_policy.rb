@@ -6,7 +6,7 @@ class NodePolicy < Struct.new(:current_user, :node)
 
   def update?
     node.owner?(current_user) or
-      current_user.chef?(node.author)
+      current_user.try(:chef?, node.author)
   end
 
   def edit?
