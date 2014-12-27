@@ -14,6 +14,10 @@ class ApplicationController < ActionController::Base
     node_path comment.node, anchor: "comment_#{comment.id}"
   end
 
+  def current_user
+    @current_user ||= super || AnonymousUser.new(role: "anonymous")
+  end
+
 
   protected
 

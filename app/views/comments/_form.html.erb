@@ -1,23 +1,20 @@
-<% if user_signed_in? %>
+<div class="row fragment hidden-print">
+  <%= simple_form_for [@node, (@comment or @node.comments.build(author: current_user))],
+                      wrapper: :vertical_form,
+                      html: { class: 'form-vertial' } do |f| %>
+    <div class="col-md-1 col-sm-1 hidden-xs node-left">
+      <%= image_tag gravatar_url_for(current_user.email), class: "img-circle img-responsive" %>
+      <%#= comment.author.username %><br>
+      <%#= time_tag comment.created_at %>
+    </div>
 
-  <div class="row fragment hidden-print">
-    <%= simple_form_for [@node, (@comment or @node.comments.build(author: current_user))],
-                        wrapper: :vertical_form,
-                        html: { class: 'form-vertial' } do |f| %>
-      <div class="col-md-1 col-sm-1 hidden-xs node-left">
-        <%= image_tag gravatar_url_for(current_user.email), class: "img-circle img-responsive" %>
-        <%#= comment.author.username %><br>
-        <%#= time_tag comment.created_at %>
-      </div>
-
-      <div class="col-md-11 col-sm-11 col-xs-12">
-        <%= bubble_box do %>
-            <%= f.error_notification %>
-            <%= f.input :body %>
-            <%= f.button :submit %>
-        <% end %>
-      </div>
-    <% end %>
-  </div>
-<% end %>
+    <div class="col-md-11 col-sm-11 col-xs-12">
+      <%= bubble_box do %>
+          <%= f.error_notification %>
+          <%= f.input :body %>
+          <%= f.button :submit %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
 

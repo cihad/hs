@@ -1,7 +1,7 @@
 class DashboardPolicy < ApplicationPolicy
 
   def show?
-    user.present? and user.manager?
+    user.manager?
   end
 
 end

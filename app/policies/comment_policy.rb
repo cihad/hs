@@ -5,7 +5,7 @@ class CommentPolicy < Struct.new(:current_user, :comment)
   end
 
   def create?
-    current_user.present?
+    current_user.registered?
   end
 
   def update?

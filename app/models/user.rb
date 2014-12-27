@@ -38,6 +38,9 @@ class User < ActiveRecord::Base
     self > other_user
   end
 
+  def registered?
+    !anonymous?
+  end
 
 private
   
