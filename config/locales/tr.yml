@@ -3,6 +3,7 @@ tr:
 
   common:
     edit: "Düzenle"
+    are_you_sure: "Emin misiniz?"
 
   time:
     today: "Bugün"
@@ -97,6 +98,8 @@ tr:
     edit: "Bilgilerimi güncelle"
     minimum_password_length: "En az %{length} karakter"
     avatar: "Avatar"
+    cancel_my_account: "Hesabımı sil"
+    unhappy: "Mutsuz musun?"
     change_avatar:
       html: "Avatar resminizi <a href='http://gravatar.com'>gravatar.com</a>'dan alıyoruz. Buradan değiştirebilirsiniz."
 
