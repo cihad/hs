@@ -1,7 +1,15 @@
 <%= title "Nodes" %>
 
-<div class="list">
-  <%= box do %>
+
+<div class="panel panel-default">
+  <table class="table">
+    <tr>
+      <th><%= t 'common.title' %></th>
+      <th><%= t 'comments.comment_count' %></th>
+      <th><%= t 'common.user' %></th>
+      <th><%= t 'common.created_at' %></th>
+
+    </tr>
     <%= render @nodes %>
-  <% end %>
+  </table>
 </div>

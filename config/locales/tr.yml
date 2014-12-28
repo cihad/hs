@@ -4,6 +4,9 @@ tr:
   common:
     edit: "Düzenle"
     are_you_sure: "Emin misiniz?"
+    title: "Başlık"
+    user: "Kullanıcı"
+    created_at: "Eklenme tarihi"
 
   time:
     today: "Bugün"
@@ -74,6 +77,10 @@ tr:
       reject: "Reddet"
 
   comments:
+    comment_count: "Yorum sayısı"
+    zero: "0 yorum"
+    one: "1 yorum"
+    other: "%{count} yorum"
     edit:
       title: "Yorumu düzenle"
       name: "Düzenle"

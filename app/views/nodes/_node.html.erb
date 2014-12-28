@@ -1,30 +1,23 @@
-<%= div_for node, class: "row fragment" do %>
-  <div class="col-md-2">
-    <% if node.images.count >= 1 %>
-      <%= link_to node do %>
-        <%= image_tag node.images.first.image_url(:thumb),
-                      alt: node.images.first.title,
-                      title: node.title,
-                      class: "img-rounded img-responsive" %>
-      <% end %>
-    <% else %>
-      <div class="img-rounded no-image bg-primary"><%= t 'images.noimage' %></div>
-    <% end %>
-  </div>
-
-  <div class="col-md-9 node-body">
-    <h2 class="node-title">
-      <%= link_to node.title, node %>
-      <% node.created_at.tap do |created_at| %>
-        <%= time_tag created_at, class: "small" do %>
-          <% if created_at.today? %>
-            <%= t 'time.today' %>
-            <%= l created_at, format: :time %>
-          <% else %>
-            <%= l created_at, format: :summary %>
-          <% end %>
+<%= content_tag_for :tr, node do %>
+  <td>
+    <%= link_to node.title, node %>
+  </td>
+  <td>
+    <%= I18n.translate :comments, count: node.comments.count %>
+  </td>
+  <td>
+    <%= node.author.username %>
+  </td>
+  <td>
+    <% node.created_at.tap do |created_at| %>
+      <%= time_tag created_at do %>
+        <% if created_at.today? %>
+          <%= t 'time.today' %>
+          <%= l created_at, format: :time %>
+        <% else %>
+          <%= l created_at, format: :summary %>
         <% end %>
       <% end %>
-    </h2>
-  </div>
+    <% end %>
+  </td>
 <% end %>
