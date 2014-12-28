@@ -9,7 +9,6 @@ RSpec.describe "Node process", type: :feature do
     expect {
       visit new_node_path
       fill_in "node_title", with: "Dynamic Branding Facilitator"
-      fill_in "node_tldr",  with: "Animi tempora ad magni provident enim ex est."
       fill_in "node_body",  with: "Aut iure blanditiis impedit earum. Porro vel molestias temporibus. Voluptatem ea et aut quaerat illum est.\n\nnPorro aliquid neque. Inventore nemo dolores non quia. Voluptatem recusandae vero nesciunt exercitationem sunt. Rerum laboriosam labore. Velit aliquid provident suscipit dolorem qui.\n\nVoluptatum earum exercitationem et optio. Autem suscipit aut impedit quia et. Possimus ut aut ipsam."
       fill_in "node_tag_list",  with: "Dynamic, Branding, Facilitator"
       attach_file "node_node_images_attributes_1_image_attributes_image", "#{images_dir}/sample_image_1.jpg"

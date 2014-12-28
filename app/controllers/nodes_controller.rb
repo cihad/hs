@@ -55,7 +55,7 @@ class NodesController < ApplicationController
   private
 
     def node_params
-      params.require(:node).permit(:title, :tldr, :body, :tag_list,
+      params.require(:node).permit(:title, :body, :tag_list,
         node_images_attributes: [:_destroy, :id, image_attributes: [:id, :image, :title]])
     end
 

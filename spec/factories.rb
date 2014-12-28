@@ -12,7 +12,6 @@ FactoryGirl.define do
 
   factory :node do
     title Faker::Name.title
-    tldr  Faker::Lorem.paragraph
     body  Faker::Lorem.paragraphs.join("\n\n")
     author 
 

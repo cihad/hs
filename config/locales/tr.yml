@@ -38,7 +38,6 @@ tr:
       node:
         title: "Başlık"
         body: "Gövde"
-        tldr: "Tldr"
         tag_list: "Etiketler"
         images: "Görseller"
       user:

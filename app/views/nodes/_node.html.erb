@@ -1,5 +1,4 @@
 <%= div_for node, class: "row fragment" do %>
-
   <div class="col-md-2">
     <% if node.images.count >= 1 %>
       <%= link_to node do %>
@@ -20,14 +19,12 @@
         <%= time_tag created_at, class: "small" do %>
           <% if created_at.today? %>
             <%= t 'time.today' %>
-            <%= l node.created_at, format: :time %>
+            <%= l created_at, format: :time %>
           <% else %>
-            <%= l(node.created_at, format: :summary)  %>
+            <%= l created_at, format: :summary %>
           <% end %>
         <% end %>
       <% end %>
     </h2>
-
-    <p><%= node.tldr %></p>
   </div>
 <% end %>
