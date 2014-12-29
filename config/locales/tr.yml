@@ -2,11 +2,15 @@ tr:
   site_name: "HALKINSESİ"
 
   common:
+    homepage: "Anasayfa"
     edit: "Düzenle"
     are_you_sure: "Emin misiniz?"
     title: "Başlık"
     user: "Kullanıcı"
     created_at: "Eklenme tarihi"
+
+  administration:
+    name: "Yönetim"
 
   time:
     today: "Bugün"
@@ -58,14 +62,20 @@ tr:
         _destroy: "Sil"
 
   nodes:
+    name: "Düğümler"
     flash:
       created: "Yeni haber başarıyla eklendi."
       updated: "Güncellendi."
+    new:
+      new_node: "Yeni düğüm"
+      add_new_node: "Yeni düğüm ekle"
     index:
       status: "Durum"
       nodes: "Haberler"
       node: "Haber"
       actions: "Aksiyonlar"
+    edit:
+      edit_node: "Düğümü düzenle"
     status:
       awaiting_review: "İnceleme gerekiyor"
       being_reviewed: "İnceleniyor"
@@ -96,6 +106,7 @@ tr:
     login: "Giriş yap"
     logout: "Çıkış yap"
     forgot_password: "Unuttun mu?"
+    reset_password: "Parola sıfırlama"
     send_reset_password_instructions: "Parola sıfırlama talimatlarını gönder"
     remember_me: "Hatırla beni"
     remember_me_info: "Bunu işaretlemeniz halinde bir dahaki siteye ziyaretinizde sizi hatırlayacağız."
