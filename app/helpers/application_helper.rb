@@ -1,11 +1,19 @@
 module ApplicationHelper
 
   def full_title page_title
-    page_title.empty? ? t('site_name') : "#{page_title} - #{t('site_name')}".html_safe
+    page_title.empty? ? t('site.name') : "#{page_title} - #{t('site.name')}".html_safe
   end
 
   def title title
     provide :title, title
+  end
+
+  def description description
+    provide :description, description
+  end
+
+  def safe str
+    str.html_safe
   end
 
   def bubble_box &block

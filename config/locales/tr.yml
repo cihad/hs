@@ -1,5 +1,7 @@
 tr:
-  site_name: "HALKINSESİ"
+  site:
+    description: "HalkınSesi ile çözümler paylaşıldıkça çoğalır, sorunlar paylaşıldıkça azalır."
+    name: "HalkınSesi"
 
   common:
     homepage: "Anasayfa"
