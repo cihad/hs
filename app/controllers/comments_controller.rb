@@ -12,7 +12,7 @@ class CommentsController < ApplicationController
     end
 
     @comment.save
-    redirect_to @node, notice: "Comment created."
+    redirect_to @node, notice: I18n.t('comments.flash.created')
   end
 
   def edit

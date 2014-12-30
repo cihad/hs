@@ -89,6 +89,8 @@ tr:
       reject: "Reddet"
 
   comments:
+    flash:
+      created: "Yorum eklendi."
     comment_count: "Yorum sayısı"
     zero: "0 yorum"
     one: "1 yorum"
