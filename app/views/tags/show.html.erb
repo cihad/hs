@@ -4,6 +4,4 @@
   <h2><%= @tag.name %></h2>
 </div>
 
-<%= box do %>
-  <%= render @tag.nodes %>
-<% end %>
+<%= list_nodes @tag.nodes %>

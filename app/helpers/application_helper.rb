@@ -12,10 +12,9 @@ module ApplicationHelper
     provide :description, description
   end
 
-  def safe str
-    str.html_safe
+  def list_nodes nodes
+    render 'nodes/node_list', nodes: nodes
   end
-
   def bubble_box &block
     render layout: 'bubble_box', &block
   end

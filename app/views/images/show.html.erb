@@ -12,6 +12,4 @@
   <h2><%= t 'images.used_nodes' %></h2>
 </div>
 
-<%= box do %>
-  <%= render @image.nodes %>
-<% end %>
+<%= list_nodes @image.nodes %>
