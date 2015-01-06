@@ -23,6 +23,9 @@
               <li><%= link_to t('registrations.edit'), edit_user_registration_path %></li>
               <li class="divider"></li>
               <% if current_user.registered? %>
+                <% if policy(:dashboard).show? %>
+                  <li><%= link_to t('administration.name'), administration_path %></li>
+                <% end %>
                 <li><%= link_to t('sessions.logout'), destroy_user_session_path, method: :delete %></li>
               <% else %>
                 <li><%= link_to t('sessions.login'), new_user_session_path %></li>

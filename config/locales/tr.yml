@@ -12,9 +12,6 @@ tr:
     created_at: "Eklenme tarihi"
     actions: "Aksiyonlar"
 
-  administration:
-    name: "Yönetim"
-
   time:
     today: "Bugün"
     ago: "%{time} önce"
@@ -138,6 +135,7 @@ tr:
 
 
   administration:
+    name: "Yönetim"
     users:
       flash:
         updated: "Kullanıcı güncellendi."
