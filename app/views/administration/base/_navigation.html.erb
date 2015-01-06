@@ -6,4 +6,8 @@
     <span class="badge"><%= Node.count %></span>
     <%= link_to_unless_current t('nodes.index.nodes'), administration_nodes_path %>
   </li>
+  <li class="list-group-item">
+    <span class="badge"><%= User.count %></span>
+    <%= link_to_unless_current t('users.users'), administration_users_path %>
+  </li>
 </ul>

@@ -10,6 +10,7 @@ tr:
     title: "Başlık"
     user: "Kullanıcı"
     created_at: "Eklenme tarihi"
+    actions: "Aksiyonlar"
 
   administration:
     name: "Yönetim"
@@ -88,6 +89,16 @@ tr:
       accept: "Yayınla"
       reject: "Reddet"
 
+  users:
+    users: "Kullanıcılar"
+    email: "Eposta"
+    name: "İsim"
+    username: "Kullanıcı adı"
+    index:
+      created_at: "Üyelik zamanı"
+      role: "Rol"
+      email: "Rol"
+
   comments:
     flash:
       created: "Yorum eklendi."
@@ -126,6 +137,10 @@ tr:
       html: "Avatar resminizi <a href='http://gravatar.com'>gravatar.com</a>'dan alıyoruz. Buradan değiştirebilirsiniz."
 
 
+  administration:
+    users:
+      flash:
+        updated: "Kullanıcı güncellendi."
 
   simple_form:
     "yes": "Evet"
