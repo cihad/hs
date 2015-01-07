@@ -13,7 +13,7 @@ class NodePolicy < Struct.new(:current_user, :node)
   end
 
   def create?
-    current_user.manager?
+    current_user.is_greater_than? :anonymous
   end
 
 end

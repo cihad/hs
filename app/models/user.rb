@@ -34,6 +34,10 @@ class User < ActiveRecord::Base
     self.class.roles[role] <=> self.class.roles[other_user.role]
   end
 
+  def is_greater_than? target_role
+    self.class.roles[role] > self.class.roles[target_role]
+  end
+
   def chef? other_user
     self > other_user
   end
