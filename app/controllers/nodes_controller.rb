@@ -1,6 +1,6 @@
 class NodesController < ApplicationController
 
-  before_filter :node, only: [:show, :edit, :update]
+  before_filter :node, only: [:show, :edit, :update, :destroy]
 
   def index
     @nodes = Node.with_published_state.order(created_at: :desc)
@@ -13,6 +13,7 @@ class NodesController < ApplicationController
   end
 
   def create
+    authorize Node
     @node = Node.new(node_params).tap do |n|
       n.author = current_user
     end
@@ -28,11 +29,13 @@ class NodesController < ApplicationController
   end
 
   def edit
+    authorize @node
     @node.review! if @node.awaiting_review?
     5.times { @node.node_images.build.build_image }
   end
 
   def update
+    authorize @node
     if @node.update(node_params)
       # fix
       case params[:commit]
@@ -50,6 +53,9 @@ class NodesController < ApplicationController
   end
 
   def destroy
+    authorize @node
+    @node.destroy
+    redirect_to root_path, notice: I18n.t('nodes.flash.destroyed')
   end
 
   private

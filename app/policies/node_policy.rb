@@ -16,4 +16,8 @@ class NodePolicy < Struct.new(:current_user, :node)
     current_user.is_greater_than? :anonymous
   end
 
+  def destroy?
+    node.owner?(current_user) or current_user.manager?
+  end
+
 end

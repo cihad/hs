@@ -6,6 +6,7 @@ tr:
   common:
     homepage: "Anasayfa"
     edit: "Düzenle"
+    delete: "Sil"
     are_you_sure: "Emin misiniz?"
     title: "Başlık"
     user: "Kullanıcı"
@@ -66,6 +67,7 @@ tr:
     flash:
       created: "Yeni haber başarıyla eklendi."
       updated: "Güncellendi."
+      destroyed: "Düğüm ve düğüme bağlı yorumlar silindi."
     new:
       new_node: "Yeni düğüm"
       add_new_node: "Yeni düğüm ekle"
