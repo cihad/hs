@@ -34,6 +34,17 @@
             <span class="glyphicon glyphicon-<%= event %>" aria-hidden="true"></span>
             <%= t "nodes.events.#{event}" %>
           <% end -%>
+
+          <% if policy(node).destroy? %>
+            <%= link_to [:administration, node],
+                        method: :delete,
+                        data: { confirm: t('common.are_you_sure') },
+                        class: "btn btn-danger btn-xs" do %>
+              
+              <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+              <%= t 'common.delete' %>
+            <% end %>
+          <% end %>
         <% end %>
       </td>
     <% end %>

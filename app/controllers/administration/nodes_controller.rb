@@ -20,5 +20,12 @@ module Administration
 
       redirect_to redirect_path
     end
+
+    def destroy
+      @node = Node.find params[:id]
+      authorize @node
+      @node.destroy
+      redirect_to administration_nodes_path, notice: I18n.t('nodes.flash.destroyed')
+    end
   end
 end
