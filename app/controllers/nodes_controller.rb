@@ -37,15 +37,6 @@ class NodesController < ApplicationController
   def update
     authorize @node
     if @node.update(node_params)
-      # fix
-      case params[:commit]
-      when "review"
-        @node.review!
-      when "accept"
-        @node.accept!
-      when "reject"
-        @node.reject!
-      end
       redirect_to @node, notice: I18n.t('nodes.flash.updated')
     else
       render action: :new
@@ -61,8 +52,7 @@ class NodesController < ApplicationController
   private
 
     def node_params
-      params.require(:node).permit(:title, :body, :tag_list,
-        node_images_attributes: [:_destroy, :id, image_attributes: [:id, :image, :title]])
+      params.require(:node).permit(*policy(@node || Node).permitted_attributes)
     end
 
     def node

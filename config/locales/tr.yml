@@ -49,6 +49,7 @@ tr:
         body: "Gövde"
         tag_list: "Etiketler"
         images: "Görseller"
+        status: "Durum"
       user:
         first_name: "Ad"
         last_name: "Soyad"
@@ -168,3 +169,10 @@ tr:
       user:
         email: "Email"
         password: "Parola"
+    options:
+      node:
+        status:
+          awaiting_review: "İnceleme bekliyor"
+          being_reviewed: "İncelemede"
+          published: "Yayında"
+          trashed: "Çöp kutusunda"

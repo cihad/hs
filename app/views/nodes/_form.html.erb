@@ -36,23 +36,12 @@
     </div>
   </div>
 
+  <% if policy(f.object).permitted_attributes.include?(:status) %>
+    <%= f.input :status,
+          collection: f.object.class.workflow_spec.state_names,
+          include_blank: false %>
+  <% end %>
 
-  <div class="form-group">
-    <div class="col-sm-offset-2 col-sm-10">
-      <%= f.button :submit, class: "btn-primary" %>
-
-      <% if f.object.persisted? %>
-        <% f.object.current_state.events.each do |event, _| %>
-          <%= button_tag  name: :commit,
-                          value: event,
-                          class: "btn btn-#{event}" do %>
-            <span class="glyphicon glyphicon-<%= event %>" aria-hidden="true"></span>
-            <%= t("nodes.events.#{event}") %>
-          <% end %>
-          <% end %>
-      <% end %>
-
-    </div>
-  </div>
+  <%= submit_button f: f %>
 
 <% end %>

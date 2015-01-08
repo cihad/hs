@@ -1,6 +1,6 @@
 <%= title t('nodes.name') %>
 
-<%= simple_form_for :node_filter,
+<%= simple_form_for :node,
                     url: administration_nodes_path,
                     method: :get,
                     wrapper: :inline_form,
@@ -27,23 +27,21 @@
       <td><%= link_to node.title, node %></td>
       <td><%=t "nodes.status.#{node.status}" %></td>
       <td class="actions">
-        <% node.current_state.events.each do |event, _| %>
-          <%= button_to administration_node_path(node, event: event),
-                        method: :put,
-                        class: "btn btn-#{event} btn-xs" do %>
-            <span class="glyphicon glyphicon-<%= event %>" aria-hidden="true"></span>
-            <%= t "nodes.events.#{event}" %>
-          <% end -%>
+        <% if policy(node).edit? %>
+          <%= link_to edit_node_path(node), class: "btn btn-default btn-xs" do %>
+            <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+            <%= t 'common.edit' %>
+          <% end %>
+        <% end %>
 
-          <% if policy(node).destroy? %>
-            <%= link_to [:administration, node],
-                        method: :delete,
-                        data: { confirm: t('common.are_you_sure') },
-                        class: "btn btn-danger btn-xs" do %>
-              
-              <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-              <%= t 'common.delete' %>
-            <% end %>
+        <% if policy(node).destroy? %>
+          <%= link_to [:administration, node],
+                      method: :delete,
+                      data: { confirm: t('common.are_you_sure') },
+                      class: "btn btn-danger btn-xs" do %>
+            
+            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+            <%= t 'common.delete' %>
           <% end %>
         <% end %>
       </td>
