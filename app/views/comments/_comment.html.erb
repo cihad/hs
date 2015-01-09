@@ -6,6 +6,13 @@
 
   <div class="col-md-11 col-sm-11">
     <%= bubble_box do %>
+
+      <% if comment.owner? comment.node.author %>
+        <div class="label label-primary pull-right">
+          <%= t 'comments.owner' %>
+        </div>
+      <% end %>
+
       <article>
         <%= markdown comment.author.username + ": " + comment.body %>
       </article>

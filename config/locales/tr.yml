@@ -100,6 +100,7 @@ tr:
       email: "Rol"
 
   comments:
+    owner: "Sahip"
     flash:
       created: "Yorum eklendi."
     comment_count: "Yorum sayısı"
