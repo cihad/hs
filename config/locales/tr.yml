@@ -51,7 +51,7 @@ tr:
         images: "Görseller"
         status: "Durum"
       user:
-        name: "Ad"
+        name: "Ad Soyad"
         username: "Kullanıcı adı"
         email: "Email"
         password: "Parola"
