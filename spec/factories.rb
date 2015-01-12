@@ -2,8 +2,7 @@ IMAGES_DIR = "#{Rails.root}/spec/support/images"
 
 FactoryGirl.define do
   factory :user, aliases: [:author] do
-    first_name { Faker::Name.first_name }
-    last_name { Faker::Name.last_name } 
+    name { Faker::Name.name }
     username { Faker::Internet.user_name 4..20, %w(_) }
     email { Faker::Internet.email }
     password "123456"

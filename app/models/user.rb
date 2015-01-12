@@ -8,7 +8,7 @@ class User < ActiveRecord::Base
          :recoverable, :rememberable, :trackable, :validatable
 
   # Validations
-  validates :username, :first_name, :last_name, presence: true
+  validates :username, :name, presence: true
   validates :username,  uniqueness: { case_sensitive: false },
                         format: { with: /\A[a-zA-Z0-9_]+\Z/ },
                         length: { in: 4..20 }
@@ -21,10 +21,6 @@ class User < ActiveRecord::Base
 
   # default role is authenticated
   enum role: [:anonymous, :authenticated, :admin, :superadmin]
-
-  def name
-    "#{first_name} #{last_name}"
-  end
 
   def manager?
     admin? or superadmin?
