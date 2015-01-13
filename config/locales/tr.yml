@@ -111,6 +111,8 @@ tr:
       name: "Düzenle"
 
   images:
+    edit:
+      title: "Görseli Düzenle"
     image: "Görsel"
     title: "Başlık"
     noimage: "Resim yok"
