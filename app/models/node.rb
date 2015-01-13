@@ -9,7 +9,7 @@ class Node < ActiveRecord::Base
   accepts_nested_attributes_for :node_images,
     reject_if: proc { |attrs| attrs[:image_attributes].has_key?(:title) and attrs[:image_attributes][:title].blank? },
     allow_destroy: true
-  has_many :images, -> { order 'node_images.position' }, through: :node_images
+  has_many :images, through: :node_images
   include Taggable
   belongs_to :author, class_name: "User"
   has_many :comments, dependent: :destroy
