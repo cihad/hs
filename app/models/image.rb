@@ -6,7 +6,6 @@ class Image < ActiveRecord::Base
   # Associations
   has_many :node_images
   has_many :nodes, through: :node_images
-  include Taggable
 
   # Validations
   validates :title, :image, presence: true
