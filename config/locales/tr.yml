@@ -111,6 +111,7 @@ tr:
       name: "Düzenle"
 
   images:
+    image: "Görsel"
     title: "Başlık"
     noimage: "Resim yok"
     select_image: "Resim seç"
