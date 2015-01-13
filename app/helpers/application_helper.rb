@@ -8,6 +8,14 @@ module ApplicationHelper
     provide :title, title
   end
 
+  def page_title title
+    render 'page_header', title: title
+  end
+
+  def form_row label, &block
+    render layout: 'form_row', locals: { label: label }, &block
+  end
+
   def description description
     provide :description, description
   end

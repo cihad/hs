@@ -116,6 +116,8 @@ tr:
     select_image: "Resim seç"
     change: "Değiştir"
     used_nodes: "Görselin Kullanıldığı Sayfalar"
+    flash:
+      updated: "Resim güncellendi."
 
   sessions:
     login: "Giriş yap"

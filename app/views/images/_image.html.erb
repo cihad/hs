@@ -4,6 +4,9 @@
                 alt: image.title,
                 title: image.title %>
   <div class="caption">
-    <p><%= link_to_unless current_page?(image), image.title, image %></p>
+    <p>
+      <%= link_to_unless current_page?(image), image.title, image %>
+      <%= link_to(t('common.edit'), edit_image_path(image)) if policy(:image).edit? %>
+    </p>
   </div>  
 <% end %>
