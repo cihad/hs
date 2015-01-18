@@ -14,6 +14,9 @@ class Node < ActiveRecord::Base
   belongs_to :author, class_name: "User"
   has_many :comments, dependent: :destroy
 
+  # Scopes
+  scope :published, -> { where(status: "published") }
+
   # Workflow
   include Workflow
   workflow_column :status

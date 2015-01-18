@@ -20,6 +20,7 @@ tr:
       summary: "%e %b %y"
       time: "%H:%M"
       generic: '%e %b %Y, %A'
+      w3c: "%Y-%m-%dT%H:%M:%S+00:00"
 
   errors:
     messages:

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <url>
+    <loc><%= root_url %></loc>
+  </url>
+
+
+  <% Node.published.each do |node| %>
+    <url>
+      <loc><%= node_url node %></loc> 
+      <lastmod><%= l node.updated_at, format: :w3c %></lastmod>
+      <% if node.images.count > 0 %>
+        <image:image>
+          <% node.images.each do |image| %>
+             <image:loc><%= asset_url image.image_url(:medium) %></image:loc> 
+             <image:title><%= image.title %></image:title>
+          <% end %>
+        </image:image>
+      <% end %>
+    </url>
+  <% end %>
+
+  <% Image.all.each do |image| %>
+    <url>
+      <loc><%= image_url image %></loc>
+      <image:image>
+        <image:loc><%= asset_url image.image_url %></image:loc>
+        <image:title><%= image.title %></image:title>
+      </image:image>
+      <image:image>
+        <image:loc><%= asset_url image.image_url(:medium) %></image:loc>
+        <image:title><%= image.title %></image:title>
+      </image:image>
+    </url>
+  <% end %>
+
+</urlset>

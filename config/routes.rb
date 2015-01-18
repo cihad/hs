@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
 
+  default_url_options host: Rails.application.secrets.host
+
+  get 'sitemap/sitemap'
+
   devise_for :users, path_names: { sign_in: 'login', sign_out: 'logout', sign_up: 'register' }
   resources :tags, only: :show
 
