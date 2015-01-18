@@ -8,4 +8,8 @@ class ImagePolicy < Struct.new(:current_user, :image)
     current_user.manager?
   end
 
+  def destroy?
+    current_user.manager?
+  end
+
 end

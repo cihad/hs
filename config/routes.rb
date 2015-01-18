@@ -19,8 +19,9 @@ Rails.application.routes.draw do
 
   namespace :administration do
     get "/" => "base#index"
-    resources :nodes, only: [:index, :update, :destroy]
+    resources :nodes, only: [:index, :destroy]
     resources :users, only: [:index, :edit, :update]
+    resources :images, only: [:index, :destroy]
   end
 
 end

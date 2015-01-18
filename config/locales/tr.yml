@@ -5,6 +5,7 @@ tr:
 
   common:
     homepage: "Anasayfa"
+    view: "Göster"
     edit: "Düzenle"
     delete: "Sil"
     are_you_sure: "Emin misiniz?"
@@ -112,6 +113,7 @@ tr:
       name: "Düzenle"
 
   images:
+    name: "Görseller"
     edit:
       title: "Görseli Düzenle"
     image: "Görsel"
@@ -122,6 +124,7 @@ tr:
     used_nodes: "Görselin Kullanıldığı Sayfalar"
     flash:
       updated: "Resim güncellendi."
+      destroyed: "Resim silindi."
 
   sessions:
     login: "Giriş yap"

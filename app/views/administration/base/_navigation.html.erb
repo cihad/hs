@@ -10,4 +10,8 @@
     <span class="badge"><%= User.count %></span>
     <%= link_to_unless_current t('users.users'), administration_users_path %>
   </li>
+  <li class="list-group-item">
+    <span class="badge"><%= Image.count %></span>
+    <%= link_to_unless_current t('images.name'), administration_images_path %>
+  </li>
 </ul>

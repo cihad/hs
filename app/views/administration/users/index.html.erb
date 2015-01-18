@@ -9,6 +9,7 @@
         <th><%=t 'users.email' %></th>
         <th><%=t 'users.index.created_at' %></th>
         <th><%=t 'users.index.role' %></th>
+        <th></th>
       </tr>
     </thead>
 
@@ -19,7 +20,11 @@
         <td><%= user.email %></td>
         <td><%= time_ago_in_words user.created_at %></td>
         <td><%= user.role %></td>
-        <td><%= link_to 'edit', edit_administration_user_path(user) %></td>
+        <td>
+          <%= link_to_if  policy(user).edit?,
+                          t('common.edit'),
+                          edit_administration_user_path(user) %>
+        </td>
       <% end %>
     </tbody>
   </table>
