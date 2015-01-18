@@ -12,6 +12,7 @@
       <%= bubble_box do %>
           <%= f.error_notification %>
           <%= f.input :body %>
+          <span class="help-block"><%= t 'simple_form.hints.node.body' %></span>
           <%= f.button :submit %>
       <% end %>
     </div>
