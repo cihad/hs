@@ -3,7 +3,7 @@
     <%= link_to node.title, node %>
   </td>
   <td>
-    <%= I18n.translate :comments, count: node.comments.count %>
+    <%= I18n.translate :comments, count: node.comments.size %>
   </td>
   <td>
     <%= node.author.username %>
