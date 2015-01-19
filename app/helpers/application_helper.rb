@@ -34,7 +34,7 @@ module ApplicationHelper
   # Docs: https://en.gravatar.com/site/implement/images/
   def gravatar_url_for email, size: 120
     hash = Digest::MD5.hexdigest(email)
-    default_avatar = Rails.env.production? ? CGI.escape(path_to_image "user.jpg") : "mm"
+    default_avatar = Rails.env.production? ? CGI.escape(url_to_image "user.jpg") : "mm"
     "http://www.gravatar.com/avatar/#{hash}?size=#{size}&d=#{default_avatar}"
   end
 
