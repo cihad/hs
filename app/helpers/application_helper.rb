@@ -31,9 +31,11 @@ module ApplicationHelper
     render layout: 'box', &block
   end
 
+  # Docs: https://en.gravatar.com/site/implement/images/
   def gravatar_url_for email, size: 120
     hash = Digest::MD5.hexdigest(email)
-    "http://www.gravatar.com/avatar/#{hash}?size=#{size}"
+    default_avatar = Rails.env.production? ? CGI.escape(image_url "user.jpg") : "mm"
+    "http://www.gravatar.com/avatar/#{hash}?size=#{size}&d=#{default_avatar}"
   end
 
   def submit_button f: nil, button_text: nil
