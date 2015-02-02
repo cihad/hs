@@ -16,4 +16,8 @@ class CommentPolicy < Struct.new(:current_user, :comment)
     update?
   end
 
+  def destroy?
+    update?
+  end
+
 end

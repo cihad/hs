@@ -104,6 +104,7 @@ tr:
     owner: "Sahip"
     flash:
       created: "Yorum eklendi."
+      destroyed: "Yorum silindi."
     comment_count: "Yorum sayısı"
     zero: "0 yorum"
     one: "1 yorum"

@@ -28,6 +28,10 @@
           <%= link_to t('common.edit'),
                       edit_node_comment_path(comment.node, comment) %>
         <% end %>
+
+        <% if policy(comment).destroy? %>
+          <%= link_to t('common.delete'), [comment.node, comment], method: :delete, data: { confirm: t('common.are_you_sure') } %>
+        <% end %>
       </div>
 
     <% end %>
