@@ -2,7 +2,7 @@
 
 <div class="page">
   <%= render partial: "expanded_node", locals: { node: @node } %>
-  <%= render @node.comments %>
+  <%= render @node.comments.order(:created_at) %>
   <% if policy(Comment).create? %>
     <%= render 'comments/form' %>
   <% else %>
