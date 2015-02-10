@@ -17,6 +17,7 @@
 //= require bootstrap/alert
 //= require bootstrap/collapse
 //= require bootstrap/dropdown
+//= require bootstrap/tooltip
 //= require nprogress
 //= require nprogress-turbolinks
 //= require_tree .
