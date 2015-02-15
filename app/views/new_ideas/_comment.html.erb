@@ -1,0 +1,24 @@
+<div class="row fragment comment">
+  <div class="col-md-1 col-sm-1 hidden-xs node-left">
+    <%= image_tag user_image, class: "img-circle img-responsive" %>
+  </div>
+
+  <div class="col-md-11 col-sm-11">
+    <%= bubble_box do %>
+
+      <article>
+        <b><%= username %>:</b>
+        <%= yield %>
+      </article>
+
+      <div class="meta text-muted">
+        <%= link_to "##{Faker::Number.number(3)}", "#" %>
+
+        <%= time_tag (time = Faker::Time.between(5.days.ago, Time.now)), title: time do %>
+          <%= t 'time.ago', time: time_ago_in_words(time) %>
+        <% end %>
+      </div>
+
+    <% end %>
+  </div>
+</div>

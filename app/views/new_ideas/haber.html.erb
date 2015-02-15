@@ -1,0 +1,101 @@
+<%= title "Meteoroloji vatandaşları uyardı" %>
+<%= stylesheet_link_tag "new_ideas" %>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      Meteoroloji vatandaşları uyardı
+      <small class="pull-right"><%= t 'news.news' %></small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9">
+      <%= idea_body username: "ntv", user_image: "ntv.jpg" do %>
+        <p>Meteoroloji Genel Müdürlüğü'nden yapılan açıklama da, Doğu 
+          Karadeniz'in iç kesimleri, Doğu Anadolu'nun kuzey ve doğusu, 
+          Akdeniz bölgesinin yüksek kesimleri ile Toroslar Mevkii'nde çığ 
+          tehlikesi bulunduğu belirtilirken, meydana gelebilecek 
+          olumsuzluklara karşı ilgililerin ve vatandaşların dikkatli ve 
+          tedbirli olması istendi.</p>
+
+        <p>Meteoroloji Genel Müdürlüğü'nden yapılan son değerlendirmelere 
+          göre; Batı Akdeniz kıyıları, Doğu Akdeniz, Doğu Anadolu'nun 
+          güneyi, Güneydoğu Anadolu, İstanbul, Tekirdağ, Kocaeli, 
+          Çanakkale, Balıkesir'in kuzeyi, Kırklareli'nin kuzey kıyı 
+          kesimleri, Muğla, Ankara, Kırıkkale, Konya, Aksaray, Karaman, 
+          Kırşehir ile sabah saatlerinde Samsun ve Trabzon çevrelerinin 
+          yağışlı geçeceği tahmin ediliyor. Yağışların; Akdeniz kıyıları, 
+          Güneydoğu Anadolu ile İstanbul, Balıkesir'in kuzeyi, Tekirdağ, 
+          Kocaeli, Çanakkale, Trabzon ve Samsun çevrelerinde yağmur ve 
+          sağanak, yağış alan diğer yerlerde karla karışık yağmur ve kar 
+          şeklinde olması bekleniyor.</p>
+
+        <p>Hava sıcaklığının, batı bölgelerde 1 ila 3 derece artacağı, 
+          diğer yerlerde önemli bir değişiklik olmayacağı, mevsim 
+          normalleri civarında seyredeceği tahmin ediliyor. Rüzgar, 
+          genellikle kuzey ve kuzeydoğu yönlerden hafif, ara sıra orta 
+          kuvvette, Marmara'nın güneybatısı ile Kuzey Ege kıyılarında yer 
+          yer kuvvetli olarak (30-60 km/saat) esmesi bekleniyor.</p>
+
+        <h3>Çığ Tehlikesi Uyarısı</h3>
+
+        <p>Meteoroloji Genel Müdürlüğü'nden yapılan açıklama da, Doğu 
+          Karadeniz'in iç kesimleri, Doğu Anadolu'nun kuzey ve doğusu, 
+          Akdeniz bölgesinin yüksek kesimleri ile Toroslar Mevkii'nde çığ 
+          tehlikesi bulunduğu belirtilirken, meydana gelebilecek 
+          olumsuzluklara karşı ilgililerin ve vatandaşların dikkatli ve 
+          tedbirli olması istendi.</p>
+
+        <a href="#" class="btn btn-default pull-right">
+          <span class="glyphicon glyphicon-new-window"></span>
+          Kaynak
+        </a>
+      <% end %>
+
+
+      <% Faker::Number.digit.to_i.times do %>
+        <%= idea_comment user_image: random_avatar_image do %>
+          <%= Faker::Lorem.paragraph %>
+        <% end %>
+      <% end %>
+
+      <%= render 'comments/user_not_signed_in' %>
+
+    </div>
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'news.other_sources' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Meteoroloji uyardı: Kar geliyor!</a> <span class="text-muted">internethaber</span></li>
+          <li class="list-group-item"><a href="#">Meteoroloji Dairesi, yağışlar konusunda uyardı!</a> <span class="text-muted">haberturk</span></li>
+          <li class="list-group-item list-group-item-info">Meteoroloji vatandaşları uyardı <span class="text-muted">ntv</span></li>
+          <li class="list-group-item"><a href="#">Dikkat Kar Geliyor! İşte Kar Yağacak Bölgeler</a> <span class="text-muted">sonhaber</span></li>
+          <li class="list-group-item"><a href="#">Meteoroloji, Hafta Sonu Planı Yapanları Uyardı</a> <span class="text-muted">haber7</span></li>
+          <li class="list-group-item"><a href="#">İstanbul Valiliği Vatandaşları Lodosa Karşı Uyardı</a> <span class="text-muted">haberler</span></li>
+        </ul>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'common.similarly' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Meteoroloji uyardı; pazartesiden itibren kar geliyor</a></li>
+          <li class="list-group-item"><a href="#">Meteorolojiden hava durumu için 9 Şubat alarmı!</a></li>
+          <li class="list-group-item"><a href="#">Kar ne zaman yağacak (Son hava durumu nasıl olacak)</a></li>
+          <li class="list-group-item"><a href="#">Alanyalılar dikkat! Meteoroloji uyardı</a></li>
+          <li class="list-group-item"><a href="#">Meteoroloji 5 İli uyardı</a></li>
+          <li class="list-group-item"><a href="#">Meteoroloji uyardı, buzlanma ve dona dikkat</a></li>
+          <li class="list-group-item"><a href="#">Meteoroloji Uyardı: 9 Şubat'a Dikkat</a></li>
+          <li class="list-group-item"><a href="#">Meteoroloji Çığ Felaketi Uyarısı Yaptı</a></li>
+          <li class="list-group-item"><a href="#">Ankara hava durumu öğleden sonraya dikkat!</a></li>
+          <li class="list-group-item"><a href="#">Meteoroloji İstanbul'u uyardı!</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

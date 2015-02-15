@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  get 'new_ideas/haber'
+
   default_url_options host: Rails.application.secrets.host
 
   get 'sitemap/sitemap'

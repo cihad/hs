@@ -1,0 +1,20 @@
+<div class="row fragment">
+  <div class="col-md-1 col-sm-1 hidden-xs node-left">
+    <%= image_tag user_image, class: "img-circle img-responsive" %>
+  </div>
+
+  <div class="col-md-11 col-sm-11 col-xs-12">
+    <%= bubble_box do %>
+      <article>
+        <p><%= username %>:</p>
+        <%= yield %>
+      </article>
+
+      <div class="meta text-muted">
+        <%= time_tag Faker::Time.between(5.days.ago, Time.now) %>
+
+      </div>
+    <% end %>
+    
+  </div>
+</div>
