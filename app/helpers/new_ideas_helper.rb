@@ -3,7 +3,7 @@ require 'ostruct'
 module NewIdeasHelper
 
   def idea_body username: Faker::Internet.user_name,
-                user_image: "user.jpg",
+                user_image: random_avatar_image,
                 &block
 
     render  layout: 'new_ideas/body',

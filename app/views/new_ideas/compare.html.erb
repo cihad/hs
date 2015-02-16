@@ -1,0 +1,160 @@
+<% item1 = "Apple iPhone 6 Plus" %>
+<% item2 = "Samsung Galaxy Note 4" %>
+<% title = "#{item1} vs. #{item2}" %>
+<%= title title %>
+<%= stylesheet_link_tag "new_ideas" %>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      <%= title %>
+      <small class="pull-right"><%= t 'compare.compare' %></small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9">
+      <%= idea_body do %>
+
+        <p data-toggle="tooltip" data-placement="right" title="Optional text">
+          <%= Faker::Lorem.paragraph %>
+        </p>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="thumbnail">
+              <%= image_tag "iphone_6_plus.jpg" %>
+              <div class="caption">
+                <h5 class="text-center"><%= item1 %></h5>
+                <p>
+                  <a href="#"
+                      class="btn btn-block btn-default btn-choose"
+                      role="button">
+                    <%= t 'compare.choose' %>
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="thumbnail">
+              <%= image_tag "samsung_galaxy_note_4.jpg" %>
+              <div class="caption">
+                <h5 class="text-center"><%= item2 %></h5>
+                <p>
+                  <a href="#"
+                      class="btn btn-block btn-default btn-choose"
+                      role="button">
+                    <%= t 'compare.choose' %>
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script type="text/javascript">
+          $(function() {
+            var result = $('.result')
+            result.hide();
+
+            $('.btn-choose').click(function() {
+              $(this).addClass('active');
+              result.show();
+            })
+          });
+
+        </script>
+
+        <div class="result">
+          <h4><%= t 'compare.result' %></h4>
+          <div class="row">
+            <div class="col-md-4 text-right">
+              <%= item1 %>
+            </div>
+            <div class="col-md-8">
+              <div class="progress">
+                <div class="progress-bar"
+                      role="progressbar"
+                      aria-valuenow="60"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      style="width: 45%;">
+                  91 Kişi, 45%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 text-right">
+              <%= item2 %>
+            </div>
+            <div class="col-md-8">
+              <div class="progress">
+                <div class="progress-bar"
+                      role="progressbar"
+                      aria-valuenow="60"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      style="width: 55%;">
+                  112 Kişi, 55%
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
+      <% end %>
+
+
+      <% Faker::Number.digit.to_i.times do %>
+        <%= idea_comment user_image: random_avatar_image do %>
+          <span class="text-success">
+            <%= [item1, item2].sample %> seçti.
+          </span>
+          <%= Faker::Lorem.paragraph %>
+        <% end %>
+      <% end %>
+
+      <%= render 'comments/user_not_signed_in' %>
+
+    </div>
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'compare.similar' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Apple iPhone 6 Plus vs Sony Xperia Z3</a></li>
+          <li class="list-group-item"><a href="#">Apple iPhone 6 Plus vs Samsung Galaxy Note Edge</a></li>
+          <li class="list-group-item"><a href="#">Samsung Galaxy Note 4 vs Samsung Galaxy S5</a></li>
+          <li class="list-group-item"><a href="#">Samsung Galaxy Note 3 vs Samsung Galaxy Note 4</a></li>
+          <li class="list-group-item"><a href="#"><%= title %></a></li>
+          <li class="list-group-item"><a href="#">Apple iPhone 6 Plus vs Apple iPhone 6</a></li>
+          <li class="list-group-item"><a href="#">Sony Xperia Z2 vs Apple iPhone 6 Plus</a></li>
+        </ul>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'common.similarly' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Öncesi ve Sonrası: Samsung Galaxy Note 4 inceleme</a></li>
+          <li class="list-group-item"><a href="#">Galaxy Note 4'ün en iyi taklitleri</a></li>
+          <li class="list-group-item"><a href="#">iPhone 6 Gerçekten Dayanıklı Bir Telefon Mu?</a></li>
+          <li class="list-group-item"><a href="#">Galaxy Note 4 için Android Lollipop güncellemesi ertelendi</a></li>
+          <li class="list-group-item"><a href="#">Galaxy Note 4 ve iPhone 6 Verus kılıf incelemesi</a></li>
+          <li class="list-group-item"><a href="#">Samsung Galaxy Note 4 Teknik Özellikleri!</a></li>
+          <li class="list-group-item"><a href="#">Galaxy Note 4 ve Galaxy Note 3 arasındaki farklar</a></li>
+          <li class="list-group-item"><a href="#">Bu iPhone 6, Tam 3,5 Milyon Dolar</a></li>
+          <li class="list-group-item"><a href="#">Ankara hava durumu öğleden sonraya dikkat!</a></li>
+          <li class="list-group-item"><a href="#">Samsungun Yeni Kamerası Galaxy Note 4 ile Hayrete Düşürecek</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -5,3 +5,9 @@ tr:
   news:
     news: "Haber"
     other_sources: "Bu haber diğer kaynaklarda"
+
+  compare:
+    compare: "Karşılaştır"
+    choose: "Bunu seç"
+    result: "Sonuç"
+    similar: "Benzer karşılaştırmalar"

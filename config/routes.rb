@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
 
   get 'new_ideas/haber'
+  get 'new_ideas/compare'
 
   default_url_options host: Rails.application.secrets.host
 
