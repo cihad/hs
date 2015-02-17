@@ -4,4 +4,7 @@ class NewIdeasController < ApplicationController
 
   def compare
   end
+
+  def gallery
+  end
 end

@@ -1,3 +1,20 @@
 body {
   background: image-url("prototype.jpg");
 }
+
+
+.gallery {
+
+  .carousel-inner > .item > img {
+    margin: 0 auto;
+  }
+
+  .carousel-control {
+    width: 50%;
+  }
+
+  .carousel-control.left,
+  .carousel-control.right {
+    background: none !important;
+  }
+}

@@ -1,6 +1,7 @@
 tr:
   common:
     similarly: "Benzer"
+    nav: "Navigasyon"
 
   news:
     news: "Haber"
@@ -11,3 +12,10 @@ tr:
     choose: "Bunu seç"
     result: "Sonuç"
     similar: "Benzer karşılaştırmalar"
+
+  image:
+    image: "Resim"
+
+  gallery:
+    gallery: "Galeri"
+    nav_info: "Klavyenin ok tuşlarını kullanarak gezinti yapabilirsiniz."
