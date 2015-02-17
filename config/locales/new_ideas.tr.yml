@@ -19,3 +19,8 @@ tr:
   gallery:
     gallery: "Galeri"
     nav_info: "Klavyenin ok tuşlarını kullanarak gezinti yapabilirsiniz."
+
+  poll:
+    poll: "Anket"
+    latest: "Son Anketler"
+    similar: "Benzer sorular"

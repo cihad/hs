@@ -1,0 +1,120 @@
+<%= title "En güvenilir kurum hangisidir?" %>
+<%= stylesheet_link_tag "new_ideas" %>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      En güvenilir kurum hangisidir?
+      <small class="pull-right"><%= t 'poll.poll' %></small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9">
+      <%= idea_body do %>
+        
+        <p>En güvenilir kurum hangisidir?</p>
+
+        <div class="options">
+
+          <% choices = [ "Başbakan ve Bakanlar Kurulu",
+                "Cumhurbaşkanlığı",
+                "Diyanet",
+                "Emniyet",
+                "Mahkemeler",
+                "Sendikalar",
+                "Sivil Toplum Örgütleri",
+                "TBMM",
+                "TSK"]
+
+              choices = choices.map { |c| [c, rand(0..100)] }
+              total = choices.inject(0) { |t, arr| t + arr.last }
+              choices = choices.map { |i| [i.first, (i.last.to_f / total * 100).to_i] }
+          %>
+
+
+          <% choices.each do |choice| %>
+            <div class="radio">
+              <div class="row">
+                <div class="col-md-6">
+                  <label>
+                    <input type="radio" name="optionsRadios" id="optionsRadios1">
+                    <%= choice.first %>
+                  </label>
+                </div>
+                <div class="col-md-6">
+                  <div class="progress">
+                    <div class="progress-bar" style="width: <%= choice.last %>%;">
+                      <%= choice.last %> kişi
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <a href="#" class="btn btn-default btn-send">
+          Gönder
+        </a>
+      <% end %>
+
+      <script type="text/javascript">
+        $('.progress').hide();
+
+        $(function() {
+          $('.btn-send').click(function(e) {
+            e.preventDefault();
+            $('.radio').prop('disabled', true);
+            $('.progress').show();
+          });
+        });
+
+      </script>
+
+
+      <% Faker::Number.digit.to_i.times do %>
+        <%= idea_comment user_image: random_avatar_image do %>
+          <%= Faker::Lorem.paragraph %>
+        <% end %>
+      <% end %>
+
+      <%= render 'comments/user_not_signed_in' %>
+
+    </div>
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'poll.latest' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Bu sene kim şampiyon olur?</a></li>
+          <li class="list-group-item"><a href="#">Çalıştığınız işten memnun musunuz?</a></li>
+          <li class="list-group-item"><a href="#">Ekmek parası ne olsun?</a></li>
+          <li class="list-group-item"><a href="#">İngilizce biliyor musunuz?</a></li>
+          <li class="list-group-item"><a href="#">Diş doktoruna para vermeyelim de..</a></li>
+          <li class="list-group-item"><a href="#">Minibüs şöförleri uçamaz</a></li>
+        </ul>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'common.similarly' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">En güvenilir kurum: TSK</a></li>
+          <li class="list-group-item"><a href="#">İşte Türkiye'nin En Güvenilir Kurumu?</a></li>
+          <li class="list-group-item"><a href="#">tsk nın en güvenilir kurum olması</a></li>
+          <li class="list-group-item"><a href="#">En güvenilir kurum sıralamasında TSK ilk sırada</a></li>
+          <li class="list-group-item"><a href="#">Türkiye'de en güvenilir kurum değişti </a></li>
+          <li class="list-group-item"><a href="#">Ordu en güvenilir kurum mu?</a></li>
+          <li class="list-group-item"><a href="#">Türkiye’nin En Güvenilir Kurumu Anketinde Meteoroloji İlk Sırada</a></li>
+          <li class="list-group-item"><a href="#">1. SIRAYA HANGİSİ YERLEŞTİ?</a></li>
+          <li class="list-group-item"><a href="#">en güvenilir kurum ösym dir</a></li>
+          <li class="list-group-item"><a href="#">NAMAZ KILANLARA GÖRE EN GÜVENİLİR KURUM</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

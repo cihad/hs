@@ -3,6 +3,7 @@ Rails.application.routes.draw do
   get 'new_ideas/haber'
   get 'new_ideas/compare'
   get 'new_ideas/gallery'
+  get 'new_ideas/poll'
 
   default_url_options host: Rails.application.secrets.host
 

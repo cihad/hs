@@ -7,4 +7,7 @@ class NewIdeasController < ApplicationController
 
   def gallery
   end
+
+  def poll
+  end
 end
