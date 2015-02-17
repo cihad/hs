@@ -17,7 +17,7 @@
 
         <div class="options">
 
-          <% choices = [ "Başbakan ve Bakanlar Kurulu",
+          <% @choices = [ "Başbakan ve Bakanlar Kurulu",
                 "Cumhurbaşkanlığı",
                 "Diyanet",
                 "Emniyet",
@@ -27,13 +27,13 @@
                 "TBMM",
                 "TSK"]
 
-              choices = choices.map { |c| [c, rand(0..100)] }
-              total = choices.inject(0) { |t, arr| t + arr.last }
-              choices = choices.map { |i| [i.first, (i.last.to_f / total * 100).to_i] }
+              new_choices = @choices.map { |c| [c, rand(0..100)] }
+              total = new_choices.inject(0) { |t, arr| t + arr.last }
+              new_choices = new_choices.map { |i| [i.first, (i.last.to_f / total * 100).to_i] }
           %>
 
 
-          <% choices.each do |choice| %>
+          <% new_choices.each do |choice| %>
             <div class="radio">
               <div class="row">
                 <div class="col-md-6">
@@ -75,7 +75,7 @@
 
       <% Faker::Number.digit.to_i.times do %>
         <%= idea_comment user_image: random_avatar_image do %>
-          <%= Faker::Lorem.paragraph %>
+          <span class="text-success">(<%= @choices.sample %> seçti.)</span> <%= Faker::Lorem.paragraph %>
         <% end %>
       <% end %>
 
