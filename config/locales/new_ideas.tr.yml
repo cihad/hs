@@ -28,3 +28,6 @@ tr:
   fill_in_the_blanks:
     fill_in_the_blanks: "Boşluk Doldurma"
     similar: "Benzer boşluk doldurmalar"
+
+  earthquake:
+    earthquake: "Deprem Monitörü"

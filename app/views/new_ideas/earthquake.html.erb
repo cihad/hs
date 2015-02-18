@@ -1,0 +1,110 @@
+<%= title "Son Depremler" %>
+<%= stylesheet_link_tag "new_ideas" %>
+<% render 'new_ideas_nav' %>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      Son Depremler
+      <small class="pull-right"><%= t 'earthquake.earthquake' %></small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9 content-body">
+      <%= idea_body do %>
+        <script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
+        
+        <div class="btn-toolbar" role="toolbar">
+          <div class="btn-group" role="group">
+            <button class="btn btn-default">24</button>
+            <button class="btn btn-default">7</button>
+            <button class="btn btn-default">30</button>
+            <button class="btn btn-default">S</button>
+          </div>
+          <div class="btn-group" role="group">
+            <button class="btn btn-default">Şehir seç <span class="caret"></span></button>
+            <button class="btn btn-default">Tarih seç <span class="caret"></span></button>
+          </div>
+          <div class="btn-group" role="group">
+            <button class="btn btn-default">Fayları göster</button>
+          </div>
+          <div class="btn-group pull-right" role="group">
+            <button class="btn btn-default btn-fullscreen" title="Fullscreen"><span class="glyphicon glyphicon-fullscreen"></span></button>
+          </div>
+        </div>
+
+        <script type="text/javascript">
+          $(function() {
+            var body = $('.content-body'),
+                rightSidebar = $('.right-sidebar');
+
+            $('.btn-fullscreen').click(function() {
+                if ( $('.right-sidebar').is( ":hidden" ) ) {
+                  // body.removeClass('col-md-12').addClass('col-md-9');
+                  body.switchClass( "col-md-12", "col-md-9", 500, "easeInOutQuad" );
+                  rightSidebar.show();
+                } else {
+                  body.switchClass( "col-md-9", "col-md-12", 500, "easeInOutQuad" );
+                  rightSidebar.hide();
+                }
+            });
+
+          })
+        </script>
+
+        <br>
+
+        <div class="embed-responsive embed-responsive-16by9">
+          <iframe class="embed-responsive-item" src="http://udim.koeri.boun.edu.tr/zeqmap/gmapt.asp"></iframe>
+        </div>
+
+
+      <% end %>
+
+     
+      <% Faker::Number.digit.to_i.times do |i| %>
+        <%= idea_comment do %>
+          <%= Faker::Lorem.paragraph %>
+        <% end %>
+      <% end %>
+
+      <%= render 'comments/user_not_signed_in' %>
+
+    </div>
+    <div class="col-md-3 right-sidebar">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          Son depremler
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">18.02.15 22:05 Adıyaman Gölbaşı</a></li>
+          <li class="list-group-item"><a href="#">18.02.15 21:31 Adıyaman Tut</a></li>
+          <li class="list-group-item"><a href="#">18.02.15 21:01 Van Gevaş</a></li>
+          <li class="list-group-item"><a href="#">10.02.15 20:58 Antalya Korkuteli</a></li>
+          <li class="list-group-item"><a href="#">18.02.15 20:40 Balıkesir Ayvalık</a></li>
+          <li class="list-group-item"><a href="#">18.02.15 20:32 Muğla Ula</a></li>
+        </ul>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'common.similarly' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Japonya'da deprem Tsunami uyarısı verildi</a></li>
+          <li class="list-group-item"><a href="#">Antalya'da 4.7 büyüklüğünde deprem</a></li>
+          <li class="list-group-item"><a href="#">Mersin'de korkutan deprem</a></li>
+          <li class="list-group-item"><a href="#">Korkutan deprem uyarısı</a></li>
+          <li class="list-group-item"><a href="#">Şanlıurfa, Hatay ve Antalya'da deprem - Son depremler</a></li>
+          <li class="list-group-item"><a href="#">Büyük deprem öncesinde niçin apar topar istifa etti?</a></li>
+          <li class="list-group-item"><a href="#">İstanbul'da 6.4 büyüklüğünde deprem olacak!</a></li>
+          <li class="list-group-item"><a href="#">'Daha büyük deprem olacak'</a></li>
+          <li class="list-group-item"><a href="#">İstanbul'u iki büyük deprem bekliyor</a></li>
+          <li class="list-group-item"><a href="#">Hatay'daki deprem tehlikeli</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

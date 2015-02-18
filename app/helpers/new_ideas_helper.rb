@@ -14,7 +14,7 @@ module NewIdeasHelper
             &block
   end
 
-  def idea_comment  user_image: "user.jpg",
+  def idea_comment  user_image: random_avatar_image,
                     username: Faker::Internet.user_name,
                     &block
 

@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   get 'new_ideas/gallery'
   get 'new_ideas/poll'
   get 'new_ideas/fill_in_the_blanks'
+  get 'new_ideas/earthquake'
 
   default_url_options host: Rails.application.secrets.host
 

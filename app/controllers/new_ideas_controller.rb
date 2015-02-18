@@ -13,4 +13,7 @@ class NewIdeasController < ApplicationController
 
   def fill_in_the_blanks
   end
+
+  def earthquake
+  end
 end
