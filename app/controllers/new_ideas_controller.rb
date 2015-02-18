@@ -10,4 +10,7 @@ class NewIdeasController < ApplicationController
 
   def poll
   end
+
+  def fill_in_the_blanks
+  end
 end

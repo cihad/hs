@@ -1,0 +1,119 @@
+<%= title "Sabahları kalkınca ... Çünkü ..." %>
+<%= stylesheet_link_tag "new_ideas" %>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      Sabahları kalkınca ... Çünkü ...
+      <small class="pull-right"><%= t 'fill_in_the_blanks.fill_in_the_blanks' %></small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9">
+      <%= idea_body do %>
+
+        <div class="fill_in_the_blanks">
+          <form class="form-inline">
+            <div class="form-group">
+              <label for="exampleInputName2">Sabahları kalkınca</label>
+              <input type="text" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="exampleInputEmail2">. Çünkü</label>
+              <input type="email" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-default">Gönder</button>
+          </form>
+
+          <script type="text/javascript">
+            $(function() {
+              var form = $("form.ask-your-friend");
+              form.hide();
+
+              $('#ask-your-friend').click(function(e) {
+                e.preventDefault();
+
+                if ( form.is( ":hidden" ) ) {
+                  form.slideDown( "slow" );
+                } else {
+                  form.slideUp( "slow ");
+                }
+              })
+              
+            })
+
+          </script>
+
+          <a href="#" class="btn btn-default btn-xs" id="ask-your-friend">Bu boşluğı arkadaşım da doldursun.</a>
+          <form class="form-inline ask-your-friend">
+            <div class="form-group">
+              <label for="exampleInputName2">Bu boşluğu</label>
+              <input type="text" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="exampleInputEmail2">arkadaşım da doldursun.</label>
+            </div>
+          </form>
+
+        </div>
+
+      <% end %>
+
+      <% choices = [
+        ["spor yapıyorum", "sağlığa iyi geliyor"],
+        ["kahvaltı yapıyorum", "sabah hangiri olarak kalkıyorum"],
+        ["abdest alıyorum", "namaz kılmam gerekiyor"],
+        ["yatakta debeleniyorum", "iş saatine daha 15 dk var"],
+        ["kalkamıyorum", "gece 3'de yattım"],
+        ["elma yiyorum", "elmayı çok seviyorum"],
+        ["tuvalete giderim.", "ihtiyaç"],
+        ["sersem oluyorum", "ben de bilmiyorum"],
+      ].shuffle %>
+
+      <% (Faker::Number.digit.to_i * 2).times do |i| %>
+        <%= idea_comment user_image: random_avatar_image do %>
+          <% f, s = choices[i % choices.count] %>
+          Sabahları kalkınca <u><%= f %></u>. Çünkü <u><%= s %></u>.
+        <% end %>
+      <% end %>
+
+      <%#= render 'comments/user_not_signed_in' %>
+
+    </div>
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'fill_in_the_blanks.similar' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">en çok kullandığım site ...dir.</a></li>
+          <li class="list-group-item"><a href="#">sony dizüstüler çok ... dır.</a></li>
+          <li class="list-group-item"><a href="#">Kod yazmayı seviyorum çüünkü ...</a></li>
+          <li class="list-group-item"><a href="#">Dünyanın en güzel şehri ... bence</a></li>
+          <li class="list-group-item"><a href="#">Ben ... olmadan yaşayamam</a></li>
+          <li class="list-group-item"><a href="#">Gazeyeyi dijital ortamda okumayı seviyorum çünkü ...</a></li>
+        </ul>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'common.similarly' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Sabah kalkınca ilk düşünülenler</a></li>
+          <li class="list-group-item"><a href="#">Sabah kalkınca ağızdan çıkan ilk sözler </a></li>
+          <li class="list-group-item"><a href="#">Sabah kalkınca uyuşma</a></li>
+          <li class="list-group-item"><a href="#">Sabah Uyanınca Yapılacak Dualar</a></li>
+          <li class="list-group-item"><a href="#">sabahları kalkınca hapşırmak</a></li>
+          <li class="list-group-item"><a href="#">Sabahları kalkınca ağız kokusu olması normal bir durum mu</a></li>
+          <li class="list-group-item"><a href="#">Sabah kalkınca saçların o yana bu yana yatma sorunsalı</a></li>
+          <li class="list-group-item"><a href="#">Sabah kalkınca görüntümü beğenmiyorum</a></li>
+          <li class="list-group-item"><a href="#">Sabah namazına nasıl kalkılır</a></li>
+          <li class="list-group-item"><a href="#">Sabah kalkınca ilk yaptığınız şeye dikkat edin!</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

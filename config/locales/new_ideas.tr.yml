@@ -24,3 +24,7 @@ tr:
     poll: "Anket"
     latest: "Son Anketler"
     similar: "Benzer sorular"
+
+  fill_in_the_blanks:
+    fill_in_the_blanks: "Boşluk Doldurma"
+    similar: "Benzer boşluk doldurmalar"

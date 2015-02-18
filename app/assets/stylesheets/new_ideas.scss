@@ -28,3 +28,13 @@ body {
     float: right;
   }
 }
+
+.fill_in_the_blanks .form-inline {
+  margin-top: 20px;
+  margin-bottom: 30px !important;
+
+  label {
+    font-weight: normal;
+    font-size: 120%;
+  }
+}
