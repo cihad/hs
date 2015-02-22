@@ -16,4 +16,7 @@ class NewIdeasController < ApplicationController
 
   def earthquake
   end
+
+  def currency    
+  end
 end

@@ -1,0 +1,196 @@
+<%= title "Döviz" %>
+<%= stylesheet_link_tag "new_ideas" %>
+<% render 'new_ideas_nav' %>
+
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      Döviz
+      <small class="pull-right">Döviz</small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9">
+      <%= idea_body do %>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-2">
+                <a href="#">Önceki Gün</a>
+              </div>
+              <div class="col-md-8 text-center">
+                <%= Date.today %> (Şuan)
+              </div>
+              <div class="col-md-2">
+                <a href="#" class="disabled">Sonraki Gün</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th colspan="3">Döviz</th>
+              <th>Alış</th>
+              <th>Satış</th>
+            </tr>
+          </thead>
+          <tr>
+            <td>$</td>
+            <td>DOLAR USD</td>
+            <td><span class="text-success glyphicon glyphicon-chevron-up" aria-hidden="true"></span></td>
+            <td>2,4586</td>
+            <td>2,4591</td>
+          </tr>
+          <tr>
+            <td>€</td>
+            <td>EURO EUR</td>
+            <td><span class="text-danger glyphicon glyphicon-chevron-down"></span></td>
+            <td>2,7947</td>
+            <td>2,7969</td>
+          </tr>
+          <tr>
+            <td>£</td>
+            <td>POUND GBP</td>
+            <td><span class="text-danger glyphicon glyphicon-chevron-down"></span></td>
+            <td>3,7905</td>
+            <td>3,7933</td>
+          </tr>
+          <tr>
+            <td>¥</td>
+            <td>YEN JPY</td>
+            <td><span class="text-success glyphicon glyphicon-chevron-up"></span></td>
+            <td>2,0661</td>
+            <td>2,0669</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>S. Arabistan Riyal</td>
+            <td><span class="text-success glyphicon glyphicon-chevron-up"></span></td>
+            <td>0,6435</td>
+            <td>0,6548</td>
+          </tr>
+          <tr>
+            <td>$</td>
+            <td>DOLAR USD</td>
+            <td><span class="text-success glyphicon glyphicon-chevron-up" aria-hidden="true"></span></td>
+            <td>2,4586</td>
+            <td>2,4591</td>
+          </tr>
+          <tr>
+            <td>€</td>
+            <td>EURO EUR</td>
+            <td><span class="text-danger glyphicon glyphicon-chevron-down"></span></td>
+            <td>2,7947</td>
+            <td>2,7969</td>
+          </tr>
+          <tr>
+            <td>£</td>
+            <td>POUND GBP</td>
+            <td><span class="text-danger glyphicon glyphicon-chevron-down"></span></td>
+            <td>3,7905</td>
+            <td>3,7933</td>
+          </tr>
+          <tr>
+            <td>¥</td>
+            <td>YEN JPY</td>
+            <td><span class="text-success glyphicon glyphicon-chevron-up"></span></td>
+            <td>2,0661</td>
+            <td>2,0669</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>S. Arabistan Riyal</td>
+            <td><span class="text-success glyphicon glyphicon-chevron-up"></span></td>
+            <td>0,6435</td>
+            <td>0,6548</td>
+          </tr>
+          <tr>
+            <td>$</td>
+            <td>DOLAR USD</td>
+            <td><span class="text-success glyphicon glyphicon-chevron-up" aria-hidden="true"></span></td>
+            <td>2,4586</td>
+            <td>2,4591</td>
+          </tr>
+          <tr>
+            <td>€</td>
+            <td>EURO EUR</td>
+            <td><span class="text-danger glyphicon glyphicon-chevron-down"></span></td>
+            <td>2,7947</td>
+            <td>2,7969</td>
+          </tr>
+          <tr>
+            <td>£</td>
+            <td>POUND GBP</td>
+            <td><span class="text-danger glyphicon glyphicon-chevron-down"></span></td>
+            <td>3,7905</td>
+            <td>3,7933</td>
+          </tr>
+          <tr>
+            <td>¥</td>
+            <td>YEN JPY</td>
+            <td><span class="text-success glyphicon glyphicon-chevron-up"></span></td>
+            <td>2,0661</td>
+            <td>2,0669</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>S. Arabistan Riyal</td>
+            <td><span class="text-success glyphicon glyphicon-chevron-up"></span></td>
+            <td>0,6435</td>
+            <td>0,6548</td>
+          </tr>
+
+        </table>
+      <% end %>
+
+      <% Faker::Number.digit.to_i.times do %>
+        <%= idea_comment do %>
+          <%= Faker::Lorem.paragraph %>
+        <% end %>
+      <% end %>
+
+      <%= render 'comments/user_not_signed_in' %>
+
+    </div>
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          Para
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item list-group-item-info">Döviz</li>
+          <li class="list-group-item"><a href="#">Altın</a></li>
+          <li class="list-group-item"><a href="#">Borsa</a></li>
+          <li class="list-group-item"><a href="#">Enflasyon (ÜFE/TÜFE)</a></li>
+          <li class="list-group-item"><a href="#">İşsizlik</a></li>
+          <li class="list-group-item"><a href="#">İhracat</a></li>
+          <li class="list-group-item"><a href="#">İthalat</a></li>
+        </ul>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'common.similarly' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Rahatı kaçan parametre: Döviz kuru</a></li>
+          <li class="list-group-item"><a href="#">Paramı neye yatırmalıyım?</a></li>
+          <li class="list-group-item"><a href="#">Bu hafta borsa, altın ve döviz kaybettirdi</a></li>
+          <li class="list-group-item"><a href="#">Döviz mağdurlarına büyük müjde</a></li>
+          <li class="list-group-item"><a href="#">Döviz fiyatları kendiliğinden yükselmedi</a></li>
+          <li class="list-group-item"><a href="#">Dolar artacak mı? Yıl sonunda döviz kuru nasıl olacak</a></li>
+          <li class="list-group-item"><a href="#">Döviz ve altından uzak durun!</a></li>
+          <li class="list-group-item"><a href="#">Cari açık küçülüyor döviz girişi yavaşladı</a></li>
+          <li class="list-group-item"><a href="#">Türkiye'nin gizemli döviz hareketleri sorgulanıyor</a></li>
+          <li class="list-group-item"><a href="#">E Devlet Günlük Döviz Kurları Sorgulama</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
