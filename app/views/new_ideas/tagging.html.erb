@@ -1,0 +1,104 @@
+<%= title "Nasreddin Hoca" %>
+<%= stylesheet_link_tag "new_ideas" %>
+<% render 'new_ideas_nav' %>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      Nasreddin Hoca
+      <small class="pull-right">Etiketleme</small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9">
+      <%= idea_body do %>
+
+        <%= image_tag "nasreddinhoca.png", class: "img-thumbnail" %>
+
+        <%
+          tag_count = rand(10..20)
+          tags = tag_count.times.map { Faker::Lorem.word }
+          numbers = tag_count.times.map { rand(0..100) }.sort.reverse
+          taggings = tag_count.times.inject({}) { |h, i| h[tags[i]] = numbers[i]; h }
+          meaningful_tags = {
+            "hoca" => 154,
+            "alim" => 142,
+            "komedyen" => 130,
+            "selçuklu" => 129,
+            "filozof" => 120,
+            "konyalı" => 118,
+            "bilge" => 105
+          }
+        %>
+
+        <script type="text/javascript">
+          $(function() {
+            $('.plus-one').click(function(e) {
+              e.preventDefault();
+
+              var count = $(this).parents('tr').find('.count');
+              console.log(count);
+              count.text(parseInt(count.text()) + 1);
+
+              $(this).addClass('active disabled');
+            })
+          })
+
+        </script>
+
+        <table>
+          <thead>
+            <tr>
+              <td class="text-right">0 x</td>
+              <td colspan="2">
+                <form class="form-inline">
+                  <div class="form-group">
+                    <input type="text" class="form-control" id="exampleInputName2" placeholder="Etiketleri virgül ile ayırın">
+                  </div>
+                  <button type="submit" class="btn btn-primary">Etiketle</button>
+                </form>
+              </td>
+            </tr>
+          </thead>
+
+          <% meaningful_tags.merge(taggings).each do |tag, count| %>
+            <tr>
+              <td class="text-right"><span class="count"><%= count %></span> x</td>
+              <td>
+                <span class="badge"><%= tag %></span>
+              </td>
+              <td>
+                <a href="#" class="btn btn-xs btn-default plus-one">+1</a>
+              </td>
+            </tr>
+          <% end %>
+        </table>
+
+      <% end %>
+
+
+    </div>
+
+    <div class="col-md-3">
+       <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'common.similarly' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Nasreddin Hoca Kimdir</a></li>
+          <li class="list-group-item"><a href="#">Nasrettin Hoca Anaokulları</a></li>
+          <li class="list-group-item"><a href="#">Hergün bir Nasrettin Hoca Fıkrası</a></li>
+          <li class="list-group-item"><a href="#">Nasreddin Hoca Türbesi - 3D Sanal Tur - 3D Mekanlar</a></li>
+          <li class="list-group-item"><a href="#">Bana her şey Nasrettin Hoca'yı hatırlatıyor</a></li>
+          <li class="list-group-item"><a href="#">Nasrettin Hoca Evleniyor</a></li>
+          <li class="list-group-item"><a href="#">Nasreddin Hoca nereli?</a></li>
+          <li class="list-group-item"><a href="#">Akşehir Nasrettin Hoca Huzurevi Müdürlüğü</a></li>
+          <li class="list-group-item"><a href="#">nasreddin hoca ile neşeli çocuklar görüntüle </a></li>
+          <li class="list-group-item"><a href="#">Nasrettin Hoca Yozgat semalarında</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

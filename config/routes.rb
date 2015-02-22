@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   get 'new_ideas/earthquake'
   get 'new_ideas/currency'
   get 'new_ideas/himer'
+  get 'new_ideas/tagging'
 
   default_url_options host: Rails.application.secrets.host
 

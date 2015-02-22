@@ -17,9 +17,12 @@ class NewIdeasController < ApplicationController
   def earthquake
   end
 
-  def currency    
+  def currency
   end
 
   def himer
+  end
+
+  def tagging
   end
 end
