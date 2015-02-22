@@ -1,0 +1,116 @@
+<% title = "Sahibinden.com Numaram Başka Bir Üye Tarafından Kullanılmış." %>
+<%= title title %>
+<%= stylesheet_link_tag "new_ideas" %>
+<% render 'new_ideas_nav' %>
+
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      <%= title %>
+      <small class="pull-right">HİMER</small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9">
+      <%= idea_body do %>
+        <p>Sahibinden.com hiç sipariş vermediğim halde benim cep 
+          numaramla sipariş verilmiş olduğunu anladım. Nasıl anladım 
+          derseniz ilk sipariş vermek istediğimde benim kullandığım 
+          0531****5 numaramın başka bir kullanıcı tarafından 
+          kullanıldığını sipariş verildiğini anladım, müşteri 
+          hizmetleriyle konuşmama rağmen bir sonuç alamadım.</p>
+      <% end %>
+
+      <%= idea_comment do %>
+        <span class="label label-primary pull-right">Yetkili</span>
+
+        <p>Merhaba,</p>
+
+        <p>Kullanıcımıza 20.02.2015 tarihinde dönüş yapılarak Cebinden 
+          Onaylı ile ilgili detaylı bilgi verilerek kullanıcımızın 
+          memnuniyeti sağlanmıştır.</p>
+
+        <p>sahibinden.com servis ve hizmetleri ile ilgili şikayet, istek 
+          ve önerilerinizi sahibinden.com Yardım sayfamızdan göndererek 
+          veya bireysel kullanıcılarımız için 0 850 222 44 44 Çağrı 
+          Merkezi’mizi, kurumsal kullanıcılarımız için 0 850 222 44 45 
+          Kurumsal Çağrı Merkezi’mizi 7 gün 24 saat arayarak 
+          iletebilirsiniz.</p>
+
+        <p>Saygılarımızla.</p>
+
+        <p>sahibinden.com Destek Merkezi</p>
+        <div class="pull-right">
+          <%= image_tag "sahibindencom-logo.png", width: "100" %>
+        </div>
+      <% end %>
+
+      <%= idea_comment do %>
+        <span class="label label-primary pull-right">Yetkili</span>
+
+        <p>Değerli Kullanıcımız,</p>
+
+        <p>Servis ve hizmetlerimizle ile ilgili ihtiyaç duyabileceğiniz 
+          her konuda size yardımcı olmaktan memnuniyet duyarız.</p>
+
+        <p>İlettiğiniz konu ile ilgili inceleme yaparak, en kısa sürede 
+          size bilgi vereceğiz.</p>
+
+        <p>sahibinden.com servis ve hizmetleri ile ilgili şikayet, istek 
+          ve önerilerinizi sahibinden.com Yardım sayfamızdan göndererek 
+          veya bireysel kullanıcılarımız için 0 850 222 44 44 Çağrı 
+          Merkezi’mizi, kurumsal kullanıcılarımız için 0 850 222 44 45 
+          Kurumsal Çağrı Merkezi’mizi 7 gün 24 saat arayarak 
+          iletebilirsiniz.</p>
+
+        <p>Saygılarımızla.</p>
+
+        <p>sahibinden.com Destek Merkezi</p>
+        <div class="pull-right">
+          <%= image_tag "sahibindencom-logo.png", width: "100" %>
+        </div>
+      <% end %>
+
+      <%= render 'comments/user_not_signed_in' %>
+
+    </div>
+
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          Aynı firmadan benzerleri
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Sahibinden.com Yanlış Bilgi!</a></li>
+          <li class="list-group-item"><a href="#">Sahibinden.com Üyeliğin Bloke Edilmesi!</a></li>
+          <li class="list-group-item"><a href="#">Sahibinden.com Aylık Ücretsiz İlan Hakkı Haksız Olarak Kaldırıldı-Üyeliğim Pasif Hale Getirildi.</a></li>
+          <li class="list-group-item"><a href="#">Sahibinden.com İlan Veremiyoruz!</a></li>
+          <li class="list-group-item"><a href="#">Sahibinden.com Ödeme İadesi Yapılmadı!</a></li>
+          <li class="list-group-item"><a href="#">Sahibinden.com'da Senelerdir Kullandığım Kullanıcı Adıma Üyeliğimin Durdurulduğu Yazısı Geldi.</a></li>
+          <li class="list-group-item"><a href="#">Sahibinden.com Üyelik İptalini Yapmıyor.</a></li>
+        </ul>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          Diğer Şikayetler
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Çanakkale Seramik Satarken Artan Fayans İade Alırız Dedi Ancak Sonradan Kabul Etmedi.</a></li>
+          <li class="list-group-item"><a href="#">Avea Haksız Faturalandırma!</a></li>
+          <li class="list-group-item"><a href="#">Turkcell Çekim Problemi!</a></li>
+          <li class="list-group-item"><a href="#">Turkcell Hattımı Avea'ya Taşıdım!</a></li>
+          <li class="list-group-item"><a href="#">Pocell Sözünde Durmadı!</a></li>
+          <li class="list-group-item"><a href="#">Demir Solar Servis Hala Gelmedi!</a></li>
+          <li class="list-group-item"><a href="#">Natro Hosting Destek Talebi Olumsuz Karşılandı.</a></li>
+          <li class="list-group-item"><a href="#">Soyak Yapı Geç Teslimat!</a></li>
+          <li class="list-group-item"><a href="#">Turkcell Hala Aramadı!</a></li>
+          <li class="list-group-item"><a href="#">Casper Telefon Sürekli Serviste!</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -19,4 +19,7 @@ class NewIdeasController < ApplicationController
 
   def currency    
   end
+
+  def himer
+  end
 end
