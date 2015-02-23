@@ -25,4 +25,7 @@ class NewIdeasController < ApplicationController
 
   def tagging
   end
+
+  def namaz
+  end
 end

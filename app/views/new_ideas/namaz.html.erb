@@ -1,0 +1,154 @@
+<%= title "İstanbul Küçükçekmece Namaz Vakitleri" %>
+<%= stylesheet_link_tag "new_ideas" %>
+<% render 'new_ideas_nav' %>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      İstanbul Küçükçekmece Namaz Vakitleri
+      <small class="pull-right">Namaz Vakitleri</small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9">
+      <%= idea_body do %>
+
+        <div class="btn-toolbar" role="toolbar">
+          <div class="btn-group" role="group">
+            <button class="btn btn-default">1</button>
+            <button class="btn btn-default active">7</button>
+            <button class="btn btn-default">30</button>
+          </div>
+          <div class="btn-group" role="group">
+            <button class="btn btn-default">Ezan Oku</button>
+          </div>
+          <div class="btn-group pull-right" role="group">
+            <button class="btn btn-default">İstanbul <span class="caret"></span></button>
+            <button class="btn btn-default">Küçükçekmece <span class="caret"></span></button>
+          </div>
+        </div>
+
+        <br>
+
+        <div class="panel panel-default">
+          <div class="panel-heading text-center">
+            İmsak vaktine kalan süre
+          </div>
+          <div class="panel-body">
+            <p class="text-center h1 text-success"><time>08:45:30</time></p>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Tarih</th>
+                <th>İmsak</th>
+                <th>Güneş</th>
+                <th>Öğle</th>
+                <th>İkindi</th>
+                <th>Akşam</th>
+                <th>Yatsı</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr class="warning">
+                <td>23.02.2015 Pazartesi</td>
+                <td>05:16</td>
+                <td>06:42</td>
+                <td>12:25</td>
+                <td>15:24</td>
+                <td>17:56</td>
+                <td><b>19:16</b></td>
+              </tr>
+              <tr>  
+                <td>24.02.2015 Salı</td>
+                <td>05:14</td>
+                <td>06:41</td>
+                <td>12:25</td>
+                <td>15:25</td>
+                <td>17:58</td>
+                <td>19:17</td>
+              </tr>
+              <tr>  
+                <td>25.02.2015 Çarşamba</td>
+                <td>05:13</td>
+                <td>06:39</td>
+                <td>12:25</td>
+                <td>15:26</td>
+                <td>17:59</td>
+                <td>19:18</td>
+              </tr>
+              <tr>  
+                <td>26.02.2015 Perşembe</td>
+                <td>05:12</td>
+                <td>06:38</td>
+                <td>12:25</td>
+                <td>15:26</td>
+                <td>18:00</td>
+                <td>19:19</td>
+              </tr>
+              <tr>  
+                <td>27.02.2015 Cuma</td>
+                <td>05:10</td>
+                <td>06:36</td>
+                <td>12:25</td>
+                <td>15:27</td>
+                <td>18:01</td>
+                <td>19:20</td>
+              </tr>
+              <tr>  
+                <td>28.02.2015 Cumartesi</td>
+                <td>05:09</td>
+                <td>06:35</td>
+                <td>12:25</td>
+                <td>15:28</td>
+                <td>18:02</td>
+                <td>19:21</td>
+              </tr>
+              <tr>  
+                <td>01.03.2015 Pazar</td>
+                <td>05:07</td>
+                <td>06:33</td>
+                <td>12:24</td>
+                <td>15:29</td>
+                <td>18:03</td>
+                <td>19:22</td>
+              </tr>
+            </tbody>
+
+          </table>
+        </div>
+
+        <p class="text-right"><i>Veriler Diyanet'ten alınmaktadır.</i></p>
+
+      <% end %>
+
+      <% Faker::Number.digit.to_i.times do %>
+        <%= idea_comment do %>
+          <%= Faker::Lorem.paragraph %>
+        <% end %>
+      <% end %>
+
+      <%= render 'comments/user_not_signed_in' %>
+
+    </div>
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <%= t 'common.similarly' %>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Mübarek Gün ve Geceler</a></li>
+          <li class="list-group-item"><a href="#">Google Map ile Kıble Tayini</a></li>
+          <li class="list-group-item"><a href="#">Kıble Tayin Yöntemleri</a></li>
+          <li class="list-group-item"><a href="#">Gün Çizgisi</a></li>
+          <li class="list-group-item"><a href="#">2015 Resmi Tatil Günleri</a></li>
+          <li class="list-group-item"><a href="#">Hava Durumu</a></li>
+          <li class="list-group-item"><a href="#">Takvim</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

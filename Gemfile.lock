@@ -285,6 +285,7 @@ DEPENDENCIES
   jquery-rails
   launchy (~> 2.4)
   mini_magick
+  nokogiri
   nprogress-rails
   pg
   pry-byebug
