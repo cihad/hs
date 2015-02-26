@@ -73,7 +73,7 @@
       ].shuffle %>
 
       <% (Faker::Number.digit.to_i * 2).times do |i| %>
-        <%= idea_comment user_image: random_avatar_image do %>
+        <%= idea_comment do %>
           <% f, s = choices[i % choices.count] %>
           Sabahları kalkınca <u><%= f %></u>. Çünkü <u><%= s %></u>.
         <% end %>

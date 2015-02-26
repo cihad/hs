@@ -1,0 +1,186 @@
+<%= title "" %>
+<%= stylesheet_link_tag "new_ideas" %>
+<% render 'new_ideas_nav' %>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      Meteoroloji vatandaşları uyardı
+      <small class="pull-right"><%= t 'news.news' %></small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9">
+      <%= idea_body do %>
+        <ol class="breadcrumb">
+          <li><a href="#">Canon</a></li>
+          <li><a href="#">Fotoğraf Makineleri <span class="caret"></span></a></li>
+          <li class="active">Canon EOS 600D <span class="caret"></span></li>
+        </ol>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <%= image_tag "canon_eos_600d.jpg", class: "img-responsive" %>
+          </div>
+
+          <script type="text/javascript">
+            $(function() {
+              $('tbody.details').hide();
+
+              $('.more').click(function(e) {
+                e.preventDefault();
+
+                $(this).parents('tr').hide();
+                $('tbody.details').show();
+              });
+
+              $('.less').click(function(e) {
+                e.preventDefault();
+                $('tbody.details').hide();
+                $('.more').parents('tr').show();
+              })
+            });
+          </script>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th colspan="2" class="text-center">TEKNİK ÖZELLİKLERİ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Ürün Kodu </th>
+                <td>135176050</td>
+              </tr>
+              <tr>
+                <th>Ağırlık (pilsiz) (gr) </th>
+                <td>570</td>
+              </tr>
+              <tr>
+                <th>Boyutlar (mm) </th>
+                <td>133,1 x 99,5 x 79,7</td>
+              </tr>
+              <tr>
+                <th>Dahili Hafıza (mb) </th>
+                <td>yok</td>
+              </tr>
+              <tr>
+                <td colspan="2" class="text-center"><a href="#" class="more">Daha</a></td>
+              </tr>
+            </tbody>
+            <tbody class="details">
+              <tr>
+                <th>Dijital Zoom </th>
+                <td>Yok</td>
+              </tr>
+              <tr>
+                <th>Enstantane Hızı (sn) </th>
+                <td>30-1/4000 sn</td>
+              </tr>
+              <tr>
+                <th>Etkin Çözünürlük (mp) </th>
+                <td>18</td>
+              </tr>
+              <tr>
+                <th>Garanti Süresi (yıl) </th>
+                <td>2 yıl</td>
+              </tr>
+              <tr>
+                <th>Görüntü Sezici Tipi </th>
+                <td>22,3 x 14,9 mm CMOS</td>
+              </tr>
+              <tr>
+                <th>Hafıza Tipi </th>
+                <td>SD/SDHC/SDXC</td>
+              </tr>
+              <tr>
+                <th>Iso Hassasiyeti </th>
+                <td>Otomatik (100-6400)</td>
+              </tr>
+              <tr>
+                <th>Kutunun İçindekiler </th>
+                <td>Garanti Belgesi</td>
+              </tr>
+              <tr>
+                <th>Lcd Ekran Boyutu (inç) </th>
+                <td>7,7 cm</td>
+              </tr>
+              <tr>
+                <th>MARKA </th>
+                <td>CANON</td>
+              </tr>
+              <tr>
+                <th>MODEL </th>
+                <td>EOS 600D</td>
+              </tr>
+              <tr>
+                <th>Pil Bilgisi </th>
+                <td>li-lon Pil</td>
+              </tr>
+              <tr>
+                <th>RENK </th>
+                <td>Siyah</td>
+              </tr>
+              <tr>
+                <th>Resim Formatı </th>
+                <td>JPEG,RAW</td>
+              </tr>
+              <tr>
+                <th>Tipi </th>
+                <td>D-SLR</td>
+              </tr>
+              <tr>
+                <th>Video Format </th>
+                <td>MOV</td>
+              </tr>
+              <tr>
+                <th>Türkçe Menü</th>
+                <td>Var</td>
+              </tr>
+              <tr>
+                <th>Ürün Menşei </th>
+                <td>JAPONYA</td>
+              </tr>
+              <tr>
+                <td colspan="2" class="text-center"><a href="#" class="less">Daha az</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        
+      <% end %>
+
+
+      <% Faker::Number.digit.to_i.times do %>
+        <%= idea_comment do %>
+          <%= Faker::Lorem.paragraph %>
+        <% end %>
+      <% end %>
+
+      <%= render 'comments/user_not_signed_in' %>
+
+    </div>
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          Benzer Ürünler
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item"><a href="#">Canon Eos 1100D 18-55mm + EF 75-300mm SLR Dijital Fotoğraf Makinesi</a></li>
+          <li class="list-group-item"><a href="#">Nikon D5200 18-105 VR Kit 24.1 MP Dijital SLR Fotoğraf Makinesi</a></li>
+          <li class="list-group-item"><a href="#">Nikon D3200 18-105mm VR Kit 24 MP Dijital SLR Fotoğraf Makinesi</a></li>
+          <li class="list-group-item"><a href="#">Nikon D3200 18-55 VR II KIT Profesyonel Fotoğraf Makinesi</a></li>
+          <li class="list-group-item"><a href="#">Nikon D5100 18-55 16.2MP 3" LCD Dijital SLR Fotoğraf Makinesi</a></li>
+          <li class="list-group-item"><a href="#">Nikon D5100 18-55 VR + 55-200 VR 16.2 MP 3" LCD Dijital SLR Fotoğraf Makinesi</a></li>
+          <li class="list-group-item"><a href="#">Nikon D3200 18-55mm Kit 24 MP Dijital SLR Fotoğraf Makinesi</a></li>
+          <li class="list-group-item"><a href="#">Canon Eos 70D 18-200 IS Kit DSLR Fotoğraf Makinesi</a></li>
+          <li class="list-group-item"><a href="#">Canon Eos 700D 18-55 IS STM 18 MP 3.0" LCD SLR Dijital Fotoğraf Makinesi</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

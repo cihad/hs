@@ -28,4 +28,7 @@ class NewIdeasController < ApplicationController
 
   def namaz
   end
+
+  def product    
+  end
 end

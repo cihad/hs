@@ -75,7 +75,7 @@
 
 
       <% Faker::Number.digit.to_i.times do %>
-        <%= idea_comment user_image: random_avatar_image do %>
+        <%= idea_comment do %>
           <span class="text-success">(<%= @choices.sample %> seçti.)</span> <%= Faker::Lorem.paragraph %>
         <% end %>
       <% end %>
