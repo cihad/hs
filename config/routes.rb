@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   get 'new_ideas/tagging'
   get 'new_ideas/namaz'
   get 'new_ideas/product'
+  get 'new_ideas/add'
 
   default_url_options host: Rails.application.secrets.host
 

@@ -31,4 +31,7 @@ class NewIdeasController < ApplicationController
 
   def product    
   end
+
+  def add
+  end
 end

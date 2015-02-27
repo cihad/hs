@@ -1,0 +1,73 @@
+<%= title "Düğüm ekle" %>
+<%= stylesheet_link_tag "new_ideas" %>
+<% render 'new_ideas_nav' %>
+
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      Ekle
+      <small class="pull-right">Tür</small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9">
+      <%= idea_body do %>
+        <p class="lead">Halkınsesi dinamiktir. Sizi tek bir içerik 
+          türüyle boğmaz. Aşağıda sitemizdeki canlılığı sağlayan 
+          türler listenmiştir. Canlı kalın!</p>
+
+        <table class="table">
+          <% NewIdeasController.action_methods.to_a.each_with_index do |type, i| %>
+            <tr>
+              <th>
+                <%= type %>
+                <% if rand(0..10) % 5 == 1 %>
+                  <span class="label label-danger">new</span>
+                <% end %>
+              </th>
+              <td><%= Faker::Lorem.sentence(8) %></td>
+              <td class="text-right">
+                <a href="#" class="btn btn-default">Ekle</a></td>
+            </tr>
+          <% end %>
+
+            <% %W(planning custom_type node_type prototype).each do |prototype| %>
+              <tr class="text-muted">
+                <th>
+                  <%= prototype %>
+                </th>
+                <td><%= Faker::Lorem.sentence(8) %></td>
+                <td class="text-center">
+                  <span class="glyphicon glyphicon-lock"></span>
+                </td>
+              </tr>
+            <% end %>
+        </table>
+      <% end %>
+
+      <% Faker::Number.digit.to_i.times do %>
+        <%= idea_comment do %>
+          <%= Faker::Lorem.paragraph %>
+        <% end %>
+      <% end %>
+
+      <%= render 'comments/user_not_signed_in' %>
+
+    </div>
+    <div class="col-md-3">
+          <div class="panel panel-default">
+        <div class="panel-heading">
+          Popüler İçerikler
+        </div>
+        <ul class="list-group">
+          <% 10.times do %>
+            <li class="list-group-item"><a href="#"><%= Faker::Lorem.sentence %></a></li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
