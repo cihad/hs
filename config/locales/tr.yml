@@ -146,6 +146,9 @@ tr:
     change_avatar:
       html: "Avatar resminizi <a href='http://gravatar.com'>gravatar.com</a>'dan alıyoruz. Buradan değiştirebilirsiniz."
 
+  authorization:
+    no_access: "Bu işlemi gerçekleştirmek için yetkili değilsiniz."
+    try_login: "Giriş yaparak tekrar deneyiniz."
 
   administration:
     name: "Yönetim"
