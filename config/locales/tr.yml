@@ -189,3 +189,11 @@ tr:
           being_reviewed: "İncelemede"
           published: "Yayında"
           trashed: "Çöp kutusunda"
+
+  views:
+    pagination:
+      first: "&laquo; İlk"
+      last: "En son &raquo;"
+      previous: "&lsaquo; Önceki"
+      next: "Sonraki &rsaquo;"
+      truncate: "&hellip;"

@@ -3,7 +3,7 @@ class NodesController < ApplicationController
   before_filter :node, only: [:show, :edit, :update, :destroy]
 
   def index
-    @nodes = Node.includes(:author, :comments).with_published_state.order(created_at: :desc)
+    @nodes = Node.includes(:author, :comments).with_published_state.order(created_at: :desc).page(params[:page])
   end
 
   def new

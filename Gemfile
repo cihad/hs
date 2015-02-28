@@ -22,7 +22,7 @@ gem 'turkish_support'
 gem 'devise', '~> 3.4'
 gem 'pundit', '~> 0.3'
 gem 'nprogress-rails'
-gem 'nokogiri'
+gem 'kaminari', '~> 0.16'
 
 group :development, :test do
   gem 'byebug'
