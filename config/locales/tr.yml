@@ -13,6 +13,7 @@ tr:
     user: "Kullanıcı"
     created_at: "Eklenme tarihi"
     actions: "Aksiyonlar"
+    add: "Ekle"
 
   time:
     today: "Bugün"
