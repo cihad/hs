@@ -3,3 +3,7 @@
 <%= list_nodes @nodes %>
 
 <%= paginate @nodes %>
+
+<% content_for :head do %>
+  <%= rel_next_prev_link_tags @nodes %>
+<% end %>
