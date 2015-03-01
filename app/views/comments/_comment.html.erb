@@ -5,19 +5,22 @@
   </div>
 
   <div class="col-md-11 col-sm-11">
-    <%= bubble_box do %>
+    <div class="panel panel-default">
+      <div class="arrow hidden-print hidden-xs"></div>
+      <div class="panel-body">
+        <% if comment.owner? comment.node.author %>
+          <div class="label label-primary pull-right">
+            <%= t 'comments.owner' %>
+          </div>
+        <% end %>
 
-      <% if comment.owner? comment.node.author %>
-        <div class="label label-primary pull-right">
-          <%= t 'comments.owner' %>
-        </div>
-      <% end %>
+        <article>
+          <%= markdown comment.author.username + ": " + comment.body %>
+        </article>
 
-      <article>
-        <%= markdown comment.author.username + ": " + comment.body %>
-      </article>
+      </div>
 
-      <div class="meta text-muted">
+      <div class="panel-footer text-muted text-right">
         <%= link_to "##{comment.id}", comment_path(comment) %>
 
         <%= time_tag comment.created_at, title: comment.created_at do %>
@@ -33,7 +36,6 @@
           <%= link_to t('common.delete'), [comment.node, comment], method: :delete, data: { confirm: t('common.are_you_sure') } %>
         <% end %>
       </div>
-
-    <% end %>
+    </div>
   </div>
 <% end %>

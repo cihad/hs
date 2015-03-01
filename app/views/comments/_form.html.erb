@@ -9,12 +9,15 @@
     </div>
 
     <div class="col-md-11 col-sm-11 col-xs-12">
-      <%= bubble_box do %>
+      <div class="panel panel-default">
+        <div class="arrow hidden-print"></div>
+        <div class="panel-body">
           <%= f.error_notification %>
           <%= f.input :body %>
           <span class="help-block"><%= t 'simple_form.hints.node.body' %></span>
           <%= f.button :submit %>
-      <% end %>
+        </div>
+      </div>
     </div>
   <% end %>
 </div>

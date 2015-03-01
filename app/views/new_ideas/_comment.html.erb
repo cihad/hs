@@ -4,21 +4,23 @@
   </div>
 
   <div class="col-md-11 col-sm-11">
-    <%= bubble_box do %>
+    <div class="panel panel-default">
+      <div class="arrow hidden-print hidden-xs"></div>
 
-      <article>
-        <b><%= username %>:</b>
-        <%= yield %>
-      </article>
+      <div class="panel-body">
+        <article>
+          <b><%= username %>:</b>
+          <%= yield %>
+        </article>
+      </div>
 
-      <div class="meta text-muted">
-        <%= link_to "##{Faker::Number.number(3)}", "#" %>
-
+      <div class="panel-footer text-muted text-right">
         <%= time_tag (time = Faker::Time.between(5.days.ago, Time.now)), title: time do %>
           <%= t 'time.ago', time: time_ago_in_words(time) %>
         <% end %>
       </div>
 
-    <% end %>
+    </div>
+    
   </div>
 </div>

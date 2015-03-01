@@ -23,13 +23,6 @@ module ApplicationHelper
   def list_nodes nodes
     render 'nodes/node_list', nodes: nodes
   end
-  def bubble_box &block
-    render layout: 'bubble_box', &block
-  end
-
-  def box &block
-    render layout: 'box', &block
-  end
 
   # Docs: https://en.gravatar.com/site/implement/images/
   def gravatar_url_for email, size: 120

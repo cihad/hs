@@ -1,23 +1,9 @@
-.box {
-  border: 1px solid #ccc;
-  background: #fff;
-  padding-top: 15px;
-  padding-bottom: 15px;
-  border-radius: 3px;
-}
-
-.box-condensed {
-  padding: 0;
-}
-
-
-// Bubble
-.box {
+.panel {
   position: relative;
 }
 
-.box > .arrow,
-.box > .arrow:after {
+.panel > .arrow,
+.panel > .arrow:after {
   position: absolute;
   display: block;
   width: 0;
@@ -26,17 +12,17 @@
   border-style: solid
 }
 
-.box > .arrow {
+.panel > .arrow {
   border-width: $popover-arrow-outer-width;
   top: 28px;
   left: -$popover-arrow-outer-width;
   margin-top: -$popover-arrow-outer-width;
-  border-right-color: $popover-arrow-outer-fallback-color;
-  border-right-color: $popover-arrow-outer-color;
+  border-right-color: $popover-border-color; // IE8 fallback
+  border-right-color: $panel-default-border;
   border-left-width: 0
 }
 
-.box > .arrow:after {
+.panel > .arrow:after {
   border-width: $popover-arrow-width;
   content: "";
   left: 1px;

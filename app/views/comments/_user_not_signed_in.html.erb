@@ -4,10 +4,14 @@
   </div>
 
   <div class="col-md-11 col-sm-11 col-xs-12">
-    <%= bubble_box do %>
-      <article>
-        Yorum yapabilmek icin <%= link_to t('sessions.login'), new_user_session_path %>
-      </article>
-    <% end %>
+    <div class="panel panel-default">
+      <div class="arrow hidden-print hidden-xs"></div>
+
+      <div class="panel-body">
+        <article>
+          Yorum yapabilmek icin <%= link_to t('sessions.login'), new_user_session_path %>
+        </article>
+      </div>
+    </div>
   </div>
 </div>
