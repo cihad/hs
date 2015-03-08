@@ -1,0 +1,196 @@
+<div class="row">
+
+  <div class="col-md-9">
+
+    <div class="row">
+
+
+      <div class="col-md-1">
+      <%= image_tag gravatar_url_for("admin@halkinsesi.com"), class: "img-circle img-responsive" %>
+      </div>
+
+      <div class="col-md-11">
+        <div class="panel panel-default">
+          <div class="arrow hidden-print"></div>
+
+          <div class="panel-body">
+            <p>admin: Aşağıda sitemizde gövde alanlarında giriş için kullandığımız markdown formatı hakkında kısa örneklendirmelere yer verdik. Umarım faydalı olur.</p>
+
+            <table class="table">
+
+
+              <thead>
+                <tr>
+                  <th>Eleman</th>
+                  <th>Markdown formatında (Giriş)</th>
+                  <th>Görünüm (Çıktı)</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td>Alt Satır</td>
+                  <td>
+<pre>Halkın
+Sesi</pre>
+                  </td>
+                  <td>
+                    <%= markdown "Halkın Sesi" %>
+
+                  </td>
+
+                </tr>
+                <tr>
+                  <td>Paragraf</td>
+                  <td>
+                    <pre>
+<code>Lorem Ipsum, dizgi ve baskı endüstrisinde kullanılan mıgır metinlerdir.
+
+Lorem Ipsum, adı bilinmeyen bir matbaacının bir hurufat numune kitabı oluşturmak üzere bir yazı galerisini alarak karıştırdığı 1500'lerden beri endüstri standardı sahte metinler olarak kullanılmıştır.</code></pre>
+                  </td>
+                  <td>
+                    
+                      <p>Lorem Ipsum, dizgi ve baskı endüstrisinde kullanılan mıgır metinlerdir.</p>
+
+                      <p>Lorem Ipsum, adı bilinmeyen bir matbaacının bir hurufat numune kitabı oluşturmak üzere bir yazı galerisini alarak karıştırdığı 1500'lerden beri endüstri standardı sahte metinler olarak kullanılmıştır.</p>
+                    
+                  </td>
+                </tr>
+
+                <tr>
+                  <td>Kalın</td>
+                  <td>
+                    <code>**Halkın Sesi**</code> veya <code>__Halkın Sesi__</code>
+                  </td>
+                  <td><b><%= markdown "**Halkın Sesi**" %></b></td>
+                </tr>
+
+                <tr>
+                  <td>Eğik</td>
+                  <td>
+                    <code>*Halkın Sesi*</code> veya <code>_Halkın Sesi_</code></td>
+                  <td><%= markdown "*Halkın Sesi*" %></td>
+                </tr>
+
+                <tr>
+                  <td>Link</td>
+                  <td><code>[halkinsesi](halkinsesi.com)</code></td>
+                  <td><%= markdown "[halkinsesi](halkinsesi.com)" %></td>
+                </tr>
+
+                <tr>
+                  <td>Alıntı</td>
+                  <td>
+<pre>> Düşünüyorum,
+> Öyleyse varım
+>
+> **Rene Descartes**
+</pre>
+                  </td>
+                  <td><%= markdown "> Düşünüyorum,
+> Öyleyse varım
+>
+> **Rene Descartes**" %></td>
+                </tr>
+                 <tr>
+                  <td>Numarasız Liste</td>
+                  <td>
+<pre>* İlkbahar
+* Yaz
+* Sonbahar
+* Kış
+</pre> veya
+<pre>- İlkbahar
+- Yaz
+- Sonbahar
+- Kış
+</pre> veya
+<pre>+ İlkbahar
++ Yaz
++ Sonbahar
++ Kış
+</pre>
+
+
+                  </td>
+                  <td><b><%= markdown "* İlkbahar
+* Yaz
+* Sonbahar
+* Kış" %></b></td>
+                </tr>
+
+                <tr>
+                  <td>Numaralı Liste</td>
+                  <td>
+<pre>1. İlkbahar
+2. Yaz
+3. Sonbahar
+4. Kış</pre>
+                  </td>
+                  <td><%= markdown "1. İlkbahar
+2. Yaz
+3. Sonbahar
+4. Kış" %></td>
+                </tr>
+
+                <tr>
+                  <td>Başlık</td>
+                  <td>
+<pre># Başlık 1
+## Başlık 2
+### Başlık 3
+#### Başlık 4
+##### Başlık 5
+###### Başlık 6</pre> veya
+<pre>Başlık 1
+=======
+
+Başlık 2
+--------</pre>
+</td>
+                  <td><%= markdown "# Başlık 1
+## Başlık 2
+### Başlık 3
+#### Başlık 4
+##### Başlık 5
+###### Başlık 6" %></td>
+                </tr>
+
+                <tr>
+                  <td>Resim</td>
+                  <td><code>![resim yüklenmiyorsa yerine gelecek yazı](/assets/user.jpg)</code></td>
+                  <td><%= markdown "![resim yüklenmiyorsa yerine gelecek yazı](/assets/user.jpg)" %></td>
+                </tr>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      
+
+
+
+
+
+    </div>
+
+  </div>
+
+  <div class="col-md-3">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Menü</h3>
+      </div>
+
+      <ul class="list-group">
+        <li class="list-group-item"><%= link_to 'Markdown', page_path('markdown') %></li>
+      </ul>
+    </div>
+  </div>
+
+
+
+
+</div>
