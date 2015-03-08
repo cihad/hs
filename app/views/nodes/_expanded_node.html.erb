@@ -24,18 +24,53 @@
           </article>
         </div>
 
-        <div class="panel-footer text-muted text-right">
-          <%= time_tag node.created_at %>
+        <div class="navbar navbar-fixed-bottom panel-footer">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#<%= dom_id node %>">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+            </div>
 
-          <%= render node.tags %>
+            <div class="collapse navbar-collapse" id="<%= dom_id node %>">
+              <%= render node.tags %>
 
-          <% if policy(node).edit? %>
-            <%= link_to t('common.edit'), edit_node_path(node) %>
-          <% end %>
+              <ul class="nav navbar-nav navbar-right">
+                <li>
+                  <div class="navbar-text text-muted">
+                    <%= time_tag node.created_at %>
+                  </div>
+                </li>
+                
+                <li class="dropdown dropup">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-cog"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                    <% if policy(node).edit? %>
+                      <li>
+                        <%= link_to edit_node_path(node) do %>
+                          <span class="glyphicon glyphicon-edit"></span>
+                          <%= t 'common.edit' %>
+                        <% end %>
+                      </li>
+                    <% end %>
 
-          <% if policy(node).destroy? %>
-            <%= link_to t('common.delete'), node, method: :delete, data: { confirm: t('common.are_you_sure') } %>
-          <% end %>
+                    <% if policy(node).destroy? %>
+                      <li>
+                        <%= link_to node, method: :delete, data: { confirm: t('common.are_you_sure') } do %>
+                          <span class="glyphicon glyphicon-trash"></span>
+                          <%= t 'common.delete' %>
+                        <% end %>
+                      </li>
+                    <% end %>
+                  </ul>
+                </li>
+
+              </ul>
+            </div>
+          </div>
         </div>
         
       </div>

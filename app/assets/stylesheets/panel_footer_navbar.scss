@@ -1,0 +1,93 @@
+$navbar-panel-footer-height:            40px !default;
+$navbar-panel-footer-margin-bottom:     0 !default;
+$navbar-panel-footer-border-radius:     0 !default;
+$navbar-panel-footer-bottom:            0 !default;
+$navbar-panel-footer-border-radius:     0 !default;
+$navbar-panel-footer-padding-vertical:  (($navbar-panel-footer-height - $line-height-computed) / 2) !default;
+
+@mixin navbar-panel-footer-vertical-align($element-height) {
+  margin-top: (($navbar-panel-footer-height - $element-height) / 2);
+  margin-bottom: (($navbar-panel-footer-height - $element-height) / 2);
+}
+
+.navbar.panel-footer {
+  min-height: $navbar-panel-footer-height;
+  padding: 0;
+  margin-bottom: $navbar-panel-footer-margin-bottom;
+
+  @media (min-width: $grid-float-breakpoint) {
+    border-radius: $navbar-panel-footer-border-radius;
+  }
+
+  .navbar-brand {
+    padding: $navbar-panel-footer-padding-vertical $navbar-padding-horizontal;
+    height: $navbar-panel-footer-height;
+  }
+
+  .navbar-nav {
+    margin: 0;
+
+    // Uncollapse the nav
+    @media (min-width: $grid-float-breakpoint) {
+      
+      > li > a {
+        padding-top:    $navbar-panel-footer-padding-vertical;
+        padding-bottom: $navbar-panel-footer-padding-vertical;
+      }
+    }
+  }
+
+  .navbar-form {
+    // Vertically center in expanded, horizontal navbar
+    @include navbar-panel-footer-vertical-align($input-height-base);
+  }
+
+  .navbar-btn {
+    @include navbar-panel-footer-vertical-align($input-height-base);
+
+    &.btn-sm {
+      @include navbar-panel-footer-vertical-align($input-height-small);
+    }
+    &.btn-xs {
+      @include navbar-panel-footer-vertical-align(22);
+    }
+  }
+
+  .navbar-text {
+    @include navbar-panel-footer-vertical-align($line-height-computed);
+  }
+
+  .navbar-toggle {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    @include navbar-vertical-align(24px);
+
+    // Bars
+    .icon-bar {
+      display: block;
+      width: 16px;
+      height: 2px;
+      border-radius: 0;
+    }
+    .icon-bar + .icon-bar {
+      margin-top: 3px;
+    }
+  }
+
+  .navbar-toggle {
+    border-color: $navbar-default-toggle-border-color;
+    &:hover,
+    &:focus {
+      background-color: $navbar-default-toggle-hover-bg;
+    }
+    .icon-bar {
+      background-color: $navbar-default-toggle-icon-bar-bg;
+    }
+  }
+
+  &.navbar-fixed-bottom {
+    position: relative;
+  }
+
+}
