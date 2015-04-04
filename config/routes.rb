@@ -13,6 +13,8 @@ Rails.application.routes.draw do
   get 'new_ideas/product'
   get 'new_ideas/add'
 
+  get '/nodes/new/:controller', as: :new_new_node, action: :new
+
   default_url_options host: Rails.application.secrets.host
 
   get 'sitemap/sitemap'
@@ -22,9 +24,12 @@ Rails.application.routes.draw do
 
   root "nodes#index"
 
-  resources :nodes do
+  resources :nodes, only: [:index, :new, :show, :destroy] do
     resources :comments, only: [:create, :edit, :update, :destroy]
   end
+
+  get 'nodes/new/content', to: "contents#new", as: :new_content
+  resources :contents
 
   resources :comments, only: :show
 

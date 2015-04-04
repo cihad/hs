@@ -6,9 +6,18 @@ require 'rspec/rails'
 require 'capybara/rails'
 require 'capybara/rspec'
 require 'shoulda-matchers'
+Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
 
 # Set Capybara Javascript Driver
 Capybara.javascript_driver = :webkit
+
+Capybara.register_driver :chrome do |app|
+  Capybara::Selenium::Driver.new(app, browser: :chrome)
+end
+
+
+
+
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are

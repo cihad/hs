@@ -25,15 +25,6 @@ class NodePolicy < Struct.new(:current_user, :node)
       :title,
       :body,
       :tag_list,
-      node_images_attributes: [
-        :_destroy,
-        :id,
-        image_attributes: [
-          :id,
-          :image,
-          :title
-        ]
-      ]
     ]
     attrs.push(:status) if current_user.manager?
     attrs

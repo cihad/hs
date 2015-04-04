@@ -1,4 +1,4 @@
-IMAGES_DIR = "#{Rails.root}/spec/support/images"
+images_directory = "#{Rails.root}/spec/support/images"
 
 FactoryGirl.define do
   factory :user, aliases: [:author] do
@@ -7,17 +7,44 @@ FactoryGirl.define do
     email { Faker::Internet.email }
     password "123456"
     password_confirmation "123456"
+
+    %i(anonymous authenticated admin superadmin).each do |role|
+      factory role do
+        role role.to_s
+      end
+    end
+  end
+
+  factory :content do
+    transient do
+      author nil
+    end
+
+    title Faker::Name.title
+    body Faker::Lorem.paragraphs.join("\n\n")
+    
+    factory :content_with_images do
+      after(:create) do |content, evaluator|
+        create_list :content_image, 4, content: content
+      end
+    end
+
+    after(:create) do |content, evaluator|
+      content.node.update author: evaluator.author if evaluator.author
+    end
+
+    node
   end
 
   factory :node do
     title Faker::Name.title
-    body  Faker::Lorem.paragraphs.join("\n\n")
-    author 
+    body Faker::Lorem.paragraphs.join("\n\n")
+    author
+    tag_list Faker::Lorem.words.join(",")
+    status "awaiting_review"
 
-    factory :node_with_images do
-      after(:create) do |node, evaluator|
-        create_list :node_image, 4, node: node
-      end
+    factory :published_node do
+      status "published"
     end
 
     factory :node_with_tags do
@@ -27,8 +54,14 @@ FactoryGirl.define do
     end
   end
 
-  factory :node_image do
+  factory :comment do
+    author
     node
+    body Faker::Lorem.paragraph
+  end
+
+  factory :content_image do
+    content
     image
   end
 
@@ -36,7 +69,7 @@ FactoryGirl.define do
     title Faker::Name.title
     sequence :image do |n|
       n = (n % 4) + 1
-      File.new("#{IMAGES_DIR}/sample_image_#{n}.jpg")
+      Rack::Test::UploadedFile.new("#{images_directory}/sample_image_#{n}.jpg", "image/jpg")
     end
   end
 

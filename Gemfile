@@ -37,10 +37,11 @@ end
 group :test do
   gem 'rspec-rails', '~> 3.0.0'
   gem 'factory_girl_rails', '~> 4.4'
-  gem 'capybara', '~> 2.4'
+  gem 'capybara', '~> 2.4.4'
   gem 'shoulda-matchers', '~> 2.7', require: false
   gem 'capybara-webkit', '1.3.1'
   gem 'launchy', '~> 2.4'
+  gem 'selenium-webdriver', '~> 2.45'
 end
 
 group :development do

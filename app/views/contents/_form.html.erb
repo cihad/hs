@@ -1,0 +1,29 @@
+<%= content_form_for @content do |f| %>
+
+  <%= f.input :title, autofocus: true %>
+
+  <%= f.input :body, as: :text, input_html: { rows: 10 } %>
+
+  <div class="form-group">
+    <%= f.label :images, class: "col-md-2 control-label" %>
+
+    <div class="col-md-10">
+      <div class="row">
+        <%= f.simple_fields_for :content_images do |ni| %>
+          <div class="col-md-3">
+            <%= ni.simple_fields_for :image do |i| %>
+              <% if i.object.persisted? %>
+                <%= render 'images/persisted_image_form_field', i: i, ni: ni %>
+              <% else %>
+                <%= render 'images/image_form_field', i: i %>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+    </div>
+  </div>
+
+
+<% end %>

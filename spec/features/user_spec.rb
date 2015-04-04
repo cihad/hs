@@ -1,9 +1,9 @@
 require 'rails_helper'
 
-RSpec.describe "User", type: :feature do
+feature "User" do
 
   def login_with email, password = "123456"
-    visit new_user_session_path
+    visit "users/login"
     within "form#new_user" do
       fill_in "user_email", with: email
       fill_in "user_password", with: password
@@ -11,46 +11,36 @@ RSpec.describe "User", type: :feature do
     end
   end
   
-  let!(:user) do
-    create :user,
-           name: "Name",
-           email: "name@example.org"
-  end
+  let!(:user) { create :user, name: "Name", email: "name@example.org" }
 
-  it "registrations creates a new user" do
-    visit new_user_registration_path
-
+  scenario "registration creates a new user" do
+    visit "users/register"
     expect {
       fill_in "user_name",        with: "Name"
-      fill_in "user_username",    with: "firstlast"
-      fill_in "user_email",       with: "firstlast@example.org"
+      fill_in "user_username",    with: "a_nice_username"
+      fill_in "user_email",       with: "user@example.org"
       fill_in "user_password",    with: "secretpassword"
       fill_in "user_password_confirmation",with: "secretpassword"
       click_on I18n.t('registrations.register')
     }.to change(User, :count).by(1)
   end
 
-
   describe "sessions" do
-
-    it "sessions log in the user" do
+    scenario "sessions log in the user" do
       login_with "name@example.org"
-
       expect(page).to have_content "Name"
     end
 
-    it "sessions logout the user" do
+    scenario "sessions logout the user" do
       login_with "name@example.org"
-
       click_on I18n.t('sessions.logout')
       expect(page).to_not have_content "Name"
     end
   end
 
-  it "edits user information" do
+  scenario "edits user information" do
     login_with "name@example.org"
     click_on I18n.t('registrations.edit')
-
     expect {
       within "form#edit_user" do
         fill_in "user_name", with: "Thename"

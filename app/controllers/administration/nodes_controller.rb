@@ -3,7 +3,7 @@ require 'node_filter'
 module Administration
   class NodesController < BaseController
     def index
-      @node_filter = NodeFilter.new(params[:node] || {})
+      @node_filter = NodeFilter.new(params.fetch :node_filter, {})
       @nodes = Node.where(status: @node_filter.status)
     end
 

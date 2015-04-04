@@ -16,7 +16,7 @@ module Administration
       if @user.update(user_params)
         redirect_to administration_users_path, notice: I18n.t('administration.users.flash.updated')
       else
-        render :new
+        render :edit
       end
     end
 

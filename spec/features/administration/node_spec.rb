@@ -2,27 +2,22 @@ require 'rails_helper'
 
 RSpec.describe "Node Administration" do
 
-  let!(:node) { create :node, title: "Example Title" }
+  let!(:node) { (create :content, title: "Example Title").node }
+  let(:admin) { create :admin }
+
+  before do
+    login admin
+  end
 
   it "node is seems on the node administration page" do
     visit administration_nodes_path
     expect(page).to have_content "Example Title"
   end
 
-  it "changes the node status and redirects to node edit page" do
-    visit administration_nodes_path
-    expect {
-      within "#node_#{node.id}" do
-        click_on I18n.t('nodes.events.review')
-      end
-      node.reload
-    }.to change { node.current_state }
-    expect(current_path).to eq(edit_node_path(node))
-  end
-
   it "Node filter form filters nodes by their status" do
-    node = create :node, title: "Another Title"
-    node.review!
+    another_node = (create :content, title: "Another Title").node
+    another_node.update status: "being_reviewed"
+    node.update status: "published"
 
     visit administration_nodes_path
 

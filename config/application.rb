@@ -24,7 +24,12 @@ module Hs
     config.active_record.raise_in_transactional_callbacks = true
 
     config.generators do |g|
-      g.factory_girl false
+      g.factory_girl    false
+      g.text_framework  :rspec, fixture: false
+      g.view_specs      false
+      g.helper_specs    false
+      g.stylesheets     false
+      g.javascripts     false
     end
   end
 end

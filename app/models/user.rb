@@ -16,8 +16,8 @@ class User < ActiveRecord::Base
   before_create :downcase_username
 
   # Associations
-  has_many :nodes, dependent: :nullify
-  has_many :comments, dependent: :nullify
+  has_many :nodes, dependent: :nullify, inverse_of: :author
+  has_many :comments, dependent: :nullify, inverse_of: :author
 
   # default role is authenticated
   enum role: [:anonymous, :authenticated, :admin, :superadmin]

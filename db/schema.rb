@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150113202442) do
+ActiveRecord::Schema.define(version: 20150316220327) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -27,6 +27,22 @@ ActiveRecord::Schema.define(version: 20150113202442) do
   add_index "comments", ["author_id"], name: "index_comments_on_author_id", using: :btree
   add_index "comments", ["node_id"], name: "index_comments_on_node_id", using: :btree
 
+  create_table "content_images", force: :cascade do |t|
+    t.integer  "content_id"
+    t.integer  "image_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "content_images", ["image_id"], name: "index_content_images_on_image_id", using: :btree
+
+  create_table "contents", force: :cascade do |t|
+    t.string   "title"
+    t.text     "body"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "images", force: :cascade do |t|
     t.string   "image"
     t.string   "title"
@@ -34,25 +50,19 @@ ActiveRecord::Schema.define(version: 20150113202442) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "node_images", force: :cascade do |t|
-    t.integer  "node_id"
-    t.integer  "image_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  add_index "node_images", ["image_id"], name: "index_node_images_on_image_id", using: :btree
-
   create_table "nodes", force: :cascade do |t|
     t.string   "title"
     t.text     "body"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
     t.string   "status"
     t.integer  "author_id"
+    t.integer  "content_id"
+    t.string   "content_type"
   end
 
   add_index "nodes", ["author_id"], name: "index_nodes_on_author_id", using: :btree
+  add_index "nodes", ["content_id", "content_type"], name: "index_nodes_on_content_id_and_content_type", unique: true, using: :btree
   add_index "nodes", ["status"], name: "index_nodes_on_status", using: :btree
 
   create_table "taggings", force: :cascade do |t|

@@ -1,0 +1,11 @@
+<%= f.simple_fields_for :node, f.object.node do |node_form| %>
+  <%= node_form.input :tag_list %>
+
+  <% if policy(node_form.object).permitted_attributes.include?(:status) %>
+    <%= node_form.input :status,
+          collection: node_form.object.class.workflow_spec.state_names,
+          include_blank: false %>
+  <% end %>
+<% end %>
+
+<%= submit_button f: f %>

@@ -1,7 +1,75 @@
 <%= title t('.add_new_node') %>
+<%#= stylesheet_link_tag "new_ideas" %>
 
-<div class="page-header">
-  <h1 class="h2"><%= t '.new_node' %></h1>
+<div class="page">
+  <div class="page-header">
+    <h1 class="h2">
+      <%= t '.new_node' %>
+      <small class="pull-right">Tür</small>
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-9">
+      <%= idea_body do %>
+        <p class="lead"><%= t 'content_types.new_node.desc' %></p>
+
+        <table class="table">
+          <% (Array(Content) + Content.descendants).map(&:to_s).map(&:underscore).each_with_index do |content_type, i| %>
+            <%= content_tag :tr, id: content_type do %>
+              <th>
+                <%= t "content_types.#{content_type}.name" %>
+                <% if rand(0..10) % 5 == 1 %>
+                  <span class="label label-danger">new</span>
+                <% end %>
+              </th>
+              <td><%= Faker::Lorem.sentence(8) %></td>
+              <td class="text-right">
+                <%= link_to new_new_node_path(controller: :contents),
+                      class: "btn btn-sm btn-primary",
+                      id: content_type do %>
+                  <span class="glyphicon glyphicon-chevron-right"></span>
+                  <span class="sr-only"><%= t "content_types.#{content_type}.name" %></span>
+                <% end %>
+              </td>
+            <% end %>
+          <% end %>
+
+            <% %W(planning custom_type node_type prototype).each do |prototype| %>
+              <tr class="text-muted">
+                <th>
+                  <%= prototype %>
+                </th>
+                <td><%= Faker::Lorem.sentence(8) %></td>
+                <td class="text-center">
+                  <span class="glyphicon glyphicon-lock"></span>
+                </td>
+              </tr>
+            <% end %>
+        </table>
+      <% end %>
+
+      <% Faker::Number.digit.to_i.times do %>
+        <%= idea_comment do %>
+          <%= Faker::Lorem.paragraph %>
+        <% end %>
+      <% end %>
+
+      <%= render 'comments/user_not_signed_in' %>
+
+    </div>
+    <div class="col-md-3">
+          <div class="panel panel-default">
+        <div class="panel-heading">
+          Popüler İçerikler
+        </div>
+        <ul class="list-group">
+          <% 10.times do %>
+            <li class="list-group-item"><a href="#"><%= Faker::Lorem.sentence %></a></li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+  </div>
+
 </div>
-
-<%= render 'form' %>

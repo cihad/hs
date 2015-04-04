@@ -24,6 +24,23 @@ module ApplicationHelper
     render 'nodes/node_list', nodes: nodes
   end
 
+  def content_form_for content, &block
+    render layout: 'nodes/form', locals: {content: content}, &block
+  end
+
+  def partial name, *others, &block
+    render layour: name, locals: others, &block
+  end
+
+  def new_node_path type = nil, *args
+    type ? send(:"new_#{type.to_s.underscore}_path", *args) : super
+  end
+
+  def edit_node_path node, *args
+    #binding.pry
+      send(:"edit_#{node.content_type.to_s.underscore}_path", node.content, *args)
+  end
+
   # Docs: https://en.gravatar.com/site/implement/images/
   def gravatar_url_for email, size: 120
     hash = Digest::MD5.hexdigest(email)
@@ -35,19 +52,13 @@ module ApplicationHelper
     render 'submit_button', f: f, button_text: button_text
   end
 
-  def is_active_page_current?
-    current_page?({
-      controller: controller_name,
-      action:     action_name
-    })
-  end
-
+  # TODO: Test
   def markdown text
     options = [:tables, :hard_wrap, :filter_html, :autolink, :no_intraemphasis, :fenced_code, :gh_blockcode]
     exts = {}
     options.each { |k| exts[k] = true }
     
-    Redcarpet::Markdown.new(Redcarpet::Render::HTML, exts).render(text).html_safe    
+    Redcarpet::Markdown.new(Redcarpet::Render::HTML, exts).render(text).html_safe
   end
 
 end

@@ -14,14 +14,16 @@ namespace :db do
     end
 
     Integer(args[:node_count]).times do
-      n = Node.create do |n|
-        n.title   = Faker::Name.title
-        n.body    = Faker::Lorem.paragraphs.join("\n\n")
-        n.author  = User.offset(rand(0..(User.count - 1))).first
-        n.status  = "published"
+      c = Content.new do |c|
+        c.title   = Faker::Name.title
+        c.body    = Faker::Lorem.paragraphs.join("\n\n")
       end
 
-      puts n.inspect
+      c.build_node author: User.offset(rand(0..(User.count - 1))).first,
+        status: "published"
+
+      c.save
+      puts c.inspect
     end
 
     Node.all.each do |n|

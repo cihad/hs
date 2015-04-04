@@ -81,7 +81,7 @@ tr:
       actions: "Aksiyonlar"
     edit:
       edit_node: "Düğümü düzenle"
-    status:
+    status: &node_status
       awaiting_review: "İnceleme gerekiyor"
       being_reviewed: "İnceleniyor"
       published: "Yayınlandı"
@@ -168,10 +168,10 @@ tr:
     options:
       node_filter:
         status:
-          awaiting_review: "İnceleme bekliyor"
-          being_reviewed: "İnceleniyor..."
-          published: "Yayında"
-          trashed: "Çöp kutusunda"
+          <<: *node_status
+      node:
+        status:
+          <<: *node_status
     hints:
       node:
         body: "Markdown formatında giriş yapınız. Bilgi için: http://en.wikipedia.org/wiki/Markdown"
@@ -183,13 +183,6 @@ tr:
       user:
         email: "Email"
         password: "Parola"
-    options:
-      node:
-        status:
-          awaiting_review: "İnceleme bekliyor"
-          being_reviewed: "İncelemede"
-          published: "Yayında"
-          trashed: "Çöp kutusunda"
 
   views:
     pagination:
@@ -198,3 +191,9 @@ tr:
       previous: "&lsaquo; Önceki"
       next: "Sonraki &rsaquo;"
       truncate: "&hellip;"
+
+  content_types:
+    new_node:
+      desc: "Halkınsesi dinamiktir. Sizi tek bir içerik türüyle boğmaz. Aşağıda sitemizdeki canlılığı sağlayan türler listenmiştir. Canlı kalın!"
+    content:
+      name: "İçerik"

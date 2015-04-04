@@ -8,4 +8,4 @@
   <h2><%= t 'images.used_nodes' %></h2>
 </div>
 
-<%= list_nodes @image.nodes %>
+<%= list_nodes @image.contents.map(&:node) %>

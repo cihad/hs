@@ -11,8 +11,11 @@ class CommentsController < ApplicationController
       c.node    = @node
     end
 
-    @comment.save
-    redirect_to @node, notice: I18n.t('comments.flash.created')
+    if @comment.save
+      redirect_to @node, notice: I18n.t('comments.flash.created')
+    else
+      render "nodes/show"
+    end
   end
 
   def edit
@@ -20,8 +23,11 @@ class CommentsController < ApplicationController
   end
 
   def update
-    @comment.update(comment_params)
-    redirect_to comment_path(@comment)
+    if @comment.update(comment_params)
+      redirect_to comment_path(@comment)
+    else
+      render :edit
+    end
   end
 
   def destroy
@@ -32,7 +38,7 @@ class CommentsController < ApplicationController
   private
     def set_comment
       @comment = Comment.find(params[:id])
-    end
+    end 
 
     def set_node
       @node = Node.includes(:comments).find(params[:node_id])
