@@ -11,10 +11,10 @@ class AddContentToNodes < ActiveRecord::Migration
             content = Content.create do |content|
               content.title = node.title
               content.body = node.body
+              content.node = node
             end
 
-            node.content = content
-            node.save
+            node.update content: content
           end
         end
       end
