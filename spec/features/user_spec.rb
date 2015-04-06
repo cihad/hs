@@ -51,4 +51,10 @@ feature "User" do
     }.to change { user.name }.from("Name").to("Thename")
   end
 
+  scenario 'not authorized message' do
+    visit administration_path
+    expect(page).to have_content I18n.t('authorization.no_access')
+    expect(page).to have_content I18n.t('authorization.try_login')
+  end
+
 end
