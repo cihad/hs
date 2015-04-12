@@ -11,10 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150316220327) do
+ActiveRecord::Schema.define(version: 20150412194252) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+  enable_extension "pg_trgm"
+  enable_extension "fuzzystrmatch"
 
   create_table "comments", force: :cascade do |t|
     t.integer  "author_id"
@@ -52,7 +54,6 @@ ActiveRecord::Schema.define(version: 20150316220327) do
 
   create_table "nodes", force: :cascade do |t|
     t.string   "title"
-    t.text     "body"
     t.datetime "created_at",   null: false
     t.datetime "updated_at",   null: false
     t.string   "status"
@@ -64,6 +65,14 @@ ActiveRecord::Schema.define(version: 20150316220327) do
   add_index "nodes", ["author_id"], name: "index_nodes_on_author_id", using: :btree
   add_index "nodes", ["content_id", "content_type"], name: "index_nodes_on_content_id_and_content_type", unique: true, using: :btree
   add_index "nodes", ["status"], name: "index_nodes_on_status", using: :btree
+
+  create_table "pg_search_documents", force: :cascade do |t|
+    t.text     "content"
+    t.integer  "searchable_id"
+    t.string   "searchable_type"
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+  end
 
   create_table "taggings", force: :cascade do |t|
     t.integer "taggable_id"

@@ -10,7 +10,6 @@ RSpec.describe Node do
   it { is_expected.to belong_to :author }
   it { is_expected.to have_many :comments }
   it { is_expected.to have_attribute :title }
-  it { is_expected.to have_attribute :body }
 
   it "#published" do
     published_node        = create :node, status: "published"

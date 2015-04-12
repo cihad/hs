@@ -38,7 +38,6 @@ FactoryGirl.define do
 
   factory :node do
     title Faker::Name.title
-    body Faker::Lorem.paragraphs.join("\n\n")
     author
     tag_list Faker::Lorem.words.join(",")
     status "awaiting_review"

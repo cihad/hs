@@ -1,5 +1,13 @@
 class Content < ActiveRecord::Base
 
+  # Full text search
+  include PgSearch
+  multisearchable against: %i(title body)
+  pg_search_scope :search, against: { title: 'A', body: 'B' },
+                  :using => {
+                    :tsearch => {:any_word => true}
+                  }
+
   # Asscoiations
   has_one :node, as: :content, autosave: true, required: true
   accepts_nested_attributes_for :node
@@ -15,19 +23,10 @@ class Content < ActiveRecord::Base
   # Callbacks
   before_save :update_node_attributes
 
-  def searchable_text_for_body
-    body
-  end
-
-  def searchable_text_for_title
-    title
-  end
-
 private
 
   def update_node_attributes
-    node.title  = searchable_text_for_title
-    node.body   = searchable_text_for_body
+    node.title = title
   end
 
 end

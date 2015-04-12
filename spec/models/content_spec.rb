@@ -8,21 +8,23 @@ RSpec.describe Content do
   it { is_expected.to validate_presence_of :body }
   it { is_expected.to have_one :node }
 
-  it "#searchable_text_for_title" do
-    content = Content.new title: "Example Title"
-    expect(content.searchable_text_for_title).to eq "Example Title"
-  end
-
-  it "#searchable_text_for_body" do
-    content = Content.new body: "Example Body"
-    expect(content.searchable_text_for_body).to eq "Example Body"
-  end
-
   it "updates node attributes after saved" do
     content = build :content
     content.save
     expect(content.node.title).to eq content.title
-    expect(content.node.body).to eq content.body
   end
+
+  it ".search" do
+    content1 = create :content, title: "Example Content", body: "This is a content"
+    content2 = create :content, title: "Sample Content", body: "A Beautiful Day!"
+    content3 = create :content, title: "Another Thing", body: "Yes it is"
+
+    
+    results = described_class.search("example content")
+
+    expect(results).to match_array [content1, content2]
+    expect(results).to_not include content3
+  end
+
 
 end

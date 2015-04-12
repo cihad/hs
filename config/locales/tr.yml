@@ -15,6 +15,7 @@ tr:
     actions: "Aksiyonlar"
     add: "Ekle"
     new: "Yeni"
+    similarly: "Benzer"
 
   time:
     today: "Bugün"

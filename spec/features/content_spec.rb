@@ -33,4 +33,16 @@ feature "Content" do
     expect(page).to have_content 'CHANGE TITLE!!!'
   end
 
+  scenario "shows similar contents" do
+    content1 = create :content, title: "Example Title"
+    content2 = create :content, title: "Example Content"
+    content3 = create :content, title: "Example Article"
+
+    visit node_path(content1.node)
+
+    expect(page).to have_content "Example Title"
+    expect(page).to have_content "Example Content"
+    expect(page).to have_content "Example Article"
+  end
+
 end

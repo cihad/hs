@@ -2,3 +2,16 @@
   <%= render content.images %>
 </div>
 <%= markdown content.body %>
+
+<%= content_for :right_column do %>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <%= t 'common.similarly' %>
+    </div>
+    <ul class="list-group">
+      <% Content.search(content.title).each do |c| %>
+        <li class="list-group-item"><%= link_to c.title, c.node %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

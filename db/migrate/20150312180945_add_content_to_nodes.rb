@@ -10,7 +10,6 @@ class AddContentToNodes < ActiveRecord::Migration
           unless node.content
             content = Content.create do |content|
               content.title = node.title
-              content.body = node.body
               content.node = node
             end
 
