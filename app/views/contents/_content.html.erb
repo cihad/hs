@@ -9,7 +9,7 @@
       <%= t 'common.similarly' %>
     </div>
     <ul class="list-group">
-      <% Content.search(content.title).each do |c| %>
+      <% Content.search(content.title).limit(5).each do |c| %>
         <li class="list-group-item"><%= link_to c.title, c.node %></li>
       <% end %>
     </ul>
