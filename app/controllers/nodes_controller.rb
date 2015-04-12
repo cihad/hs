@@ -4,7 +4,10 @@ class NodesController < ApplicationController
   layout "page", only: %i(new show)
 
   def index
-    @nodes = Node.includes(:author, :comments).with_published_state.order(created_at: :desc).page(params[:page])
+    @nodes = Node.includes(:author, :comments, :content).
+                  with_published_state.
+                  order(created_at: :desc).
+                  page(params[:page])
   end
 
   def new
