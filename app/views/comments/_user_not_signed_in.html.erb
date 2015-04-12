@@ -1,17 +1,15 @@
-<div class="row fragment hidden-print">
-  <div class="col-md-1 col-sm-1 hidden-xs node-left">
+<%= render layout: 'nodes/templates/section', locals: { section: Comment.new } do %>
+
+  <%= render  layout: 'nodes/templates/author' do %>
     <%= image_tag "user.jpg", class: "img-circle img-responsive" %>
-  </div>
+  <% end %>
 
-  <div class="col-md-11 col-sm-11 col-xs-12">
-    <div class="panel panel-default">
-      <div class="arrow hidden-print hidden-xs"></div>
+  <%= render layout: 'nodes/templates/panel' do %>
+    <article>
+      Yorum yapabilmek icin <%= link_to t('sessions.login'), new_user_session_path %>
+    </article>
 
-      <div class="panel-body">
-        <article>
-          Yorum yapabilmek icin <%= link_to t('sessions.login'), new_user_session_path %>
-        </article>
-      </div>
-    </div>
-  </div>
-</div>
+
+  <% end %>
+
+<% end %>

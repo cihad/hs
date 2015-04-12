@@ -1,6 +1,7 @@
 class NodesController < ApplicationController
 
   before_filter :node, only: [:show, :destroy]
+  layout "page", only: %i(new show)
 
   def index
     @nodes = Node.includes(:author, :comments).with_published_state.order(created_at: :desc).page(params[:page])

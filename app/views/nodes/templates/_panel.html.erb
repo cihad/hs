@@ -1,0 +1,16 @@
+<div class="col-md-11 col-sm-11 col-xs-12">
+  <div class="panel panel-default">
+    <div class="arrow hidden-print hidden-xs"></div>
+
+    <div class="panel-body">
+      <%= yield %>
+    </div>
+
+    <%= content_for :bottom %>
+
+    <% content_for :bottom, flush: true do %>
+      <%# "Don't remove! This is neccessary! " %>
+      
+    <% end %>
+  </div>
+</div>

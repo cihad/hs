@@ -1,74 +1,26 @@
-<%= div_for comment, class: "row fragment" do %>
-  <div class="col-md-1 col-sm-1 hidden-xs node-left">
-    <%= image_tag gravatar_url_for(comment.author.email), class: "img-circle img-responsive" %>
-    <%#= time_tag comment.created_at %>
-  </div>
+<%= render layout: 'nodes/templates/section', locals: { section: comment } do %>
 
-  <div class="col-md-11 col-sm-11">
-    <div class="panel panel-default">
-      <div class="arrow hidden-print hidden-xs"></div>
-      <div class="panel-body">
-        <% if comment.owner? comment.node.author %>
-          <div class="label label-primary pull-right">
-            <%= t 'comments.owner' %>
-          </div>
-        <% end %>
+  <%= render  partial: 'comments/comment_author',
+              layout: 'nodes/templates/author',
+              locals: { author: comment.author } %>
 
-        <article>
-          <%= markdown comment.author.username + ": " + comment.body %>
-        </article>
 
+  <%= render layout: 'nodes/templates/panel' do %>
+    <% if comment.owner? comment.node.author %>
+      <div class="label label-primary pull-right">
+        <%= t 'comments.owner' %>
       </div>
+    <% end %>
 
-      <div class="navbar navbar-fixed-bottom panel-footer">
-        <div class="container-fluid">
-          <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#<%= dom_id comment, :nav %>">
-              <span class="sr-only">Toggle navigation</span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button>
-          </div>
+    <article>
+      <%= markdown comment.author.username + ": " + comment.body %>
+    </article>
 
-          <div class="collapse navbar-collapse" id="<%= dom_id comment, :nav %>">
-            <ul class="nav navbar-nav navbar-right">
-              <li>
-                <div class="navbar-text text-muted">
-                  <%= time_tag comment.created_at, title: comment.created_at do %>
-                    <%= t 'time.ago', time: time_ago_in_words(comment.created_at) %>
-                  <% end %>
-                </div>
-              </li>
+    <% content_for :bottom, flush: true do %>
+      <%= render  partial: 'comments/comment_nav',
+                  layout: 'nodes/templates/nav',
+                  locals: { entry: comment, comment: comment } %>
+    <% end %>
+  <% end %>
 
-              <li class="dropdown dropup">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-cog"></span></a>
-                <ul class="dropdown-menu" role="menu">
-                  <% if policy(comment).edit? %>
-                    <li>
-                      <%= link_to edit_node_comment_path(comment.node, comment) do %>
-                        <span class="glyphicon glyphicon-edit"></span>
-                        <%= t 'common.edit' %>
-                      <% end %>
-                    </li>
-                  <% end %>
-
-                  <% if policy(comment).destroy? %>
-                    <li>
-                      <%= link_to [comment.node, comment], method: :delete, data: { confirm: t('common.are_you_sure') } do %>
-                        <span class="glyphicon glyphicon-trash"></span>
-                        <%= t 'common.delete' %>
-                      <% end %>
-                    </li>
-                  <% end %>
-                </ul>
-              </li>
-
-            </ul>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
 <% end %>

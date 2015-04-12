@@ -1,0 +1,33 @@
+<ul class="nav navbar-nav navbar-right">
+  <li>
+    <div class="navbar-text text-muted">
+      <%= time_tag comment.created_at, title: comment.created_at do %>
+        <%= t 'time.ago', time: time_ago_in_words(comment.created_at) %>
+      <% end %>
+    </div>
+  </li>
+
+  <li class="dropdown dropup">
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-cog"></span></a>
+    <ul class="dropdown-menu" role="menu">
+      <% if policy(comment).edit? %>
+        <li>
+          <%= link_to edit_node_comment_path(comment.node, comment) do %>
+            <span class="glyphicon glyphicon-edit"></span>
+            <%= t 'common.edit' %>
+          <% end %>
+        </li>
+      <% end %>
+
+      <% if policy(comment).destroy? %>
+        <li>
+          <%= link_to [comment.node, comment], method: :delete, data: { confirm: t('common.are_you_sure') } do %>
+            <span class="glyphicon glyphicon-trash"></span>
+            <%= t 'common.delete' %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </li>
+
+</ul>

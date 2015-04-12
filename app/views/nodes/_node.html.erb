@@ -1,23 +1,21 @@
-<%= content_tag_for :tr, node do %>
-  <td>
-    <%= link_to node.title, node %>
-  </td>
-  <td>
-    <%= I18n.translate :comments, count: node.comments.size %>
-  </td>
-  <td>
-    <%= node.author.username %>
-  </td>
-  <td>
-    <% node.created_at.tap do |created_at| %>
-      <%= time_tag created_at do %>
-        <% if created_at.today? %>
-          <%= t 'time.today' %>
-          <%= l created_at, format: :time %>
-        <% else %>
-          <%= l created_at, format: :summary %>
-        <% end %>
-      <% end %>
+<% title node.content.title %>
+
+<%= render layout: 'nodes/templates/section', locals: { section: node } do %>
+
+  <%= render  partial: 'nodes/node_author',
+              layout: 'nodes/templates/author',
+              locals: { author: node.author } %>
+
+  <%= render layout: 'nodes/templates/panel' do %>
+    <article>
+      <p><%= node.author.username %>:</p>
+      <%= render "#{node.content_type.tableize}/content", content: node.content %>
+    </article>
+    <% content_for :bottom do %>
+      <%= render  partial: 'nodes/node_nav',
+                  layout: 'nodes/templates/nav',
+                  locals: { entry: node, node: node } %>
     <% end %>
-  </td>
+  <% end %>
+
 <% end %>

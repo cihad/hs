@@ -5,6 +5,8 @@ class CommentsController < ApplicationController
 
   respond_to :html
 
+  layout 'page'
+
   def create
     @comment = Comment.new(comment_params).tap do |c|
       c.author  = current_user

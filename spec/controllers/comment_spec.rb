@@ -38,9 +38,16 @@ RSpec.describe CommentsController, type: :controller do
   end
 
   describe "#edit" do
-    it "responds succesfully" do
+    before do
       get :edit, node_id: node.id, id: comment
+    end
+
+    it "responds succesfully" do
       expect(response).to be_success
+    end
+
+    it 'page layout' do
+      expect(response).to render_template layout: "page"
     end
   end
 

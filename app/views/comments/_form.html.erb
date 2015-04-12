@@ -1,24 +1,22 @@
-<div class="row fragment hidden-print">
-  <%= simple_form_for [@node, (@comment or @node.comments.build(author: current_user))],
-                      wrapper: :vertical_form,
-                      html: { class: 'form-vertial' } do |f| %>
-    <div class="col-md-1 col-sm-1 hidden-xs node-left">
-      <%= image_tag gravatar_url_for(current_user.email), class: "img-circle img-responsive" %>
-      <%#= comment.author.username %><br>
-      <%#= time_tag comment.created_at %>
-    </div>
+<%= render layout: 'nodes/templates/section', locals: { section: Comment.new } do %>
 
-    <div class="col-md-11 col-sm-11 col-xs-12">
-      <div class="panel panel-default">
-        <div class="arrow hidden-print"></div>
-        <div class="panel-body">
-          <%= f.error_notification %>
-          <%= f.input :body %>
-          <span class="help-block"><%= t 'simple_form.hints.node.body' %></span>
-          <%= f.button :submit %>
-        </div>
-      </div>
-    </div>
+  <%= render  partial: 'comments/comment_author',
+              layout: 'nodes/templates/author',
+              locals: { author: current_user } %>
+
+
+  <%= render layout: 'nodes/templates/panel' do %>
+
+    <%= simple_form_for [@node, (@comment or @node.comments.build(author: current_user))],
+                        wrapper: :vertical_form,
+                        html: { class: 'form-vertial' } do |f| %>
+
+      <%= f.error_notification %>
+      <%= f.input :body %>
+      <span class="help-block"><%= t 'simple_form.hints.node.body' %></span>
+      <%= f.button :submit %>
+    <% end %>
+
   <% end %>
-</div>
 
+<% end %>

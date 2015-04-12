@@ -1,11 +1,8 @@
-<%= title @node.title %>
+<%= render @node %>
+<%= render @node.comments.order(:created_at) %>
 
-<div class="page">
-  <%= render partial: "expanded_node", locals: { node: @node } %>
-  <%= render @node.comments.order(:created_at) %>
-  <% if policy(Comment).create? %>
-    <%= render 'comments/form' %>
-  <% else %>
-    <%= render 'comments/user_not_signed_in' %>
-  <% end %>
-</div>
+<% if policy(Comment).create? %>
+  <%= render 'comments/form' %>
+<% else %>
+  <%= render 'comments/user_not_signed_in' %>
+<% end %>

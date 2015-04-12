@@ -41,6 +41,10 @@ RSpec.describe NodesController, type: :controller do
     it 'loads node into @node' do
       expect(assigns(:node)).to eq(node)
     end
+
+    it 'page layout' do
+      expect(response).to render_template layout: "page"
+    end
   end
 
   describe '#destroy' do

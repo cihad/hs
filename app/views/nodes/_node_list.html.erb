@@ -8,7 +8,29 @@
         <th><%= t 'common.created_at' %></th>
 
       </tr>
-      <%= render nodes %>
+      <%= content_tag_for :tr, nodes do |node| %>
+        <td>
+          <%= link_to node.title, node %>
+        </td>
+        <td>
+          <%= I18n.translate :comments, count: node.comments.size %>
+        </td>
+        <td>
+          <%= node.author.username %>
+        </td>
+        <td>
+          <% node.created_at.tap do |created_at| %>
+            <%= time_tag created_at do %>
+              <% if created_at.today? %>
+                <%= t 'time.today' %>
+                <%= l created_at, format: :time %>
+              <% else %>
+                <%= l created_at, format: :summary %>
+              <% end %>
+            <% end %>
+          <% end %>
+        </td>
+      <% end %>
     </table>
   </div>
 </div>
