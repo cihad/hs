@@ -15,11 +15,13 @@
         <%= content_tag :tr, id: content_type do %>
           <th>
             <%= t "content_types.#{content_type}.name" %>
-            <% if rand(0..10) % 5 == 1 %>
-              <span class="label label-danger">new</span>
+            <% if content_type.camelize.constantize.count < 300 %>
+              <span class="label label-danger">
+                <%= t('common.new').downcase %>
+              </span>
             <% end %>
           </th>
-          <td><%= Faker::Lorem.sentence(8) %></td>
+          <td><p><%= t "content_types.#{content_type}.desc" %></p></td>
           <td class="text-right">
             <%= link_to new_new_node_path(controller: :contents),
                   class: "btn btn-sm btn-primary",

@@ -14,6 +14,7 @@ tr:
     created_at: "Eklenme tarihi"
     actions: "Aksiyonlar"
     add: "Ekle"
+    new: "Yeni"
 
   time:
     today: "Bugün"
@@ -197,3 +198,4 @@ tr:
       desc: "Halkınsesi dinamiktir. Sizi tek bir içerik türüyle boğmaz. Aşağıda sitemizdeki canlılığı sağlayan türler listenmiştir. Canlı kalın!"
     content:
       name: "İçerik"
+      desc: "Genel"
