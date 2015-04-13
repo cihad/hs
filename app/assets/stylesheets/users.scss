@@ -1,3 +1,9 @@
+.panel-login {
+  @media (min-width: $screen-sm-min) {
+    margin-top: 60px;
+  }
+}
+
 .panel-login .panel-body h2,
 .panel-register .panel-body h2 {
   font-size: 130%;
