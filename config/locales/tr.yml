@@ -197,6 +197,8 @@ tr:
   content_types:
     new_node:
       desc: "Halkınsesi dinamiktir. Sizi tek bir içerik türüyle boğmaz. Aşağıda sitemizdeki canlılığı sağlayan türler listenmiştir. Canlı kalın!"
+    page:
+      name: "Sayfa"
     content:
       name: "İçerik"
       desc: "Genel"

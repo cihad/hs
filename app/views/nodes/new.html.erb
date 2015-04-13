@@ -1,4 +1,5 @@
 <%= title t('.add_new_node') %>
+<%= provide :page_type, t('content_types.page.name') %>
 
 <%= content_tag_for :section, Node.new, class: "row" do %>
 
