@@ -17,7 +17,7 @@ class ApplicationController < ActionController::Base
   end
 
   def current_user
-    @current_user ||= super || AnonymousUser.new(role: "anonymous")
+    @current_user ||= super || ANONYMOUSUSER
   end
 
 
