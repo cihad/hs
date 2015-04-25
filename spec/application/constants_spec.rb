@@ -10,7 +10,7 @@ RSpec.describe Hs::Application do
   end
 
   specify do
-    expect(ANONYMOUSUSER).to be_a AnonymousUser
+    expect(ANONYMOUSUSER.class.to_s).to eq "AnonymousUser"
   end
 
 end

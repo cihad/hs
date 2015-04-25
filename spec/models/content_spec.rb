@@ -1,17 +1,10 @@
 require 'rails_helper'
+require 'models/concerns/contentable'
 
 RSpec.describe Content do
-  
-  it { is_expected.to have_attribute :title }
-  it { is_expected.to validate_presence_of :title }
-  it { is_expected.to have_attribute :body }
-  it { is_expected.to validate_presence_of :body }
-  it { is_expected.to have_one :node }
-
-  it "updates node attributes after saved" do
-    content = build :content
-    content.save
-    expect(content.node.title).to eq content.title
+    
+  it_behaves_like "contentable" do
+    let(:content) { build :content }
   end
 
   it ".search" do

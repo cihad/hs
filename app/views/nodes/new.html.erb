@@ -12,7 +12,7 @@
     <p class="lead"><%= t 'content_types.new_node.desc' %></p>
       
     <table class="table">
-      <% (Array(Content) + Content.descendants).map(&:to_s).map(&:underscore).each_with_index do |content_type, i| %>
+      <% %w(content product).each_with_index do |content_type, i| %>
         <%= content_tag :tr, id: content_type do %>
           <th>
             <%= t "content_types.#{content_type}.name" %>
@@ -24,7 +24,7 @@
           </th>
           <td><p><%= t "content_types.#{content_type}.desc" %></p></td>
           <td class="text-right">
-            <%= link_to new_new_node_path(controller: :contents),
+            <%= link_to new_new_node_path(controller: content_type.tableize),
                   class: "btn btn-sm btn-primary",
                   id: content_type do %>
               <span class="glyphicon glyphicon-chevron-right"></span>

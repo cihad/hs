@@ -15,6 +15,23 @@ FactoryGirl.define do
     end
   end
 
+  factory :node do
+    title Faker::Name.title
+    author
+    tag_list Faker::Lorem.words.join(",")
+    status "awaiting_review"
+
+    factory :published_node do
+      status "published"
+    end
+
+    factory :node_with_tags do
+      after(:create) do |node, evaluator|
+        create_list :tagging, 3, taggable: node
+      end
+    end
+  end
+
   factory :content do
     transient do
       author nil
@@ -36,21 +53,25 @@ FactoryGirl.define do
     node
   end
 
-  factory :node do
+  factory :product do
+    transient do
+      author nil
+    end
+
     title Faker::Name.title
-    author
-    tag_list Faker::Lorem.words.join(",")
-    status "awaiting_review"
+    body Faker::Lorem.paragraphs.join("\n\n")
+    
+    # factory :content_with_images do
+    #   after(:create) do |content, evaluator|
+    #     create_list :content_image, 4, content: content
+    #   end
+    # end
 
-    factory :published_node do
-      status "published"
+    after(:create) do |product, evaluator|
+      product.node.update author: evaluator.author if evaluator.author
     end
 
-    factory :node_with_tags do
-      after(:create) do |node, evaluator|
-        create_list :tagging, 3, taggable: node
-      end
-    end
+    node
   end
 
   factory :comment do

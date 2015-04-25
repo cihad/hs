@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'policies/concerns/content_policy_shared_examples'
 
-RSpec.describe ContentPolicy do
+RSpec.describe ProductPolicy do
   
   it_behaves_like "content_policy"
 
@@ -15,11 +15,6 @@ RSpec.describe ContentPolicy do
       [
         :title,
         :body,
-        content_images_attributes: [
-          :id,
-          :_destroy,
-          image_attributes: [:id, :image, :title]
-        ],
         node_attributes: [:id, :tag_list]
       ]
     end

@@ -66,6 +66,12 @@ tr:
         body: "Yorum"
       node_image:
         _destroy: "Sil"
+      content:
+        title: "Başlık"
+        body: "Gövde"
+      product:
+        title: "Başlık"
+        body: "Gövde"
 
   nodes:
     name: "Düğümler"
@@ -202,3 +208,6 @@ tr:
     content:
       name: "İçerik"
       desc: "Genel"
+    product:
+      name: "Ürün"
+      desc: "Ürün"
