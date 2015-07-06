@@ -17,8 +17,8 @@
 //= require js/ng-file-upload.js
 //= require js/angular-dragdrop-1.0.11.js
 //= require js/app.js
-//= require_tree ../../../vendor/assets/plugins/editor/templates
-//= require_tree ../../../vendor/assets/plugins/editor/js/controllers
-//= require_tree ../../../vendor/assets/plugins/editor/js/services
-//= require_tree ../../../vendor/assets/plugins/editor/js/directives
-//= require_tree ../../../vendor/assets/plugins/editor/js/filters
+//= require_tree ../../../vendor/assets/editor/templates
+//= require_tree ../../../vendor/assets/editor/js/controllers
+//= require_tree ../../../vendor/assets/editor/js/services
+//= require_tree ../../../vendor/assets/editor/js/directives
+//= require_tree ../../../vendor/assets/editor/js/filters
