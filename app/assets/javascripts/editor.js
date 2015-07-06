@@ -11,12 +11,12 @@
 // about supported directives.
 //
 //= require angular-rails-templates
-//= require editor/js/medium-editor.js
-//= require editor/js/angular-medium-editor.js
-//= require editor/js/ui-bootstrap-tpls-0.13.0.js
-//= require editor/js/ng-file-upload.js
-//= require editor/js/angular-dragdrop-1.0.11.js
-//= require editor/js/app.js
+//= require js/medium-editor.js
+//= require js/angular-medium-editor.js
+//= require js/ui-bootstrap-tpls-0.13.0.js
+//= require js/ng-file-upload.js
+//= require js/angular-dragdrop-1.0.11.js
+//= require js/app.js
 //= require_tree ../../../vendor/assets/plugins/editor/templates
 //= require_tree ../../../vendor/assets/plugins/editor/js/controllers
 //= require_tree ../../../vendor/assets/plugins/editor/js/services
