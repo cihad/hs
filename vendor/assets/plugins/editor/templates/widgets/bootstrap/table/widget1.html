@@ -1,0 +1,18 @@
+<div class="table-responsive">
+  <table class="table"
+    ng-class='{
+      "table-striped": widget.config.striped,
+      "table-bordered": widget.config.bordered,
+      "table-hover": widget.config.hover,
+      "table-condensed": widget.config.condensed }'>
+    <tbody>
+      <tr ng-repeat="_ in getNumber(widget.config.rowCount) track by $index">
+        <td ng-init="widget.value[$parent.$index] = widget.value[$parent.$index] || []"
+            ng-model="widget.value[$parent.$index][$index]"
+            ng-repeat="_ in getNumber(widget.config.columnCount) track by $index"
+            medium-editor bind-options='oneLineMedium'>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
