@@ -31,5 +31,8 @@ module Hs
       g.stylesheets     false
       g.javascripts     false
     end
+
+    config.angular_templates.ignore_prefix = %w(editor/)
+    config.angular_templates.inside_paths << Rails.root.join('vendor', 'assets')
   end
 end

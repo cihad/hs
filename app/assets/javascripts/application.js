@@ -13,11 +13,10 @@
 //= require jquery
 //= require jquery_ujs
 //= require turbolinks
-//= require js/jasny-bootstrap
+//= require jasny-bootstrap/js/jasny-bootstrap
 //= require bootstrap/alert
 //= require bootstrap/collapse
 //= require bootstrap/dropdown
 //= require bootstrap/tooltip
 //= require nprogress
 //= require nprogress-turbolinks
-//= require_tree .

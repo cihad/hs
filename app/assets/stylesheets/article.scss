@@ -25,13 +25,6 @@ article pre {
   font-size: 1em;
 }
 
-article table {
-  @extend .table;
-  @extend .table-bordered;
-  @extend .table-striped;
-  @extend .table-hover;
-}
-
 article * {
   -moz-box-sizing: border-box;
   box-sizing: border-box;

@@ -18,7 +18,7 @@
 @import "nprogress-bootstrap";
 @import "bootstrap-sprockets";
 @import "bootstrap-custom";
-@import "css/jasny-bootstrap";
+@import "jasny-bootstrap/css/jasny-bootstrap";
 
 @import "main";
 @import "administration";
@@ -28,3 +28,5 @@
 @import "images";
 @import "users";
 @import "panel_footer_navbar";
+
+@import "editor"

@@ -15,7 +15,7 @@
     </a>
     <ul class="dropdown-menu" role="menu">
       <% if policy(node.content).edit? %>
-        <li>
+        <li data-no-turbolink>
           <%= link_to edit_node_path(node) do %>
             <span class="glyphicon glyphicon-edit"></span>
             <%= t 'common.edit' %>

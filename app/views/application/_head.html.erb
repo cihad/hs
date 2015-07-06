@@ -11,9 +11,10 @@
   <meta name="robots" content="nofollow">
 
   <%= yield :head %>
-
+  <%= yield :before_assets %>
   <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
   <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
+  <%= yield :after_assets %>
   <%= csrf_meta_tags %>
 
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->

@@ -34,4 +34,11 @@ class Node < ActiveRecord::Base
   def owner? user
     author_id == user.try(:id)
   end
+
+  def to_builder
+    Jbuilder.new do |node|
+      node.tags tags.map(&:name)
+      node.status status
+    end
+  end
 end

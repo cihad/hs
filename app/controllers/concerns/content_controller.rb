@@ -4,6 +4,8 @@ class ContentController < ApplicationController
   before_filter :authorize_content, only: %i(edit update)
   before_filter :authorize_content_resource, only: %i(new create)
 
+  respond_to :json, only: %i(create update)
+
   def new
     @content = content_resource.new
     @node = @content.build_node(author: current_user)
@@ -13,11 +15,10 @@ class ContentController < ApplicationController
     @content = content_resource.new
     @content.build_node(author: current_user)
     @content.assign_attributes content_params
-
     @content.node.content_type = content_resource
 
     if @content.save
-      redirect_to @content.node, notice: I18n.t('nodes.flash.created')
+      render json: { redirect_path: node_path(@content.node) }
     else
       render action: 'new'
     end
@@ -29,7 +30,7 @@ class ContentController < ApplicationController
 
   def update
     if @content.update(content_params)
-      redirect_to @content.node, notice: I18n.t('nodes.flash.updated')
+      render json: { redirect_path: node_path(@content.node) }
     else
       render action: :edit
     end
