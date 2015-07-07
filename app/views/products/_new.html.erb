@@ -4,6 +4,110 @@
   <%= javascript_include_tag "editor" %>
 <% end %>
 
+<%= content_for :header do %>
+  <header class="col-md-12">
+    <div class="page-header">
+      <h1 class="h2" medium-editor ng-model="productModel.title" bind-options='titleOptions' required name="title">
+      </h1>
+    </div>
+  </header>
+<% end %>
+
+<div class="row">
+  <%= render  partial: 'nodes/node_author',
+              layout: 'nodes/templates/author',
+              locals: { author: current_user } %>
+
+  <div class="col-md-11 col-sm-11 col-xs-12">
+    <div class="panel panel-default">
+      <div class="arrow hidden-print hidden-xs"></div>
+
+      <div class="panel-body">
+        <article>
+          <p><%= current_user.username %>:</p>
+          <div ng-model="productModel.bodyWidgets" widgets required name="widgets"></div>
+        </article>
+      </div>
+
+
+      <div class="navbar navbar-fixed-bottom panel-footer">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#nav_node_213">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+          </div>
+
+          <div class="collapse navbar-collapse" id="nav_node_213">
+            <p class="navbar-text">
+              <a class="label label-primary" ng-repeat="tag in productModel.tagList">{{ tag }} <span ng-click="product.removeTag(tag)" class="glyphicon glyphicon-remove"></span></a>
+              <input type="text" class="unstyled" placeholder="new tag" ng-model="product.newTag" ng-enter="product.addTag()" ng-backspace="product.removeTagIfEmpty()">
+            </p>
+
+            <ul class="nav navbar-nav navbar-right">
+              <li>
+                <div class="navbar-text text-muted">
+                  <time datetime="2015-05-24T11:39:34+03:00">24 Mayis 2015, Pazar, 11:39</time>
+                </div>
+              </li>
+              
+              <li class="dropdown dropup">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                  <span class="glyphicon glyphicon-cog"></span>
+                </a>
+                <ul class="dropdown-menu" role="menu">
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <% if Rails.env.development? %>
+      <div class="panel">
+        <pre ng-mouseenter="height='auto'" ng-mouseleave="height='100px'" ng-style="{ height: height }">{{ productModel | json }}</pre>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+
+<%= content_for :right_column do %>
+  <div class="panel">
+    <button class="btn btn-large btn-block btn-primary" ng-click="sendProduct()" ng-disabled="contentForm.$invalid">
+      <i class="glyphicon glyphicon-send"></i>
+    </button>
+    
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Ayarlar</h3>
+    </div>
+
+    <div class="panel-body">
+      <p title="click & change status" ng-click="product.changeStatus()">
+        <span class="glyphicon" ng-class="'glyphicon-' + product.states[productModel.status][1]"></span>
+        {{ product.states[productModel.status][0] }}
+      </p>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Benzer Icerikler</h3>
+    </div>
+
+    <div class="panel-body">
+      Hmmm...
+    </div>
+  </div>
+<% end %>
+<%#= "End of Right Column" %>
+
 <script type="text/javascript">
   angular.module('hs', ['editor','templates'])
 
@@ -121,110 +225,3 @@
 
 ;
 </script>
-
-
-<%= content_for :header do %>
-  <header class="col-md-12">
-    <div class="page-header">
-      <h1 class="h2" medium-editor ng-model="productModel.title" bind-options='titleOptions' required name="title">
-      </h1>
-    </div>
-  </header>
-<% end %>
-
-<div class="row">
-  <%= render  partial: 'nodes/node_author',
-              layout: 'nodes/templates/author',
-              locals: { author: current_user } %>
-
-  <div class="col-md-11 col-sm-11 col-xs-12">
-    <div class="panel panel-default">
-      <div class="arrow hidden-print hidden-xs"></div>
-
-      <div class="panel-body">
-        <article>
-          <p><%= current_user.username %>:</p>
-          <div ng-model="productModel.bodyWidgets" widgets required name="widgets"></div>
-        </article>
-      </div>
-
-
-      <div class="navbar navbar-fixed-bottom panel-footer">
-        <div class="container-fluid">
-          <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#nav_node_213">
-              <span class="sr-only">Toggle navigation</span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button>
-          </div>
-
-          <div class="collapse navbar-collapse" id="nav_node_213">
-            <p class="navbar-text">
-              <a class="label label-primary" ng-repeat="tag in productModel.tagList">{{ tag }} <span ng-click="product.removeTag(tag)" class="glyphicon glyphicon-remove"></span></a>
-              <input type="text" class="unstyled" placeholder="new tag" ng-model="product.newTag" ng-enter="product.addTag()" ng-backspace="product.removeTagIfEmpty()">
-            </p>
-
-            <ul class="nav navbar-nav navbar-right">
-              <li>
-                <div class="navbar-text text-muted">
-                  <time datetime="2015-05-24T11:39:34+03:00">24 Mayis 2015, Pazar, 11:39</time>
-                </div>
-              </li>
-              
-              <li class="dropdown dropup">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                  <span class="glyphicon glyphicon-cog"></span>
-                </a>
-                <ul class="dropdown-menu" role="menu">
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <% if Rails.env.development? %>
-      <div class="panel">
-        <pre ng-mouseenter="height='auto'" ng-mouseleave="height='100px'" ng-style="{ height: height }">{{ productModel | json }}</pre>
-      </div>
-    <% end %>
-  </div>
-</div>
-
-
-<%= content_for :right_column do %>
-  <div class="panel">
-    <button class="btn btn-large btn-block btn-primary" ng-click="sendProduct()" ng-disabled="contentForm.$invalid">
-      <i class="glyphicon glyphicon-send"></i>
-    </button>
-    
-  </div>
-
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Ayarlar</h3>
-    </div>
-
-    <div class="panel-body">
-      <p title="click & change status" ng-click="product.changeStatus()">
-        <span class="glyphicon" ng-class="'glyphicon-' + product.states[productModel.status][1]"></span>
-        {{ product.states[productModel.status][0] }}
-      </p>
-    </div>
-  </div>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Benzer Icerikler</h3>
-    </div>
-
-    <div class="panel-body">
-      Hmmm...
-    </div>
-  </div>
-<% end %>
-<%#= "End of Right Column" %>
-
-<%#= render 'form' %>
