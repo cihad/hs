@@ -16,7 +16,6 @@ class ContentController < ApplicationController
     @content.build_node(author: current_user)
     @content.assign_attributes content_params
     @content.node.content_type = content_resource
-    byebug
 
     if @content.save
       render json: { redirect_path: node_path(@content.node) }
