@@ -37,7 +37,7 @@ Rails.application.routes.draw do
 
   resources :comments, only: :show
 
-  resources :images, only: [:show, :edit, :update]
+  resources :images, only: [:show, :create, :edit, :update]
 
   namespace :administration do
     get "/" => "base#index"

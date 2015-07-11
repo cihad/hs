@@ -1,6 +1,10 @@
 <div class="form-group">
   <label>Select Image</label>
-  <button class="btn btn-default form-control" ngf-select ng-model="widget.value.url">Select Image</button>
+  <input  type="file"
+          class="form-control"
+          ngf-select
+          ngf-change="upload($files, widget)"
+          ng-model="widget.config.files" />
 </div>
 
 <div class="checkbox">

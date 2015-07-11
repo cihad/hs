@@ -26,8 +26,14 @@ EDITOR.factory('WidgetType', function($http) {
         "name": "Image",
         "machineName": "bootstrap/image",
         "version": 1,
-        "value": [""],
-        "config": { "type": "thumbnail" }
+        "value": {
+          "url": "",
+          "caption": "The Caption"
+        },
+        "config": { 
+          "type": "thumbnail",
+          "caption": true
+        }
       },
       { 
         "name": "Table",

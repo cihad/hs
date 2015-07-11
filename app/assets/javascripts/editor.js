@@ -14,6 +14,7 @@
 //= require editor/js/medium-editor.js
 //= require editor/js/angular-medium-editor.js
 //= require editor/js/ui-bootstrap-tpls-0.13.0.js
+//= require editor/js/ng-file-upload-shim-5.0.9.js
 //= require editor/js/ng-file-upload.js
 //= require editor/js/angular-dragdrop-1.0.11.js
 //= require editor/js/app.js

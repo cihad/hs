@@ -83,8 +83,17 @@ class ProductJsonToModel
   end
 
   def to_bootstrap_image widget
-    # TODO
-    ""
+    image_path  = widget[:value][:url]
+    caption     = widget[:value][:caption]
+    type        = widget[:config][:type]
+
+    str = "<figure>"
+    str << "<img src=\"%s\" " % image_path
+    str << "class=\"img-%s\" " % type
+    str << "title=\"%s\" " % caption unless caption.blank?
+    str << "/>"
+    str << "<figcaption>%s</figcaption>" % caption unless caption.blank?
+    str << "</figure>"
   end
 
   def to_bootstrap_table widget

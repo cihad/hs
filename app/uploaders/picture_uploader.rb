@@ -1,10 +1,10 @@
 # encoding: utf-8
 
-class ImageUploader < CarrierWave::Uploader::Base
+class PictureUploader < CarrierWave::Uploader::Base
 
   # Include RMagick or MiniMagick support:
   # include CarrierWave::RMagick
-  include CarrierWave::MiniMagick
+  # include CarrierWave::MiniMagick
 
   # Choose what kind of storage to use for this uploader:
   storage :file
@@ -13,8 +13,7 @@ class ImageUploader < CarrierWave::Uploader::Base
   # Override the directory where uploaded files will be stored.
   # This is a sensible default for uploaders that are meant to be mounted:
   def store_dir
-    date = model.persisted? ? model.created_at : Time.current
-    "uploads/images/#{date.year}/#{date.month}/#{date.day}"
+    "uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
   end
 
   # Provide a default URL as a default if there hasn't been a file uploaded:
@@ -33,13 +32,9 @@ class ImageUploader < CarrierWave::Uploader::Base
   # end
 
   # Create different versions of your uploaded files:
-  version :thumb do
-    process :resize_to_fill => [200, 150]
-  end
-
-  version :medium do
-    process :resize_to_fit => [nil, 480]
-  end
+  # version :thumb do
+  #   process :resize_to_fit => [50, 50]
+  # end
 
   # Add a white list of extensions which are allowed to be uploaded.
   # For images you might use something like this:
@@ -49,19 +44,8 @@ class ImageUploader < CarrierWave::Uploader::Base
 
   # Override the filename of the uploaded files:
   # Avoid using model.id or version_name here, see uploader/store.rb for details.
-  def filename
-    if original_filename.present?
-      str = ""
-      str << model.title.parameterize if model.title
-      str << "-%s.%s" % [secure_token(10), file.extension]
-    end
-  end
-
-protected
-
-  def secure_token length = 16
-    var = :"@#{mounted_as}_secure_token"
-    model.instance_variable_get(var) or model.instance_variable_set(var, SecureRandom.hex(length/2))
-  end
+  # def filename
+  #   "something.jpg" if original_filename
+  # end
 
 end

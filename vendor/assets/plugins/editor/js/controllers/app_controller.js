@@ -1,5 +1,5 @@
-EDITOR.controller('AppController', ['$rootScope', '$scope', '$document', 'WidgetType', 
-  function($rootScope, $scope, $document, WidgetType) {
+EDITOR.controller('AppController', ['$rootScope', '$scope', '$document', 'WidgetType', 'imageUploadUrl', 'Upload',
+  function($rootScope, $scope, $document, WidgetType, imageUploadUrl, Upload) {
 
     $scope.WidgetType = WidgetType;
 
@@ -79,6 +79,30 @@ EDITOR.controller('AppController', ['$rootScope', '$scope', '$document', 'Widget
       "paste": { "forcePlainText": true },
       "disableReturn": true
     }
+
+    $scope.upload = function (files, widget) {
+      // console.log(files);
+      if (files && files.length && widget.value.caption) {
+        for (var i = 0; i < files.length; i++) {
+          var file = files[i];
+          Upload.upload({
+            url: imageUploadUrl,
+            method: 'POST',
+            fileFormDataName: 'image[image]',
+            file: file
+          }).progress(function (evt) {
+            var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
+            // console.log('progress: ' + progressPercentage + '% ' + evt.config.file.name);
+          }).success(function (data, status, headers, config) {
+            widget.value.url = data.image_path;
+            // console.log('UPLOADEDDDDD!')
+            // console.log('file ' + config.file.name + 'uploaded. Response: ' + data);
+          }).error(function (data, status, headers, config) {
+            // console.log('error status: ' + status);
+          })
+        }
+      }
+    };
 
   }
 ]);

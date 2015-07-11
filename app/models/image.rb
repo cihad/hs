@@ -8,5 +8,5 @@ class Image < ActiveRecord::Base
   has_many :contents, through: :content_images, dependent: :destroy
 
   # Validations
-  validates :title, :image, presence: true  
+  validates :image, presence: true
 end
