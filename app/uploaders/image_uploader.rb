@@ -52,8 +52,8 @@ class ImageUploader < CarrierWave::Uploader::Base
   def filename
     if original_filename.present?
       str = ""
-      str << model.title.parameterize if model.title
-      str << "-%s.%s" % [secure_token(10), file.extension]
+      str << "%s-" % model.title.parameterize if model.title
+      str << "%s.%s" % [secure_token(10), file.extension]
     end
   end
 
