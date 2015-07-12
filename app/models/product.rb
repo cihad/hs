@@ -1,5 +1,6 @@
 class Product < ActiveRecord::Base
   include Contentable
+  include Imageable
 
   # Validations
   validates_presence_of :title, :body
