@@ -33,7 +33,6 @@ private
 
   def image_params
     params.require(:image).permit(:title, :image)
-    # params.require(:picture).permit(:image)
   end
 
 end
