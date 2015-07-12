@@ -1,0 +1,221 @@
+<%= provide :angular_controller, "ContentController" %>
+<%= content_for :after_assets do %>
+  <%= javascript_include_tag "https://cdn.jsdelivr.net/g/jquery.ui@1.10%28jquery.ui.core.min.js+jquery.ui.widget.min.js+jquery.ui.mouse.min.js+jquery.ui.sortable.min.js+jquery.ui.resizable.min.js+jquery.ui.draggable.min.js+jquery.ui.droppable.min.js%29,angularjs@1.4.1,angular.ui-sortable" %>
+  <%= javascript_include_tag "editor" %>
+<% end %>
+
+<%= content_for :header do %>
+  <header class="col-md-12">
+    <div class="page-header">
+      <h1 class="h2" medium-editor ng-model="contentModel.title" bind-options='titleOptions' required name="title">
+      </h1>
+    </div>
+  </header>
+<% end %>
+
+<div class="row">
+  <%= render  partial: 'nodes/node_author',
+              layout: 'nodes/templates/author',
+              locals: { author: current_user } %>
+
+  <div class="col-md-11 col-sm-11 col-xs-12">
+    <div class="panel panel-default">
+      <div class="arrow hidden-print hidden-xs"></div>
+
+      <div class="panel-body">
+        <article>
+          <p><%= current_user.username %>:</p>
+          <div ng-model="contentModel.bodyWidgets" widgets required name="widgets"></div>
+        </article>
+      </div>
+
+
+      <div class="navbar navbar-fixed-bottom panel-footer">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#nav_node_213">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+          </div>
+
+          <div class="collapse navbar-collapse" id="nav_node_213">
+            <p class="navbar-text">
+              <a class="label label-primary" ng-repeat="tag in contentModel.tagList">{{ tag }} <span ng-click="content.removeTag(tag)" class="glyphicon glyphicon-remove"></span></a>
+              <input type="text" class="unstyled" placeholder="new tag" ng-model="content.newTag" ng-enter="content.addTag()" ng-backspace="content.removeTagIfEmpty()">
+            </p>
+
+            <ul class="nav navbar-nav navbar-right">
+              <li>
+                <div class="navbar-text text-muted">
+                  <time datetime="2015-05-24T11:39:34+03:00">24 Mayis 2015, Pazar, 11:39</time>
+                </div>
+              </li>
+              
+              <li class="dropdown dropup">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                  <span class="glyphicon glyphicon-cog"></span>
+                </a>
+                <ul class="dropdown-menu" role="menu">
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <% if Rails.env.development? %>
+      <div class="panel">
+        <pre ng-mouseenter="height='auto'" ng-mouseleave="height='100px'" ng-style="{ height: height }">{{ contentModel | json }}</pre>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+
+<%= content_for :right_column do %>
+  <div class="panel">
+    <button class="btn btn-large btn-block btn-primary" ng-click="sendContent()" ng-disabled="contentForm.$invalid">
+      <i class="glyphicon glyphicon-send"></i>
+    </button>
+    
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Ayarlar</h3>
+    </div>
+
+    <div class="panel-body">
+      <p title="click & change status" ng-click="content.changeStatus()">
+        <span class="glyphicon" ng-class="'glyphicon-' + content.states[contentModel.status][1]"></span>
+        {{ content.states[contentModel.status][0] }}
+      </p>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Benzer Icerikler</h3>
+    </div>
+
+    <div class="panel-body">
+      Hmmm...
+    </div>
+  </div>
+<% end %>
+<%#= "End of Right Column" %>
+
+<script type="text/javascript">
+  angular.module('hs', ['editor','templates'])
+
+  .config(function($httpProvider) {
+    $httpProvider.defaults.headers.common['X-CSRF-Token'] = angular.element('meta[name=csrf-token]').attr('content')
+  })
+
+  .constant('imageUploadUrl', "<%= images_url %>")
+
+  .factory('contentModel', function() {
+    return <%= @content.to_builder.html_safe %>;
+  })
+
+  .service('content', function(contentModel) {
+
+    var self = this;
+        
+    self.newTag;
+
+    self.states = {
+      'awaiting_review' : ['Inceleme gerekiyor', 'remove'],
+      'being_reviewed' : ['Inceleniyor', 'eye-open'],
+      'published' : ['Yayinlandi', 'ok'],
+      'trashed' : ['Cop kutusunda', 'trash']
+    };
+
+    self.addTag = function() {
+      if(contentModel.tagList.indexOf(self.newTag) < 0 && self.newTag != null) {
+        contentModel.tagList.push(self.newTag);
+        self.newTag = null;
+      }
+    }
+
+    self.removeTag = function(tag) {
+      index = contentModel.tagList.indexOf(tag);
+      if (index > -1) {
+        contentModel.tagList.splice(tag, 1)
+      }
+    }
+
+    self.removeTagIfEmpty = function() {
+      if ((self.newTag === "" || self.newTag == null) && contentModel.tagList.length > 0) {
+        contentModel.tagList.pop();
+      }
+    }
+
+    self.changeStatus = function() {
+      statusKeys = Object.keys(self.states)
+      i = statusKeys.indexOf(contentModel.status);
+      contentModel.status = statusKeys[(i+1) % statusKeys.length];
+    }
+
+
+  })
+
+  .controller('ContentController', function($scope, $http, content, contentModel) {
+    $scope.content = content;
+    $scope.contentModel = contentModel;
+
+    $scope.sendContent = function() {
+      <% if @content.new_record? %>
+        $http.post('/contents', { content: contentModel }).success(function(data) {
+          console.log('PRODUCT CREATED!')
+          window.location = data.redirect_path;
+        });
+      <% else %>
+        $http.put('<%= content_path @content %>', { content: contentModel }).success(function(data) {
+          console.log('PRODUCT UPDATED!')
+          window.location = data.redirect_path;
+        });
+      <% end %>
+    }
+
+    $scope.$watch('contentModel.bodyWidgets', function (bodyWidgets) {
+      $scope.contentForm.$setValidity('count', bodyWidgets.length > 0);
+    }, true);
+
+    $scope.titleOptions = { 
+      disableReturn: true,
+      disableToolbar: true 
+    }
+  })
+
+  .directive('ngEnter', function () {
+    return function (scope, element, attrs) {
+      element.bind("keydown keypress", function (event) {
+        if(event.which === 13) {
+          scope.$apply(function (){
+            scope.$eval(attrs.ngEnter);
+          });
+
+          event.preventDefault();
+        }
+      });
+    };
+  })
+
+  .directive('ngBackspace', function () {
+    return function (scope, element, attrs) {
+      element.bind("keydown keypress", function (event) {
+        if(event.which === 8) {
+          scope.$apply(function (){
+            scope.$eval(attrs.ngBackspace);
+          });
+        }
+      });
+    };
+  })
+
+;
+</script>

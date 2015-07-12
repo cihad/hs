@@ -1,4 +1,10 @@
+require 'product_json_to_model'
+
 class ContentsController < ContentController
+
+  layout "editor"
+
+  before_filter :convert_params!, only: %i(create update)
 
   def new
     super
@@ -16,5 +22,8 @@ class ContentsController < ContentController
     Content
   end
 
+  def convert_params!
+    ProductJsonToModel.new(params, @content).convert!
+  end
 
 end

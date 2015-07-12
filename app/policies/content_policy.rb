@@ -22,7 +22,7 @@ class ContentPolicy < Struct.new(:current_user, :content)
 
   def permitted_attributes
     # Content attributes
-    attrs = [:title, :body]
+    attrs = [:title, :body, :body_widgets]
 
     # Association model attributes
     nested_attrs = { 
@@ -32,7 +32,7 @@ class ContentPolicy < Struct.new(:current_user, :content)
     }
     
     # Add attributes for policy
-    node_attrs = { node_attributes: [:id, :tag_list] }
+    node_attrs = { node_attributes: [:id, tag_list: []] }
     node_attrs[:node_attributes] << :status if current_user.manager?
 
     # Merge nested attributes

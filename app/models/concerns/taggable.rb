@@ -13,7 +13,7 @@ module Taggable
   end
 
   def tag_list=(tag_list)
-    # self.tags = tag_list.map { |tag_name| Tag.find_or_create_by(name: tag_name ) }
+    self.tags = tag_list.map { |tag_name| Tag.find_or_create_by(name: tag_name ) }
   end
 
 end

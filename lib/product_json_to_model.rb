@@ -2,7 +2,7 @@ class ProductJsonToModel
   attr_reader :product
 
   def initialize params, content
-    @product = params[:product]
+    @product = params[params[:controller].singularize.to_sym]
     @content = content
 
     @product[:node_attributes] = {} unless @product.has_key? :node_attributes
