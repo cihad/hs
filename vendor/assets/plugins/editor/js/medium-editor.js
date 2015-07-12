@@ -403,31 +403,6 @@ var Util;
 (function (window) {
     'use strict';
 
-    // Params: Array, Boolean, Object
-    function getProp(parts, create, context) {
-        if (!context) {
-            context = window;
-        }
-
-        try {
-            for (var i = 0; i < parts.length; i++) {
-                var p = parts[i];
-                if (!(p in context)) {
-                    if (create) {
-                        context[p] = {};
-                    } else {
-                        return;
-                    }
-                }
-                context = context[p];
-            }
-            return context;
-        } catch (e) {
-            // 'p in context' throws an exception when context is a number, boolean, etc. rather than an object,
-            // so in that corner case just return undefined (by having no return statement)
-        }
-    }
-
     function copyInto(overwrite, dest) {
         var prop,
             sources = Array.prototype.slice.call(arguments, 2);
@@ -453,6 +428,9 @@ var Util;
         // by rg89
         isIE: ((navigator.appName === 'Microsoft Internet Explorer') || ((navigator.appName === 'Netscape') && (new RegExp('Trident/.*rv:([0-9]{1,}[.0-9]{0,})').exec(navigator.userAgent) !== null))),
 
+        // http://stackoverflow.com/a/11752084/569101
+        isMac: (window.navigator.platform.toUpperCase().indexOf('MAC') >= 0),
+
         // https://github.com/jashkenas/underscore
         keyCode: {
             BACKSPACE: 8,
@@ -460,10 +438,56 @@ var Util;
             ENTER: 13,
             ESCAPE: 27,
             SPACE: 32,
-            DELETE: 46
+            DELETE: 46,
+            K: 75 // K keycode, and not k
         },
 
-        parentElements: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre'],
+        /**
+         * Returns true if it's metaKey on Mac, or ctrlKey on non-Mac.
+         * See #591
+         */
+        isMetaCtrlKey: function (event) {
+            if ((this.isMac && event.metaKey) || (!this.isMac && event.ctrlKey)) {
+                return true;
+            }
+
+            return false;
+        },
+
+        /**
+         * Returns true if the key associated to the event is inside keys array
+         *
+         * @see : https://github.com/jquery/jquery/blob/0705be475092aede1eddae01319ec931fb9c65fc/src/event.js#L473-L484
+         * @see : http://stackoverflow.com/q/4471582/569101
+         */
+        isKey: function (event, keys) {
+            var keyCode = this.getKeyCode(event);
+
+            // it's not an array let's just compare strings!
+            if (false === Array.isArray(keys)) {
+                return keyCode === keys;
+            }
+
+            if (-1 === keys.indexOf(keyCode)) {
+                return false;
+            }
+
+            return true;
+        },
+
+        getKeyCode: function (event) {
+            var keyCode = event.which;
+
+            // getting the key code from event
+            if (null === keyCode) {
+                keyCode = event.charCode !== null ? event.charCode : event.keyCode;
+            }
+
+            return keyCode;
+        },
+
+        blockContainerElementNames: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre'],
+        emptyElementNames: ['br', 'col', 'colgroup', 'hr', 'img', 'input', 'source', 'wbr'],
 
         extend: function extend(/* dest, source1, source2, ...*/) {
             var args = [true].concat(Array.prototype.slice.call(arguments));
@@ -475,14 +499,100 @@ var Util;
             return copyInto.apply(this, args);
         },
 
-        derives: function derives(base, derived) {
-            var origPrototype = derived.prototype;
-            function Proto() { }
-            Proto.prototype = base.prototype;
-            derived.prototype = new Proto();
-            derived.prototype.constructor = base;
-            derived.prototype = copyInto(false, derived.prototype, origPrototype);
-            return derived;
+        /*
+         * Create a link around the provided text nodes which must be adjacent to each other and all be
+         * descendants of the same closest block container. If the preconditions are not met, unexpected
+         * behavior will result.
+         */
+        createLink: function (document, textNodes, href, target) {
+            var anchor = document.createElement('a');
+            Util.moveTextRangeIntoElement(textNodes[0], textNodes[textNodes.length - 1], anchor);
+            anchor.setAttribute('href', href);
+            if (target) {
+                anchor.setAttribute('target', target);
+            }
+            return anchor;
+        },
+
+        /*
+         * Given the provided match in the format {start: 1, end: 2} where start and end are indices into the
+         * textContent of the provided element argument, modify the DOM inside element to ensure that the text
+         * identified by the provided match can be returned as text nodes that contain exactly that text, without
+         * any additional text at the beginning or end of the returned array of adjacent text nodes.
+         *
+         * The only DOM manipulation performed by this function is splitting the text nodes, non-text nodes are
+         * not affected in any way.
+         */
+        findOrCreateMatchingTextNodes: function (document, element, match) {
+            var treeWalker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false),
+                matchedNodes = [],
+                currentTextIndex = 0,
+                startReached = false,
+                currentNode = null,
+                newNode = null;
+
+            while ((currentNode = treeWalker.nextNode()) !== null) {
+                if (!startReached && match.start < (currentTextIndex + currentNode.nodeValue.length)) {
+                    startReached = true;
+                    newNode = Util.splitStartNodeIfNeeded(currentNode, match.start, currentTextIndex);
+                }
+                if (startReached) {
+                    Util.splitEndNodeIfNeeded(currentNode, newNode, match.end, currentTextIndex);
+                }
+                if (startReached && currentTextIndex === match.end) {
+                    break; // Found the node(s) corresponding to the link. Break out and move on to the next.
+                } else if (startReached && currentTextIndex > (match.end + 1)) {
+                    throw new Error('PerformLinking overshot the target!'); // should never happen...
+                }
+
+                if (startReached) {
+                    matchedNodes.push(newNode || currentNode);
+                }
+
+                currentTextIndex += currentNode.nodeValue.length;
+                if (newNode !== null) {
+                    currentTextIndex += newNode.nodeValue.length;
+                    // Skip the newNode as we'll already have pushed it to the matches
+                    treeWalker.nextNode();
+                }
+                newNode = null;
+            }
+            return matchedNodes;
+        },
+
+        /*
+         * Given the provided text node and text coordinates, split the text node if needed to make it align
+         * precisely with the coordinates.
+         *
+         * This function is intended to be called from Util.findOrCreateMatchingTextNodes.
+         */
+        splitStartNodeIfNeeded: function (currentNode, matchStartIndex, currentTextIndex) {
+            if (matchStartIndex !== currentTextIndex) {
+                return currentNode.splitText(matchStartIndex - currentTextIndex);
+            }
+            return null;
+        },
+
+        /*
+         * Given the provided text node and text coordinates, split the text node if needed to make it align
+         * precisely with the coordinates. The newNode argument should from the result of Util.splitStartNodeIfNeeded,
+         * if that function has been called on the same currentNode.
+         *
+         * This function is intended to be called from Util.findOrCreateMatchingTextNodes.
+         */
+        splitEndNodeIfNeeded: function (currentNode, newNode, matchEndIndex, currentTextIndex) {
+            var textIndexOfEndOfFarthestNode,
+                endSplitPoint;
+            textIndexOfEndOfFarthestNode = currentTextIndex + (newNode || currentNode).nodeValue.length +
+                    (newNode ? currentNode.nodeValue.length : 0) -
+                    1;
+            endSplitPoint = (newNode || currentNode).nodeValue.length -
+                    (textIndexOfEndOfFarthestNode + 1 - matchEndIndex);
+            if (textIndexOfEndOfFarthestNode >= matchEndIndex &&
+                    currentTextIndex !== textIndexOfEndOfFarthestNode &&
+                    endSplitPoint !== 0) {
+                (newNode || currentNode).splitText(endSplitPoint);
+            }
         },
 
         // Find the next node in the DOM tree that represents any text that is being
@@ -535,8 +645,6 @@ var Util;
         isElement: function isElement(obj) {
             return !!(obj && obj.nodeType === 1);
         },
-
-        now: Date.now,
 
         // https://github.com/jashkenas/underscore
         throttle: function (func, wait) {
@@ -593,7 +701,7 @@ var Util;
                         return current;
                     }
                     // do not traverse upwards past the nearest containing editor
-                    if (current.getAttribute('data-medium-element')) {
+                    if (Util.isMediumEditorElement(current)) {
                         return false;
                     }
                 }
@@ -630,7 +738,7 @@ var Util;
                         (toReplace.nodeType !== 3 && toReplace.innerHTML === range.toString())) {
                     while (toReplace.parentNode &&
                             toReplace.parentNode.childNodes.length === 1 &&
-                            !toReplace.parentNode.getAttribute('data-medium-element')) {
+                            !Util.isMediumEditorElement(toReplace.parentNode)) {
                         toReplace = toReplace.parentNode;
                     }
                     range.selectNode(toReplace);
@@ -657,77 +765,67 @@ var Util;
             }
         },
 
-        getSelectionRange: function (ownerDocument) {
-            var selection = ownerDocument.getSelection();
-            if (selection.rangeCount === 0) {
-                return null;
-            }
-            return selection.getRangeAt(0);
-        },
-
-        // http://stackoverflow.com/questions/1197401/how-can-i-get-the-element-the-caret-is-in-with-javascript-when-using-contentedi
-        // by You
-        getSelectionStart: function (ownerDocument) {
-            var node = ownerDocument.getSelection().anchorNode,
-                startNode = (node && node.nodeType === 3 ? node.parentNode : node);
-            return startNode;
-        },
-
-        getSelectionData: function (el) {
-            var tagName;
-
-            if (el && el.tagName) {
-                tagName = el.tagName.toLowerCase();
-            }
-
-            while (el && this.parentElements.indexOf(tagName) === -1) {
-                el = el.parentNode;
-                if (el && el.tagName) {
-                    tagName = el.tagName.toLowerCase();
-                }
-            }
-
-            return {
-                el: el,
-                tagName: tagName
-            };
-        },
-
         execFormatBlock: function (doc, tagName) {
-            var selectionData = this.getSelectionData(this.getSelectionStart(doc));
-            // FF handles blockquote differently on formatBlock
-            // allowing nesting, we need to use outdent
-            // https://developer.mozilla.org/en-US/docs/Rich-Text_Editing_in_Mozilla
-            if (tagName === 'blockquote' && selectionData.el &&
-                    selectionData.el.parentNode.tagName.toLowerCase() === 'blockquote') {
-                return doc.execCommand('outdent', false, null);
-            }
-            if (selectionData.tagName === tagName) {
-                tagName = 'p';
-            }
-            // When IE we need to add <> to heading elements and
-            //  blockquote needs to be called as indent
-            // http://stackoverflow.com/questions/10741831/execcommand-formatblock-headings-in-ie
-            // http://stackoverflow.com/questions/1816223/rich-text-editor-with-blockquote-function/1821777#1821777
-            if (this.isIE) {
-                if (tagName === 'blockquote') {
+            // Get the top level block element that contains the selection
+            var blockContainer = Util.getTopBlockContainer(Selection.getSelectionStart(doc));
+
+            // Special handling for blockquote
+            if (tagName === 'blockquote') {
+                if (blockContainer) {
+                    var childNodes = Array.prototype.slice.call(blockContainer.childNodes);
+                    // Check if the blockquote has a block element as a child (nested blocks)
+                    if (childNodes.some(function (childNode) {
+                        return Util.isBlockContainer(childNode);
+                    })) {
+                        // FF handles blockquote differently on formatBlock
+                        // allowing nesting, we need to use outdent
+                        // https://developer.mozilla.org/en-US/docs/Rich-Text_Editing_in_Mozilla
+                        return doc.execCommand('outdent', false, null);
+                    }
+                }
+
+                // When IE blockquote needs to be called as indent
+                // http://stackoverflow.com/questions/1816223/rich-text-editor-with-blockquote-function/1821777#1821777
+                if (this.isIE) {
                     return doc.execCommand('indent', false, tagName);
                 }
+            }
+
+            // If the blockContainer is already the element type being passed in
+            // treat it as 'undo' formatting and just convert it to a <p>
+            if (blockContainer && tagName === blockContainer.nodeName.toLowerCase()) {
+                tagName = 'p';
+            }
+
+            // When IE we need to add <> to heading elements
+            // http://stackoverflow.com/questions/10741831/execcommand-formatblock-headings-in-ie
+            if (this.isIE) {
                 tagName = '<' + tagName + '>';
             }
             return doc.execCommand('formatBlock', false, tagName);
         },
 
-        // TODO: not sure if this should be here
-        setTargetBlank: function (el) {
-            var i;
-            if (el.tagName.toLowerCase() === 'a') {
+        /**
+         * Set target to blank on the given el element
+         *
+         * TODO: not sure if this should be here
+         *
+         * When creating a link (using core -> createLink) the selection returned by Firefox will be the parent of the created link
+         * instead of the created link itself (as it is for Chrome for example), so we retrieve all "a" children to grab the good one by
+         * using `anchorUrl` to ensure that we are adding target="_blank" on the good one.
+         * This isn't a bulletproof solution anyway ..
+         */
+        setTargetBlank: function (el, anchorUrl) {
+            var i, url = anchorUrl || false;
+            if (el.nodeName.toLowerCase() === 'a') {
                 el.target = '_blank';
             } else {
                 el = el.getElementsByTagName('a');
 
                 for (i = 0; i < el.length; i += 1) {
-                    el[i].target = '_blank';
+                    if (false === url || url === el[i].attributes.href.value) {
+                        el[i].target = '_blank';
+                    }
                 }
             }
         },
@@ -736,7 +834,7 @@ var Util;
             var classes = buttonClass.split(' '),
                 i,
                 j;
-            if (el.tagName.toLowerCase() === 'a') {
+            if (el.nodeName.toLowerCase() === 'a') {
                 for (j = 0; j < classes.length; j += 1) {
                     el.classList.add(classes[j]);
                 }
@@ -754,19 +852,19 @@ var Util;
             if (!node) {
                 return false;
             }
-            if (node.tagName.toLowerCase() === 'li') {
+            if (node.nodeName.toLowerCase() === 'li') {
                 return true;
             }
 
             var parentNode = node.parentNode,
-                tagName = parentNode.tagName.toLowerCase();
-            while (this.parentElements.indexOf(tagName) === -1 && tagName !== 'div') {
+                tagName = parentNode.nodeName.toLowerCase();
+            while (!this.isBlockContainer(parentNode) && tagName !== 'div') {
                 if (tagName === 'li') {
                     return true;
                 }
                 parentNode = parentNode.parentNode;
-                if (parentNode && parentNode.tagName) {
-                    tagName = parentNode.tagName.toLowerCase();
+                if (parentNode) {
+                    tagName = parentNode.nodeName.toLowerCase();
                 } else {
                     return false;
                 }
@@ -774,30 +872,329 @@ var Util;
             return false;
         },
 
-        cleanListDOM: function (element) {
-            if (element.tagName.toLowerCase() === 'li') {
-                var list = element.parentElement;
-                if (list.parentElement.tagName.toLowerCase() === 'p') { // yes we need to clean up
-                    this.unwrapElement(list.parentElement);
-                }
+        cleanListDOM: function (ownerDocument, element) {
+            if (element.nodeName.toLowerCase() !== 'li') {
+                return;
+            }
+
+            var list = element.parentElement;
+
+            if (list.parentElement.nodeName.toLowerCase() === 'p') { // yes we need to clean up
+                this.unwrap(list.parentElement, ownerDocument);
+
+                // move cursor at the end of the text inside the list
+                // for some unknown reason, the cursor is moved to end of the "visual" line
+                Selection.moveCursor(ownerDocument, element.firstChild, element.firstChild.textContent.length);
             }
         },
 
-        unwrapElement: function (element) {
-            var parent = element.parentNode,
-                current = element.firstChild,
-                next;
-            do {
-                next = current.nextSibling;
-                parent.insertBefore(current, element);
-                current = next;
-            } while (current);
-            parent.removeChild(element);
+        /* splitDOMTree
+         *
+         * Given a root element some descendant element, split the root element
+         * into its own element containing the descendant element and all elements
+         * on the left or right side of the descendant ('right' is default)
+         *
+         * example:
+         *
+         *         <div>
+         *      /    |   \
+         *  <span> <span> <span>
+         *   / \    / \    / \
+         *  1   2  3   4  5   6
+         *
+         *  If I wanted to split this tree given the <div> as the root and "4" as the leaf
+         *  the result would be (the prime ' marks indicates nodes that are created as clones):
+         *
+         *   SPLITTING OFF 'RIGHT' TREE       SPLITTING OFF 'LEFT' TREE
+         *
+         *     <div>            <div>'              <div>'      <div>
+         *      / \              / \                 / \          |
+         * <span> <span>   <span>' <span>       <span> <span>   <span>
+         *   / \    |        |      / \           /\     /\       /\
+         *  1   2   3        4     5   6         1  2   3  4     5  6
+         *
+         *  The above example represents splitting off the 'right' or 'left' part of a tree, where
+         *  the <div>' would be returned as an element not appended to the DOM, and the <div>
+         *  would remain in place where it was
+         *
+        */
+        splitOffDOMTree: function (rootNode, leafNode, splitLeft) {
+            var splitOnNode = leafNode,
+                createdNode = null,
+                splitRight = !splitLeft;
+
+            // loop until we hit the root
+            while (splitOnNode !== rootNode) {
+                var currParent = splitOnNode.parentNode,
+                    newParent = currParent.cloneNode(false),
+                    targetNode = (splitRight ? splitOnNode : currParent.firstChild),
+                    appendLast;
+
+                // Create a new parent element which is a clone of the current parent
+                if (createdNode) {
+                    if (splitRight) {
+                        // If we're splitting right, add previous created element before siblings
+                        newParent.appendChild(createdNode);
+                    } else {
+                        // If we're splitting left, add previous created element last
+                        appendLast = createdNode;
+                    }
+                }
+                createdNode = newParent;
+
+                while (targetNode) {
+                    var sibling = targetNode.nextSibling;
+                    // Special handling for the 'splitNode'
+                    if (targetNode === splitOnNode) {
+                        if (!targetNode.hasChildNodes()) {
+                            targetNode.parentNode.removeChild(targetNode);
+                        } else {
+                            // For the node we're splitting on, if it has children, we need to clone it
+                            // and not just move it
+                            targetNode = targetNode.cloneNode(false);
+                        }
+                        // If the resulting split node has content, add it
+                        if (targetNode.textContent) {
+                            createdNode.appendChild(targetNode);
+                        }
+
+                        targetNode = (splitRight ? sibling : null);
+                    } else {
+                        // For general case, just remove the element and only
+                        // add it to the split tree if it contains something
+                        targetNode.parentNode.removeChild(targetNode);
+                        if (targetNode.hasChildNodes() || targetNode.textContent) {
+                            createdNode.appendChild(targetNode);
+                        }
+
+                        targetNode = sibling;
+                    }
+                }
+
+                // If we had an element we wanted to append at the end, do that now
+                if (appendLast) {
+                    createdNode.appendChild(appendLast);
+                }
+
+                splitOnNode = currParent;
+            }
+
+            return createdNode;
+        },
+
+        moveTextRangeIntoElement: function (startNode, endNode, newElement) {
+            if (!startNode || !endNode) {
+                return false;
+            }
+
+            var rootNode = this.findCommonRoot(startNode, endNode);
+            if (!rootNode) {
+                return false;
+            }
+
+            if (endNode === startNode) {
+                var temp = startNode.parentNode,
+                    sibling = startNode.nextSibling;
+                temp.removeChild(startNode);
+                newElement.appendChild(startNode);
+                if (sibling) {
+                    temp.insertBefore(newElement, sibling);
+                } else {
+                    temp.appendChild(newElement);
+                }
+                return newElement.hasChildNodes();
+            }
+
+            // create rootChildren array which includes all the children
+            // we care about
+            var rootChildren = [],
+                firstChild,
+                lastChild,
+                nextNode;
+            for (var i = 0; i < rootNode.childNodes.length; i++) {
+                nextNode = rootNode.childNodes[i];
+                if (!firstChild) {
+                    if (this.isDescendant(nextNode, startNode, true)) {
+                        firstChild = nextNode;
+                    }
+                } else {
+                    if (this.isDescendant(nextNode, endNode, true)) {
+                        lastChild = nextNode;
+                        break;
+                    } else {
+                        rootChildren.push(nextNode);
+                    }
+                }
+            }
+
+            var afterLast = lastChild.nextSibling,
+                fragment = rootNode.ownerDocument.createDocumentFragment();
+
+            // build up fragment on startNode side of tree
+            if (firstChild === startNode) {
+                firstChild.parentNode.removeChild(firstChild);
+                fragment.appendChild(firstChild);
+            } else {
+                fragment.appendChild(this.splitOffDOMTree(firstChild, startNode));
+            }
+
+            // add any elements between firstChild & lastChild
+            rootChildren.forEach(function (element) {
+                element.parentNode.removeChild(element);
+                fragment.appendChild(element);
+            });
+
+            // build up fragment on endNode side of the tree
+            if (lastChild === endNode) {
+                lastChild.parentNode.removeChild(lastChild);
+                fragment.appendChild(lastChild);
+            } else {
+                fragment.appendChild(this.splitOffDOMTree(lastChild, endNode, true));
+            }
+
+            // Add fragment into passed in element
+            newElement.appendChild(fragment);
+
+            if (lastChild.parentNode === rootNode) {
+                // If last child is in the root, insert newElement in front of it
+                rootNode.insertBefore(newElement, lastChild);
+            } else if (afterLast) {
+                // If last child was removed, but it had a sibling, insert in front of it
+                rootNode.insertBefore(newElement, afterLast);
+            } else {
+                // lastChild was removed and was the last actual element just append
+                rootNode.appendChild(newElement);
+            }
+
+            return newElement.hasChildNodes();
+        },
+
+        /* based on http://stackoverflow.com/a/6183069 */
+        depthOfNode: function (inNode) {
+            var theDepth = 0,
+                node = inNode;
+            while (node.parentNode !== null) {
+                node = node.parentNode;
+                theDepth++;
+            }
+            return theDepth;
+        },
+
+        findCommonRoot: function (inNode1, inNode2) {
+            var depth1 = this.depthOfNode(inNode1),
+                depth2 = this.depthOfNode(inNode2),
+                node1 = inNode1,
+                node2 = inNode2;
+
+            while (depth1 !== depth2) {
+                if (depth1 > depth2) {
+                    node1 = node1.parentNode;
+                    depth1 -= 1;
+                } else {
+                    node2 = node2.parentNode;
+                    depth2 -= 1;
+                }
+            }
+
+            while (node1 !== node2) {
+                node1 = node1.parentNode;
+                node2 = node2.parentNode;
+            }
+
+            return node1;
+        },
+        /* END - based on http://stackoverflow.com/a/6183069 */
+
+        isElementAtBeginningOfBlock: function (node) {
+            var textVal,
+                sibling;
+            while (!this.isBlockContainer(node) && !this.isMediumEditorElement(node)) {
+                sibling = node;
+                while (sibling = sibling.previousSibling) {
+                    textVal = sibling.nodeType === 3 ? sibling.nodeValue : sibling.textContent;
+                    if (textVal.length > 0) {
+                        return false;
+                    }
+                }
+                node = node.parentNode;
+            }
+            return true;
+        },
+
+        isMediumEditorElement: function (element) {
+            return element && element.getAttribute && !!element.getAttribute('data-medium-editor-element');
+        },
+
+        getContainerEditorElement: function (element) {
+            return Util.traverseUp(element, function (node) {
+                return Util.isMediumEditorElement(node);
+            });
+        },
+
+        isBlockContainer: function (element) {
+            return element && element.nodeType !== 3 && this.blockContainerElementNames.indexOf(element.nodeName.toLowerCase()) !== -1;
+        },
+
+        getClosestBlockContainer: function (node) {
+            return Util.traverseUp(node, function (node) {
+                return Util.isBlockContainer(node);
+            });
+        },
+
+        getTopBlockContainer: function (element) {
+            var topBlock = element;
+            this.traverseUp(element, function (el) {
+                if (Util.isBlockContainer(el)) {
+                    topBlock = el;
+                }
+                return false;
+            });
+            return topBlock;
+        },
+
+        getFirstSelectableLeafNode: function (element) {
+            while (element && element.firstChild) {
+                element = element.firstChild;
+            }
+
+            // We don't want to set the selection to an element that can't have children, this messes up Gecko.
+            element = this.traverseUp(element, function (el) {
+                return Util.emptyElementNames.indexOf(el.nodeName.toLowerCase()) === -1;
+            });
+            // Selecting at the beginning of a table doesn't work in PhantomJS.
+            if (element.nodeName.toLowerCase() === 'table') {
+                var firstCell = element.querySelector('th, td');
+                if (firstCell) {
+                    element = firstCell;
+                }
+            }
+            return element;
+        },
+
+        getFirstTextNode: function (element) {
+            if (element.nodeType === 3) {
+                return element;
+            }
+
+            for (var i = 0; i < element.childNodes.length; i++) {
+                var textNode = this.getFirstTextNode(element.childNodes[i]);
+                if (textNode !== null) {
+                    return textNode;
+                }
+            }
+            return null;
+        },
+
+        ensureUrlHasProtocol: function (url) {
+            if (url.indexOf('://') === -1) {
+                return 'http://' + url;
+            }
+            return url;
         },
 
         warn: function () {
             if (window.console !== undefined && typeof window.console.warn === 'function') {
-                window.console.warn.apply(console, arguments);
+                window.console.warn.apply(window.console, arguments);
             }
         },
 
@@ -826,23 +1223,27 @@ var Util;
 
         cleanupTags: function (el, tags) {
             tags.forEach(function (tag) {
-                if (el.tagName.toLowerCase() === tag) {
+                if (el.nodeName.toLowerCase() === tag) {
                     el.parentNode.removeChild(el);
                 }
             }, this);
         },
 
-        getClosestTag: function (el, tag) { // get the closest parent
-            return Util.traverseUp(el, function (element) {
-                return element.tagName.toLowerCase() === tag.toLowerCase();
+        // get the closest parent
+        getClosestTag: function (el, tag) {
+            return this.traverseUp(el, function (element) {
+                return element.nodeName.toLowerCase() === tag.toLowerCase();
             });
         },
 
         unwrap: function (el, doc) {
-            var fragment = doc.createDocumentFragment();
+            var fragment = doc.createDocumentFragment(),
+                nodes = Array.prototype.slice.call(el.childNodes);
 
-            for (var i = 0; i < el.childNodes.length; i++) {
-                fragment.appendChild(el.childNodes[i]);
+            // cast nodeList to array since appending child
+            // to a different node will alter length of el.childNodes
+            for (var i = 0; i < nodes.length; i++) {
+                fragment.appendChild(nodes[i]);
             }
 
             if (fragment.childNodes.length) {
@@ -850,31 +1251,15 @@ var Util;
             } else {
                 el.parentNode.removeChild(el);
             }
-        },
-
-        setObject: function (name, value, context) {
-            // summary:
-            //      Set a property from a dot-separated string, such as 'A.B.C'
-            var parts = name.split('.'),
-                p = parts.pop(),
-                obj = getProp(parts, true, context);
-            return obj && p ? (obj[p] = value) : undefined; // Object
-        },
-
-        getObject: function (name, create, context) {
-            // summary:
-            //      Get a property from a dot-separated string, such as 'A.B.C'
-            return getProp(name ? name.split('.') : [], create, context); // Object
         }
-
     };
 }(window));
 
-var ButtonsData;
+var buttonDefaults;
 (function () {
     'use strict';
 
-    ButtonsData = {
+    buttonDefaults = {
         'bold': {
             name: 'bold',
             action: 'bold',
@@ -886,8 +1271,7 @@ var ButtonsData;
             },
             useQueryState: true,
             contentDefault: '<b>B</b>',
-            contentFA: '<i class="fa fa-bold"></i>',
-            key: 'b'
+            contentFA: '<i class="fa fa-bold"></i>'
         },
         'italic': {
             name: 'italic',
@@ -900,8 +1284,7 @@ var ButtonsData;
             },
             useQueryState: true,
             contentDefault: '<b><i>I</i></b>',
-            contentFA: '<i class="fa fa-italic"></i>',
-            key: 'i'
+            contentFA: '<i class="fa fa-italic"></i>'
         },
         'underline': {
             name: 'underline',
@@ -914,8 +1297,7 @@ var ButtonsData;
             },
             useQueryState: true,
             contentDefault: '<b><u>U</u></b>',
-            contentFA: '<i class="fa fa-underline"></i>',
-            key: 'u'
+            contentFA: '<i class="fa fa-underline"></i>'
         },
         'strikethrough': {
             name: 'strikethrough',
@@ -960,14 +1342,6 @@ var ButtonsData;
             contentDefault: '<b>image</b>',
             contentFA: '<i class="fa fa-picture-o"></i>'
         },
-        'quote': {
-            name: 'quote',
-            action: 'append-blockquote',
-            aria: 'blockquote',
-            tagNames: ['blockquote'],
-            contentDefault: '<b>&ldquo;</b>',
-            contentFA: '<i class="fa fa-quote-right"></i>'
-        },
         'orderedlist': {
             name: 'orderedlist',
             action: 'insertorderedlist',
@@ -985,14 +1359,6 @@ var ButtonsData;
             useQueryState: true,
             contentDefault: '<b>&bull;</b>',
             contentFA: '<i class="fa fa-list-ul"></i>'
-        },
-        'pre': {
-            name: 'pre',
-            action: 'append-pre',
-            aria: 'preformatted text',
-            tagNames: ['pre'],
-            contentDefault: '<b>0101</b>',
-            contentFA: '<i class="fa fa-code fa-lg"></i>'
         },
         'indent': {
             name: 'indent',
@@ -1058,32 +1424,6 @@ var ButtonsData;
             contentDefault: '<b>R</b>',
             contentFA: '<i class="fa fa-align-right"></i>'
         },
-        'header1': {
-            name: 'header1',
-            action: function (options) {
-                return 'append-' + options.firstHeader;
-            },
-            aria: function (options) {
-                return options.firstHeader;
-            },
-            tagNames: function (options) {
-                return [options.firstHeader];
-            },
-            contentDefault: '<b>H1</b>'
-        },
-        'header2': {
-            name: 'header2',
-            action: function (options) {
-                return 'append-' + options.secondHeader;
-            },
-            aria: function (options) {
-                return options.secondHeader;
-            },
-            tagNames: function (options) {
-                return [options.secondHeader];
-            },
-            contentDefault: '<b>H2</b>'
-        },
         // Known inline elements that are not removed, or not removed consistantly across browsers:
         // <span>, <label>, <br>
         'removeFormat': {
@@ -1092,66 +1432,104 @@ var ButtonsData;
             action: 'removeFormat',
             contentDefault: '<b>X</b>',
             contentFA: '<i class="fa fa-eraser"></i>'
+        },
+
+        /***** Buttons for appending block elements (append-<element> action) *****/
+
+        'quote': {
+            name: 'quote',
+            action: 'append-blockquote',
+            aria: 'blockquote',
+            tagNames: ['blockquote'],
+            contentDefault: '<b>&ldquo;</b>',
+            contentFA: '<i class="fa fa-quote-right"></i>'
+        },
+        'pre': {
+            name: 'pre',
+            action: 'append-pre',
+            aria: 'preformatted text',
+            tagNames: ['pre'],
+            contentDefault: '<b>0101</b>',
+            contentFA: '<i class="fa fa-code fa-lg"></i>'
+        },
+        'h1': {
+            name: 'h1',
+            action: 'append-h1',
+            aria: 'header type one',
+            tagNames: ['h1'],
+            contentDefault: '<b>H1</b>',
+            contentFA: '<i class="fa fa-header"><sup>1</sup>'
+        },
+        'h2': {
+            name: 'h2',
+            action: 'append-h2',
+            aria: 'header type two',
+            tagNames: ['h2'],
+            contentDefault: '<b>H2</b>',
+            contentFA: '<i class="fa fa-header"><sup>2</sup>'
+        },
+        'h3': {
+            name: 'h3',
+            action: 'append-h3',
+            aria: 'header type three',
+            tagNames: ['h3'],
+            contentDefault: '<b>H3</b>',
+            contentFA: '<i class="fa fa-header"><sup>3</sup>'
+        },
+        'h4': {
+            name: 'h4',
+            action: 'append-h4',
+            aria: 'header type four',
+            tagNames: ['h4'],
+            contentDefault: '<b>H4</b>',
+            contentFA: '<i class="fa fa-header"><sup>4</sup>'
+        },
+        'h5': {
+            name: 'h5',
+            action: 'append-h5',
+            aria: 'header type five',
+            tagNames: ['h5'],
+            contentDefault: '<b>H5</b>',
+            contentFA: '<i class="fa fa-header"><sup>5</sup>'
+        },
+        'h6': {
+            name: 'h6',
+            action: 'append-h6',
+            aria: 'header type six',
+            tagNames: ['h6'],
+            contentDefault: '<b>H6</b>',
+            contentFA: '<i class="fa fa-header"><sup>6</sup>'
         }
     };
 
 })();
 var editorDefaults;
 (function () {
-
     // summary: The default options hash used by the Editor
 
     editorDefaults = {
-
-        allowMultiParagraphSelection: true,
-        anchorInputPlaceholder: 'Paste or type a link',
-        anchorInputCheckboxLabel: 'Open in new window',
-        anchorPreviewHideDelay: 500,
-        buttons: ['bold', 'italic', 'underline', 'anchor', 'header1', 'header2', 'quote'],
+        activeButtonClass: 'medium-editor-button-active',
         buttonLabels: false,
-        checkLinkFormat: false,
         delay: 0,
-        diffLeft: 0,
-        diffTop: -10,
         disableReturn: false,
         disableDoubleReturn: false,
-        disableToolbar: false,
-        disableAnchorPreview: false,
         disableEditing: false,
-        disablePlaceholders: false,
-        toolbarAlign: 'center',
+        autoLink: false,
         elementsContainer: false,
-        imageDragging: true,
-        standardizeSelectionStart: false,
         contentWindow: window,
         ownerDocument: document,
-        firstHeader: 'h3',
-        placeholder: 'Type your text',
-        secondHeader: 'h4',
         targetBlank: false,
-        anchorTarget: false,
-        anchorButton: false,
-        anchorButtonClass: 'btn',
         extensions: {},
-        activeButtonClass: 'medium-editor-button-active',
-        firstButtonClass: 'medium-editor-button-first',
-        lastButtonClass: 'medium-editor-button-last',
-        spellcheck: true,
-
-        paste: {
-            forcePlainText: true,
-            cleanPastedHTML: false,
-            cleanAttrs: ['class', 'style', 'dir'],
-            cleanTags: ['meta']
-        }
-
+        spellcheck: true
     };
-
 })();
 
 var Extension;
-
 (function () {
+    'use strict';
+
+    /* global Util */
+
     Extension = function (options) {
         Util.extend(this, options);
     };
@@ -1171,8 +1549,8 @@ var Extension;
         //
         //      var ThingTwo = Thing.extend({ foo: "baz" });
         //
-        //      var thingOne = new Thing(); // foo === bar
-        //      var thingTwo = new ThingTwo(); // foo == baz
+        //      var thingOne = new Thing(); // foo === "bar"
+        //      var thingTwo = new ThingTwo(); // foo === "baz"
         //
         //      which seems like some simply shallow copy nonsense
         //      at first, but a lot more is going on there.
@@ -1217,27 +1595,21 @@ var Extension;
     };
 
     Extension.prototype = {
-        init: function (/* instance */) {
-            // called when properly decorated and used.
-            // has a .base value pointing to the editor
-            // owning us. has been given a .name if no
-            // name present
-        },
-
-        /* parent: [boolean]
+        /* init: [function]
          *
-         * setting this to true will set the .base property
-         * of the extension to be a reference to the
-         * medium-editor instance that is using the extension
+         * Called by MediumEditor during initialization.
+         * The .base property will already have been set to
+         * current instance of MediumEditor when this is called.
+         * All helper methods will exist as well
          */
-        parent: false,
+        init: function () {},
 
         /* base: [MediumEditor instance]
          *
-         * If .parent is set to true, this will be set to the
-         * current MediumEditor instance before init() is called
+         * If not overriden, this will be set to the current instance
+         * of MediumEditor, before the init method is called
          */
-        base: null,
+        base: undefined,
 
         /* name: [string]
          *
@@ -1246,7 +1618,7 @@ var Extension;
          * used when passing the extension into MediumEditor via the
          * 'extensions' option
          */
-        name: null,
+        name: undefined,
 
         /* checkState: [function (node)]
          *
@@ -1256,19 +1628,19 @@ var Extension;
          *
          * 1) Find the parent node containing the current selection
          * 2) Call checkState on the extension, passing the node as an argument
-         * 3) Get tha parent node of the previous node
+         * 3) Get the parent node of the previous node
          * 4) Repeat steps #2 and #3 until we move outside the parent contenteditable
          */
-        checkState: null,
+        checkState: undefined,
 
-        /* getButton: [function ()]
+        /* destroy: [function ()]
          *
-         * If implemented, this function will be called when
-         * the toolbar is being created.  The DOM Element returned
-         * by this function will be appended to the toolbar along
-         * with any other buttons.
+         * This method should remove any created html, custom event handlers
+         * or any other cleanup tasks that should be performed.
+         * If implemented, this function will be called when MediumEditor's
+         * destroy method has been called.
          */
-        getButton: null,
+        destroy: undefined,
 
         /* As alternatives to checkState, these functions provide a more structured
          * path to updating the state of an extension (usually a button) whenever
@@ -1280,13 +1652,13 @@ var Extension;
          * If implemented, this function will be called once on each extension
          * when the state of the editor/toolbar is being updated.
          *
-         * If this function returns a non-null value, the exntesion will
+         * If this function returns a non-null value, the extension will
          * be ignored as the code climbs the dom tree.
          *
          * If this function returns true, and the setActive() function is defined
          * setActive() will be called
          */
-        queryCommandState: null,
+        queryCommandState: undefined,
 
         /* isActive: [function ()]
          *
@@ -1296,12 +1668,12 @@ var Extension;
          * but only if queryCommandState() or isAlreadyApplied() functions
          * are implemented, and when called, return true.
          */
-        isActive: null,
+        isActive: undefined,
 
         /* isAlreadyApplied: [function (node)]
          *
          * If implemented, this function is similar to checkState() in
-         * that it will be calle repeatedly as MediumEditor moves up
+         * that it will be called repeatedly as MediumEditor moves up
          * the DOM to update the editor & toolbar after a state change.
          *
          * NOTE: This function will NOT be called if checkState() has
@@ -1309,7 +1681,7 @@ var Extension;
          * queryCommandState() is implemented and returns a non-null
          * value when called
          */
-        isAlreadyApplied: null,
+        isAlreadyApplied: undefined,
 
         /* setActive: [function ()]
          *
@@ -1319,7 +1691,7 @@ var Extension;
          * only if queryCommandState() or isAlreadyApplied(node) return
          * true when called
          */
-        setActive: null,
+        setActive: undefined,
 
         /* setInactive: [function ()]
          *
@@ -1331,21 +1703,100 @@ var Extension;
          * or the combination of queryCommandState(), isAlreadyApplied(node),
          * isActive(), and setActive()
          */
-        setInactive: null,
+        setInactive: undefined,
 
-        /* onHide: [function ()]
+        /************************ Helpers ************************
+         * The following are helpers that are either set by MediumEditor
+         * during initialization, or are helper methods which either
+         * route calls to the MediumEditor instance or provide common
+         * functionality for all extensions
+         *********************************************************/
+
+        /* window: [Window]
          *
-         * If implemented, this function is called each time the
-         * toolbar is hidden
+         * If not overriden, this will be set to the window object
+         * to be used by MediumEditor and its extensions.  This is
+         * passed via the 'contentWindow' option to MediumEditor
+         * and is the global 'window' object by default
          */
-        onHide: null
+        'window': undefined,
+
+        /* document: [Document]
+         *
+         * If not overriden, this will be set to the document object
+         * to be used by MediumEditor and its extensions. This is
+         * passed via the 'ownerDocument' optin to MediumEditor
+         * and is the global 'document' object by default
+         */
+        'document': undefined,
+
+        /* getEditorElements: [function ()]
+         *
+         * Helper function which returns an array containing
+         * all the contenteditable elements for this instance
+         * of MediumEditor
+         */
+        getEditorElements: function () {
+            return this.base.elements;
+        },
+
+        /* getEditorId: [function ()]
+         *
+         * Helper function which returns a unique identifier
+         * for this instance of MediumEditor
+         */
+        getEditorId: function () {
+            return this.base.id;
+        },
+
+        /* getEditorOptions: [function (option)]
+         *
+         * Helper function which returns the value of an option
+         * used to initialize this instance of MediumEditor
+         */
+        getEditorOption: function (option) {
+            return this.base.options[option];
+        }
     };
+
+    /* List of method names to add to the prototype of Extension
+     * Each of these methods will be defined as helpers that
+     * just call directly into the MediumEditor instance.
+     *
+     * example for 'on' method:
+     * Extension.prototype.on = function () {
+     *     return this.base.on.apply(this.base, arguments);
+     * }
+     */
+    [
+        // general helpers
+        'execAction',
+
+        // event handling
+        'on',
+        'off',
+        'subscribe',
+        'trigger'
+
+    ].forEach(function (helper) {
+        Extension.prototype[helper] = function () {
+            return this.base[helper].apply(this.base, arguments);
+        };
+    });
 })();
 
 var Selection;
 
 (function () {
     'use strict';
+
+    function filterOnlyParentElements(node) {
+        if (Util.isBlockContainer(node)) {
+            return NodeFilter.FILTER_ACCEPT;
+        } else {
+            return NodeFilter.FILTER_SKIP;
+        }
+    }
 
     Selection = {
         findMatchingSelectionParent: function (testElementFunction, contentWindow) {
@@ -1365,26 +1816,222 @@ var Selection;
 
         getSelectionElement: function (contentWindow) {
             return this.findMatchingSelectionParent(function (el) {
-                return el.getAttribute('data-medium-element');
+                return Util.isMediumEditorElement(el);
             }, contentWindow);
         },
 
+        // http://stackoverflow.com/questions/17678843/cant-restore-selection-after-html-modify-even-if-its-the-same-html
+        // Tim Down
+        exportSelection: function (root, doc) {
+            if (!root) {
+                return null;
+            }
+
+            var selectionState = null,
+                selection = doc.getSelection();
+
+            if (selection.rangeCount > 0) {
+                var range = selection.getRangeAt(0),
+                    preSelectionRange = range.cloneRange(),
+                    start;
+
+                preSelectionRange.selectNodeContents(root);
+                preSelectionRange.setEnd(range.startContainer, range.startOffset);
+                start = preSelectionRange.toString().length;
+
+                selectionState = {
+                    start: start,
+                    end: start + range.toString().length
+                };
+                // If start = 0 there may still be an empty paragraph before it, but we don't care.
+                if (start !== 0) {
+                    var emptyBlocksIndex = this.getIndexRelativeToAdjacentEmptyBlocks(doc, root, range.startContainer, range.startOffset);
+                    if (emptyBlocksIndex !== 0) {
+                        selectionState.emptyBlocksIndex = emptyBlocksIndex;
+                    }
+                }
+            }
+
+            return selectionState;
+        },
+
+        // http://stackoverflow.com/questions/17678843/cant-restore-selection-after-html-modify-even-if-its-the-same-html
+        // Tim Down
+        //
+        // {object} selectionState - the selection to import
+        // {DOMElement} root - the root element the selection is being restored inside of
+        // {Document} doc - the document to use for managing selection
+        // {boolean} [favorLaterSelectionAnchor] - defaults to false. If true, import the cursor immediately
+        //      subsequent to an anchor tag if it would otherwise be placed right at the trailing edge inside the
+        //      anchor. This cursor positioning, even though visually equivalent to the user, can affect behavior
+        //      in MS IE.
+        importSelection: function (selectionState, root, doc, favorLaterSelectionAnchor) {
+            if (!selectionState || !root) {
+                return;
+            }
+
+            var range = doc.createRange();
+            range.setStart(root, 0);
+            range.collapse(true);
+
+            var node = root,
+                nodeStack = [],
+                charIndex = 0,
+                foundStart = false,
+                stop = false,
+                nextCharIndex;
+
+            while (!stop && node) {
+                if (node.nodeType === 3) {
+                    nextCharIndex = charIndex + node.length;
+                    if (!foundStart && selectionState.start >= charIndex && selectionState.start <= nextCharIndex) {
+                        range.setStart(node, selectionState.start - charIndex);
+                        foundStart = true;
+                    }
+                    if (foundStart && selectionState.end >= charIndex && selectionState.end <= nextCharIndex) {
+                        range.setEnd(node, selectionState.end - charIndex);
+                        stop = true;
+                    }
+                    charIndex = nextCharIndex;
+                } else {
+                    var i = node.childNodes.length - 1;
+                    while (i >= 0) {
+                        nodeStack.push(node.childNodes[i]);
+                        i -= 1;
+                    }
+                }
+                if (!stop) {
+                    node = nodeStack.pop();
+                }
+            }
+
+            if (selectionState.emptyBlocksIndex && selectionState.end === nextCharIndex) {
+                var targetNode = Util.getTopBlockContainer(range.startContainer),
+                    index = 0;
+                // Skip over empty blocks until we hit the block we want the selection to be in
+                while (index < selectionState.emptyBlocksIndex && targetNode.nextSibling) {
+                    targetNode = targetNode.nextSibling;
+                    index++;
+                    // If we find a non-empty block, ignore the emptyBlocksIndex and just put selection here
+                    if (targetNode.textContent.length > 0) {
+                        break;
+                    }
+                }
+
+                // We're selecting a high-level block node, so make sure the cursor gets moved into the deepest
+                // element at the beginning of the block
+                range.setStart(Util.getFirstSelectableLeafNode(targetNode), 0);
+                range.collapse(true);
+            }
+
+            // If the selection is right at the ending edge of a link, put it outside the anchor tag instead of inside.
+            if (favorLaterSelectionAnchor) {
+                range = Selection.importSelectionMoveCursorPastAnchor(selectionState, range);
+            }
+
+            var sel = doc.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        },
+
+        // Utility method called from importSelection only
+        importSelectionMoveCursorPastAnchor: function (selectionState, range) {
+            var nodeInsideAnchorTagFunction = function (node) {
+                return node.nodeName.toLowerCase() === 'a';
+            };
+            if (selectionState.start === selectionState.end &&
+                    range.startContainer.nodeType === 3 &&
+                    range.startOffset === range.startContainer.nodeValue.length &&
+                    Util.traverseUp(range.startContainer, nodeInsideAnchorTagFunction)) {
+                var prevNode = range.startContainer,
+                    currentNode = range.startContainer.parentNode;
+                while (currentNode !== null && currentNode.nodeName.toLowerCase() !== 'a') {
+                    if (currentNode.childNodes[currentNode.childNodes.length - 1] !== prevNode) {
+                        currentNode = null;
+                    } else {
+                        prevNode = currentNode;
+                        currentNode = currentNode.parentNode;
+                    }
+                }
+                if (currentNode !== null && currentNode.nodeName.toLowerCase() === 'a') {
+                    var currentNodeIndex = null;
+                    for (var i = 0; currentNodeIndex === null && i < currentNode.parentNode.childNodes.length; i++) {
+                        if (currentNode.parentNode.childNodes[i] === currentNode) {
+                            currentNodeIndex = i;
+                        }
+                    }
+                    range.setStart(currentNode.parentNode, currentNodeIndex + 1);
+                    range.collapse(true);
+                }
+            }
+            return range;
+        },
+
+        // Returns 0 unless the cursor is within or preceded by empty paragraphs/blocks,
+        // in which case it returns the count of such preceding paragraphs, including
+        // the empty paragraph in which the cursor itself may be embedded.
+        getIndexRelativeToAdjacentEmptyBlocks: function (doc, root, cursorContainer, cursorOffset) {
+            // If there is text in front of the cursor, that means there isn't only empty blocks before it
+            if (cursorContainer.nodeType === 3 && cursorOffset > 0) {
+                return 0;
+            }
+
+            // Check if the block that contains the cursor has any other text in front of the cursor
+            var node = cursorContainer;
+            if (node.nodeType !== 3) {
+                //node = cursorContainer.childNodes.length === cursorOffset ? null : cursorContainer.childNodes[cursorOffset];
+                node = cursorContainer.childNodes[cursorOffset];
+            }
+            if (node && !Util.isElementAtBeginningOfBlock(node)) {
+                return 0;
+            }
+
+            // Walk over block elements, counting number of empty blocks between last piece of text
+            // and the block the cursor is in
+            var treeWalker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, filterOnlyParentElements, false),
+                emptyBlocksCount = 0;
+            while (treeWalker.nextNode()) {
+                var blockIsEmpty = treeWalker.currentNode.textContent === '';
+                if (blockIsEmpty || emptyBlocksCount > 0) {
+                    emptyBlocksCount += 1;
+                }
+                if (Util.isDescendant(treeWalker.currentNode, cursorContainer, true)) {
+                    return emptyBlocksCount;
+                }
+                if (!blockIsEmpty) {
+                    emptyBlocksCount = 0;
+                }
+            }
+
+            return emptyBlocksCount;
+        },
+
         selectionInContentEditableFalse: function (contentWindow) {
-            return this.findMatchingSelectionParent(function (el) {
-                return (el && el.nodeName !== '#text' && el.getAttribute('contenteditable') === 'false');
-            }, contentWindow);
+            // determine if the current selection is exclusively inside
+            // a contenteditable="false", though treat the case of an
+            // explicit contenteditable="true" inside a "false" as false.
+            var sawtrue,
+                sawfalse = this.findMatchingSelectionParent(function (el) {
+                    var ce = el && el.getAttribute('contenteditable');
+                    if (ce === 'true') {
+                        sawtrue = true;
+                    }
+                    return el.nodeName !== '#text' && ce === 'false';
+                }, contentWindow);
+
+            return !sawtrue && sawfalse;
         },
 
         // http://stackoverflow.com/questions/4176923/html-of-selected-text
         // by Tim Down
-        getSelectionHtml: function getSelectionHtml() {
+        getSelectionHtml: function getSelectionHtml(doc) {
             var i,
                 html = '',
-                sel = this.options.contentWindow.getSelection(),
+                sel = doc.getSelection(),
                 len,
                 container;
             if (sel.rangeCount) {
-                container = this.options.ownerDocument.createElement('div');
+                container = doc.createElement('div');
                 for (i = 0, len = sel.rangeCount; i < len; i += 1) {
                     container.appendChild(sel.getRangeAt(i).cloneContents());
                 }
@@ -1431,15 +2078,22 @@ var Selection;
         },
 
         getSelectedParentElement: function (range) {
-            var selectedParentElement = null;
-            if (this.rangeSelectsSingleNode(range) && range.startContainer.childNodes[range.startOffset].nodeType !== 3) {
-                selectedParentElement = range.startContainer.childNodes[range.startOffset];
-            } else if (range.startContainer.nodeType === 3) {
-                selectedParentElement = range.startContainer.parentNode;
-            } else {
-                selectedParentElement = range.startContainer;
+            if (!range) {
+                return null;
             }
-            return selectedParentElement;
+
+            // Selection encompasses a single element
+            if (this.rangeSelectsSingleNode(range) && range.startContainer.childNodes[range.startOffset].nodeType !== 3) {
+                return range.startContainer.childNodes[range.startOffset];
+            }
+
+            // Selection range starts inside a text node, so get its parent
+            if (range.startContainer.nodeType === 3) {
+                return range.startContainer.parentNode;
+            }
+
+            // Selection starts inside an element
+            return range.startContainer;
         },
 
         getSelectedElements: function (doc) {
@@ -1448,8 +2102,7 @@ var Selection;
                 toRet,
                 currNode;
 
-            if (!selection.rangeCount ||
-                    !selection.getRangeAt(0).commonAncestorContainer) {
+            if (!selection.rangeCount || selection.isCollapsed || !selection.getRangeAt(0).commonAncestorContainer) {
                 return [];
             }
 
@@ -1478,6 +2131,47 @@ var Selection;
             range.selectNodeContents(node);
             sel.removeAllRanges();
             sel.addRange(range);
+        },
+
+        select: function (doc, startNode, startOffset, endNode, endOffset) {
+            doc.getSelection().removeAllRanges();
+            var range = doc.createRange();
+            range.setStart(startNode, startOffset);
+            if (endNode) {
+                range.setEnd(endNode, endOffset);
+            } else {
+                range.collapse(true);
+            }
+            doc.getSelection().addRange(range);
+            return range;
+        },
+
+        /**
+         * Move cursor to the given node with the given offset.
+         *
+         * @param  {DomDocument} doc     Current document
+         * @param  {DomElement}  node    Element where to jump
+         * @param  {integer}     offset  Where in the element should we jump, 0 by default
+         */
+        moveCursor: function (doc, node, offset) {
+            this.select(doc, node, offset);
+        },
+
+        getSelectionRange: function (ownerDocument) {
+            var selection = ownerDocument.getSelection();
+            if (selection.rangeCount === 0) {
+                return null;
+            }
+            return selection.getRangeAt(0);
+        },
+
+        // http://stackoverflow.com/questions/1197401/how-can-i-get-the-element-the-caret-is-in-with-javascript-when-using-contentedi
+        // by You
+        getSelectionStart: function (ownerDocument) {
+            var node = ownerDocument.getSelection().anchorNode,
+                startNode = (node && node.nodeType === 3 ? node.parentNode : node);
+
+            return startNode;
         }
     };
 }());
@@ -1496,6 +2190,7 @@ var Events;
     };
 
     Events.prototype = {
+        InputEventOnContenteditableSupported: !Util.isIE,
 
         // Helpers for event handling
 
@@ -1535,20 +2230,17 @@ var Events;
         // custom events
         attachCustomEvent: function (event, listener) {
             this.setupListener(event);
-            // If we don't suppot this custom event, don't do anything
-            if (this.listeners[event]) {
-                if (!this.customEvents[event]) {
-                    this.customEvents[event] = [];
-                }
-                this.customEvents[event].push(listener);
+            if (!this.customEvents[event]) {
+                this.customEvents[event] = [];
             }
+            this.customEvents[event].push(listener);
         },
 
         detachCustomEvent: function (event, listener) {
             var index = this.indexOfCustomListener(event, listener);
             if (index !== -1) {
                 this.customEvents[event].splice(index, 1);
-                // TODO: If array is empty, should detach internal listeners via destoryListener()
+                // TODO: If array is empty, should detach internal listeners via destroyListener()
             }
         },
 
@@ -1573,111 +2265,216 @@ var Events;
             }
         },
 
-        // Listening to browser events to emit events medium-editor cares about
+        // Cleaning up
 
+        destroy: function () {
+            this.detachAllDOMEvents();
+            this.detachAllCustomEvents();
+            this.detachExecCommand();
+
+            if (this.base.elements) {
+                this.base.elements.forEach(function (element) {
+                    element.removeAttribute('data-medium-focused');
+                });
+            }
+        },
+
+        // Listening to calls to document.execCommand
+
+        // Attach a listener to be notified when document.execCommand is called
+        attachToExecCommand: function () {
+            if (this.execCommandListener) {
+                return;
+            }
+
+            // Store an instance of the listener so:
+            // 1) We only attach to execCommand once
+            // 2) We can remove the listener later
+            this.execCommandListener = function (execInfo) {
+                this.handleDocumentExecCommand(execInfo);
+            }.bind(this);
+
+            // Ensure that execCommand has been wrapped correctly
+            this.wrapExecCommand();
+
+            // Add listener to list of execCommand listeners
+            this.options.ownerDocument.execCommand.listeners.push(this.execCommandListener);
+        },
+
+        // Remove our listener for calls to document.execCommand
+        detachExecCommand: function () {
+            var doc = this.options.ownerDocument;
+            if (!this.execCommandListener || !doc.execCommand.listeners) {
+                return;
+            }
+
+            // Find the index of this listener in the array of listeners so it can be removed
+            var index = doc.execCommand.listeners.indexOf(this.execCommandListener);
+            if (index !== -1) {
+                doc.execCommand.listeners.splice(index, 1);
+            }
+
+            // If the list of listeners is now empty, put execCommand back to its original state
+            if (!doc.execCommand.listeners.length) {
+                this.unwrapExecCommand();
+            }
+        },
+
+        // Wrap document.execCommand in a custom method so we can listen to calls to it
+        wrapExecCommand: function () {
+            var doc = this.options.ownerDocument;
+
+            // Ensure all instance of MediumEditor only wrap execCommand once
+            if (doc.execCommand.listeners) {
+                return;
+            }
+
+            // Create a wrapper method for execCommand which will:
+            // 1) Call document.execCommand with the correct arguments
+            // 2) Loop through any listeners and notify them that execCommand was called
+            //    passing extra info on the call
+            // 3) Return the result
+            var wrapper = function (aCommandName, aShowDefaultUI, aValueArgument) {
+                var result = doc.execCommand.orig.apply(this, arguments);
+
+                if (!doc.execCommand.listeners) {
+                    return result;
+                }
+
+                var args = Array.prototype.slice.call(arguments);
+                doc.execCommand.listeners.forEach(function (listener) {
+                    listener({
+                        command: aCommandName,
+                        value: aValueArgument,
+                        args: args,
+                        result: result
+                    });
+                });
+
+                return result;
+            };
+
+            // Store a reference to the original execCommand
+            wrapper.orig = doc.execCommand;
+
+            // Attach an array for storing listeners
+            wrapper.listeners = [];
+
+            // Overwrite execCommand
+            doc.execCommand = wrapper;
+        },
+
+        // Revert document.execCommand back to its original self
+        unwrapExecCommand: function () {
+            var doc = this.options.ownerDocument;
+            if (!doc.execCommand.orig) {
+                return;
+            }
+
+            // Use the reference to the original execCommand to revert back
+            doc.execCommand = doc.execCommand.orig;
+        },
+
+        // Listening to browser events to emit events medium-editor cares about
         setupListener: function (name) {
             if (this.listeners[name]) {
                 return;
             }
 
             switch (name) {
-            case 'externalInteraction':
-                // Detecting when user has interacted with elements outside of MediumEditor
-                this.attachDOMEvent(this.options.ownerDocument.body, 'mousedown', this.handleBodyMousedown.bind(this), true);
-                this.attachDOMEvent(this.options.ownerDocument.body, 'click', this.handleBodyClick.bind(this), true);
-                this.attachDOMEvent(this.options.ownerDocument.body, 'focus', this.handleBodyFocus.bind(this), true);
-                this.listeners[name] = true;
-                break;
-            case 'blur':
-                // Detecting when focus is lost
-                this.setupListener('externalInteraction');
-                this.listeners[name] = true;
-                break;
-            case 'focus':
-                // Detecting when focus moves into some part of MediumEditor
-                this.setupListener('externalInteraction');
-                this.listeners[name] = true;
-                break;
-            case 'editableClick':
-                // Detecting click in the contenteditables
-                this.base.elements.forEach(function (element) {
-                    this.attachDOMEvent(element, 'click', this.handleClick.bind(this));
-                }.bind(this));
-                this.listeners[name] = true;
-                break;
-            case 'editableBlur':
-                // Detecting blur in the contenteditables
-                this.base.elements.forEach(function (element) {
-                    this.attachDOMEvent(element, 'blur', this.handleBlur.bind(this));
-                }.bind(this));
-                this.listeners[name] = true;
-                break;
-            case 'editableKeypress':
-                // Detecting keypress in the contenteditables
-                this.base.elements.forEach(function (element) {
-                    this.attachDOMEvent(element, 'keypress', this.handleKeypress.bind(this));
-                }.bind(this));
-                this.listeners[name] = true;
-                break;
-            case 'editableKeyup':
-                // Detecting keyup in the contenteditables
-                this.base.elements.forEach(function (element) {
-                    this.attachDOMEvent(element, 'keyup', this.handleKeyup.bind(this));
-                }.bind(this));
-                this.listeners[name] = true;
-                break;
-            case 'editableKeydown':
-                // Detecting keydown on the contenteditables
-                this.base.elements.forEach(function (element) {
-                    this.attachDOMEvent(element, 'keydown', this.handleKeydown.bind(this));
-                }.bind(this));
-                this.listeners[name] = true;
-                break;
-            case 'editableKeydownEnter':
-                // Detecting keydown for ENTER on the contenteditables
-                this.setupListener('editableKeydown');
-                this.listeners[name] = true;
-                break;
-            case 'editableKeydownTab':
-                // Detecting keydown for TAB on the contenteditable
-                this.setupListener('editableKeydown');
-                this.listeners[name] = true;
-                break;
-            case 'editableKeydownDelete':
-                // Detecting keydown for DELETE/BACKSPACE on the contenteditables
-                this.setupListener('editableKeydown');
-                this.listeners[name] = true;
-                break;
-            case 'editableMouseover':
-                // Detecting mouseover on the contenteditables
-                this.base.elements.forEach(function (element) {
-                    this.attachDOMEvent(element, 'mouseover', this.handleMouseover.bind(this));
-                }, this);
-                this.listeners[name] = true;
-                break;
-            case 'editableDrag':
-                // Detecting dragover and dragleave on the contenteditables
-                this.base.elements.forEach(function (element) {
-                    this.attachDOMEvent(element, 'dragover', this.handleDragging.bind(this));
-                    this.attachDOMEvent(element, 'dragleave', this.handleDragging.bind(this));
-                }, this);
-                this.listeners[name] = true;
-                break;
-            case 'editableDrop':
-                // Detecting drop on the contenteditables
-                this.base.elements.forEach(function (element) {
-                    this.attachDOMEvent(element, 'drop', this.handleDrop.bind(this));
-                }, this);
-                this.listeners[name] = true;
-                break;
-            case 'editablePaste':
-                // Detecting paste on the contenteditables
-                this.base.elements.forEach(function (element) {
-                    this.attachDOMEvent(element, 'paste', this.handlePaste.bind(this));
-                }, this);
-                this.listeners[name] = true;
-                break;
+                case 'externalInteraction':
+                    // Detecting when user has interacted with elements outside of MediumEditor
+                    this.attachDOMEvent(this.options.ownerDocument.body, 'mousedown', this.handleBodyMousedown.bind(this), true);
+                    this.attachDOMEvent(this.options.ownerDocument.body, 'click', this.handleBodyClick.bind(this), true);
+                    this.attachDOMEvent(this.options.ownerDocument.body, 'focus', this.handleBodyFocus.bind(this), true);
+                    break;
+                case 'blur':
+                    // Detecting when focus is lost
+                    this.setupListener('externalInteraction');
+                    break;
+                case 'focus':
+                    // Detecting when focus moves into some part of MediumEditor
+                    this.setupListener('externalInteraction');
+                    break;
+                case 'editableInput':
+                    // setup cache for knowing when the content has changed
+                    this.contentCache = [];
+                    this.base.elements.forEach(function (element) {
+                        this.contentCache[element.getAttribute('medium-editor-index')] = element.innerHTML;
+
+                        // Attach to the 'oninput' event, handled correctly by most browsers
+                        if (this.InputEventOnContenteditableSupported) {
+                            this.attachDOMEvent(element, 'input', this.handleInput.bind(this));
+                        }
+                    }.bind(this));
+
+                    // For browsers which don't support the input event on contenteditable (IE)
+                    // we'll attach to 'selectionchange' on the document and 'keypress' on the editables
+                    if (!this.InputEventOnContenteditableSupported) {
+                        this.setupListener('editableKeypress');
+                        this.keypressUpdateInput = true;
+                        this.attachDOMEvent(document, 'selectionchange', this.handleDocumentSelectionChange.bind(this));
+                        // Listen to calls to execCommand
+                        this.attachToExecCommand();
+                    }
+                    break;
+                case 'editableClick':
+                    // Detecting click in the contenteditables
+                    this.attachToEachElement('click', this.handleClick);
+                    break;
+                case 'editableBlur':
+                    // Detecting blur in the contenteditables
+                    this.attachToEachElement('blur', this.handleBlur);
+                    break;
+                case 'editableKeypress':
+                    // Detecting keypress in the contenteditables
+                    this.attachToEachElement('keypress', this.handleKeypress);
+                    break;
+                case 'editableKeyup':
+                    // Detecting keyup in the contenteditables
+                    this.attachToEachElement('keyup', this.handleKeyup);
+                    break;
+                case 'editableKeydown':
+                    // Detecting keydown on the contenteditables
+                    this.attachToEachElement('keydown', this.handleKeydown);
+                    break;
+                case 'editableKeydownEnter':
+                    // Detecting keydown for ENTER on the contenteditables
+                    this.setupListener('editableKeydown');
+                    break;
+                case 'editableKeydownTab':
+                    // Detecting keydown for TAB on the contenteditable
+                    this.setupListener('editableKeydown');
+                    break;
+                case 'editableKeydownDelete':
+                    // Detecting keydown for DELETE/BACKSPACE on the contenteditables
+                    this.setupListener('editableKeydown');
+                    break;
+                case 'editableMouseover':
+                    // Detecting mouseover on the contenteditables
+                    this.attachToEachElement('mouseover', this.handleMouseover);
+                    break;
+                case 'editableDrag':
+                    // Detecting dragover and dragleave on the contenteditables
+                    this.attachToEachElement('dragover', this.handleDragging);
+                    this.attachToEachElement('dragleave', this.handleDragging);
+                    break;
+                case 'editableDrop':
+                    // Detecting drop on the contenteditables
+                    this.attachToEachElement('drop', this.handleDrop);
+                    break;
+                case 'editablePaste':
+                    // Detecting paste on the contenteditables
+                    this.attachToEachElement('paste', this.handlePaste);
+                    break;
             }
+            this.listeners[name] = true;
+        },
+
+        attachToEachElement: function (name, handler) {
+            this.base.elements.forEach(function (element) {
+                this.attachDOMEvent(element, name, handler.bind(this));
+            }, this);
         },
 
         focusElement: function (element) {
@@ -1686,21 +2483,12 @@ var Events;
         },
 
         updateFocus: function (target, eventObj) {
-            var toolbarEl = this.base.toolbar ? this.base.toolbar.getToolbarElement() : null,
+            var toolbar = this.base.getExtensionByName('toolbar'),
+                toolbarEl = toolbar ? toolbar.getToolbarElement() : null,
                 anchorPreview = this.base.getExtensionByName('anchor-preview'),
                 previewEl = (anchorPreview && anchorPreview.getPreviewElement) ? anchorPreview.getPreviewElement() : null,
-                hadFocus,
+                hadFocus = this.base.getFocusedElement(),
                 toFocus;
-
-            this.base.elements.some(function (element) {
-                // Find the element that has focus
-                if (!hadFocus && element.getAttribute('data-medium-focused')) {
-                    hadFocus = element;
-                }
-
-                // bail if we found the element that had focus
-                return !!hadFocus;
-            }, this);
 
             // For clicks, we need to know if the mousedown that caused the click happened inside the existing focused element.
             // If so, we don't want to focus another element
@@ -1752,6 +2540,52 @@ var Events;
             }
         },
 
+        updateInput: function (target, eventObj) {
+            // An event triggered which signifies that the user may have changed someting
+            // Look in our cache of input for the contenteditables to see if something changed
+            var index = target.getAttribute('medium-editor-index');
+            if (target.innerHTML !== this.contentCache[index]) {
+                // The content has changed since the last time we checked, fire the event
+                this.triggerCustomEvent('editableInput', eventObj, target);
+            }
+            this.contentCache[index] = target.innerHTML;
+        },
+
+        handleDocumentSelectionChange: function (event) {
+            // When selectionchange fires, target and current target are set
+            // to document, since this is where the event is handled
+            // However, currentTarget will have an 'activeElement' property
+            // which will point to whatever element has focus.
+            if (event.currentTarget && event.currentTarget.activeElement) {
+                var activeElement = event.currentTarget.activeElement,
+                    currentTarget;
+                // We can look at the 'activeElement' to determine if the selectionchange has
+                // happened within a contenteditable owned by this instance of MediumEditor
+                this.base.elements.some(function (element) {
+                    if (Util.isDescendant(element, activeElement, true)) {
+                        currentTarget = element;
+                        return true;
+                    }
+                    return false;
+                }, this);
+
+                // We know selectionchange fired within one of our contenteditables
+                if (currentTarget) {
+                    this.updateInput(currentTarget, { target: activeElement, currentTarget: currentTarget });
+                }
+            }
+        },
+
+        handleDocumentExecCommand: function () {
+            // document.execCommand has been called
+            // If one of our contenteditables currently has focus, we should
+            // attempt to trigger the 'editableInput' event
+            var target = this.base.getFocusedElement();
+            if (target) {
+                this.updateInput(target, { target: target, currentTarget: target });
+            }
+        },
+
         handleBodyClick: function (event) {
             this.updateFocus(event.target, event);
         },
@@ -1764,6 +2598,10 @@ var Events;
             this.lastMousedownTarget = event.target;
         },
 
+        handleInput: function (event) {
+            this.updateInput(event.currentTarget, event);
+        },
+
         handleClick: function (event) {
             this.triggerCustomEvent('editableClick', event, event.currentTarget);
         },
@@ -1774,6 +2612,18 @@ var Events;
 
         handleKeypress: function (event) {
             this.triggerCustomEvent('editableKeypress', event, event.currentTarget);
+
+            // If we're doing manual detection of the editableInput event we need
+            // to check for input changes during 'keypress'
+            if (this.keypressUpdateInput) {
+                var eventObj = { target: event.target, currentTarget: event.currentTarget };
+
+                // In IE, we need to let the rest of the event stack complete before we detect
+                // changes to input, so using setTimeout here
+                setTimeout(function () {
+                    this.updateInput(eventObj.currentTarget, eventObj);
+                }.bind(this), 0);
+            }
         },
 
         handleKeyup: function (event) {
@@ -1799,121 +2649,224 @@ var Events;
         handleKeydown: function (event) {
             this.triggerCustomEvent('editableKeydown', event, event.currentTarget);
 
-            switch (event.which) {
-            case Util.keyCode.ENTER:
-                this.triggerCustomEvent('editableKeydownEnter', event, event.currentTarget);
-                break;
-            case Util.keyCode.TAB:
-                this.triggerCustomEvent('editableKeydownTab', event, event.currentTarget);
-                break;
-            case Util.keyCode.DELETE:
-            case Util.keyCode.BACKSPACE:
-                this.triggerCustomEvent('editableKeydownDelete', event, event.currentTarget);
-                break;
+            if (Util.isKey(event, Util.keyCode.ENTER)) {
+                return this.triggerCustomEvent('editableKeydownEnter', event, event.currentTarget);
+            }
+
+            if (Util.isKey(event, Util.keyCode.TAB)) {
+                return this.triggerCustomEvent('editableKeydownTab', event, event.currentTarget);
+            }
+
+            if (Util.isKey(event, [Util.keyCode.DELETE, Util.keyCode.BACKSPACE])) {
+                return this.triggerCustomEvent('editableKeydownDelete', event, event.currentTarget);
             }
         }
     };
-
 }());
 
-var DefaultButton;
-
+var Button;
 (function () {
     'use strict';
 
-    DefaultButton = function (options, instance) {
-        this.options = options;
-        this.name = options.name;
-        this.init(instance);
-    };
+    /*global Extension, buttonDefaults */
 
-    DefaultButton.prototype = {
-        init: function (instance) {
-            this.base = instance;
+    Button = Extension.extend({
 
-            this.button = this.createButton();
-            this.base.on(this.button, 'click', this.handleClick.bind(this));
-            if (this.options.key) {
-                this.base.subscribe('editableKeydown', this.handleKeydown.bind(this));
+        /* Button Options */
+
+        /* action: [string]
+         * The action argument to pass to MediumEditor.execAction()
+         * when the button is clicked
+         */
+        action: undefined,
+
+        /* aria: [string]
+         * The value to add as the aria-label attribute of the button
+         * element displayed in the toolbar.
+         * This is also used as the tooltip for the button
+         */
+        aria: undefined,
+
+        /* tagNames: [Array]
+         * NOTE: This is not used if useQueryState is set to true.
+         *
+         * Array of element tag names that would indicate that this
+         * button has already been applied. If this action has already
+         * been applied, the button will be displayed as 'active' in the toolbar
+         *
+         * Example:
+         * For 'bold', if the text is ever within a <b> or <strong>
+         * tag that indicates the text is already bold. So the array
+         * of tagNames for bold would be: ['b', 'strong']
+         */
+        tagNames: undefined,
+
+        /* style: [Object]
+         * NOTE: This is not used if useQueryState is set to true.
+         *
+         * A pair of css property & value(s) that indicate that this
+         * button has already been applied. If this action has already
+         * been applied, the button will be displayed as 'active' in the toolbar
+         * Properties of the object:
+         *   prop [String]: name of the css property
+         *   value [String]: value(s) of the css property
+         *                   multiple values can be separated by a '|'
+         *
+         * Example:
+         * For 'bold', if the text is ever within an element with a 'font-weight'
+         * style property set to '700' or 'bold', that indicates the text
+         * is already bold.  So the style object for bold would be:
+         * { prop: 'font-weight', value: '700|bold' }
+         */
+        style: undefined,
+
+        /* useQueryState: [boolean]
+         * Enables/disables whether this button should use the built-in
+         * document.queryCommandState() method to determine whether
+         * the action has already been applied.  If the action has already
+         * been applied, the button will be displayed as 'active' in the toolbar
+         *
+         * Example:
+         * For 'bold', if this is set to true, the code will call:
+         * document.queryCommandState('bold') which will return true if the
+         * browser thinks the text is already bold, and false otherwise
+         */
+        useQueryState: undefined,
+
+        /* contentDefault: [string]
+         * Default innerHTML to put inside the button
+         */
+        contentDefault: undefined,
+
+        /* contentFA: [string]
+         * The innerHTML to use for the content of the button
+         * if the `buttonLabels` option for MediumEditor is set to 'fontawesome'
+         */
+        contentFA: undefined,
+
+        /* classList: [Array]
+         * An array of classNames (strings) to be added to the button
+         */
+        classList: undefined,
+
+        /* attrs: [object]
+         * A set of key-value pairs to add to the button as custom attributes
+         */
+        attrs: undefined,
+
+        /* buttonDefaults: [Object]
+         * Set of default config options for all of the built-in MediumEditor buttons
+         */
+        defaults: buttonDefaults,
+
+        // The button constructor can optionally accept the name of a built-in button
+        // (ie 'bold', 'italic', etc.)
+        // When the name of a button is passed, it will initialize itself with the
+        // configuration for that button
+        constructor: function (options) {
+            if (Button.isBuiltInButton(options)) {
+                Extension.call(this, this.defaults[options]);
+            } else {
+                Extension.call(this, options);
             }
         },
+
+        init: function () {
+            Extension.prototype.init.apply(this, arguments);
+
+            this.button = this.createButton();
+            this.on(this.button, 'click', this.handleClick.bind(this));
+        },
+
+        /* getButton: [function ()]
+         *
+         * If implemented, this function will be called when
+         * the toolbar is being created.  The DOM Element returned
+         * by this function will be appended to the toolbar along
+         * with any other buttons.
+         */
         getButton: function () {
             return this.button;
         },
+
         getAction: function () {
-            return (typeof this.options.action === 'function') ? this.options.action(this.base.options) : this.options.action;
+            return (typeof this.action === 'function') ? this.action(this.base.options) : this.action;
         },
+
         getAria: function () {
-            return (typeof this.options.aria === 'function') ? this.options.aria(this.base.options) : this.options.aria;
+            return (typeof this.aria === 'function') ? this.aria(this.base.options) : this.aria;
         },
+
         getTagNames: function () {
-            return (typeof this.options.tagNames === 'function') ? this.options.tagNames(this.base.options) : this.options.tagNames;
+            return (typeof this.tagNames === 'function') ? this.tagNames(this.base.options) : this.tagNames;
         },
+
         createButton: function () {
-            var button = this.base.options.ownerDocument.createElement('button'),
-                content = this.options.contentDefault,
-                ariaLabel = this.getAria();
+            var button = this.document.createElement('button'),
+                content = this.contentDefault,
+                ariaLabel = this.getAria(),
+                buttonLabels = this.getEditorOption('buttonLabels');
+            // Add class names
             button.classList.add('medium-editor-action');
             button.classList.add('medium-editor-action-' + this.name);
+            if (this.classList) {
+                this.classList.forEach(function (className) {
+                    button.classList.add(className);
+                });
+            }
+
+            // Add attributes
             button.setAttribute('data-action', this.getAction());
             if (ariaLabel) {
                 button.setAttribute('title', ariaLabel);
                 button.setAttribute('aria-label', ariaLabel);
             }
-            if (this.base.options.buttonLabels) {
-                if (this.base.options.buttonLabels === 'fontawesome' && this.options.contentFA) {
-                    content = this.options.contentFA;
-                } else if (typeof this.base.options.buttonLabels === 'object' && this.base.options.buttonLabels[this.name]) {
-                    content = this.base.options.buttonLabels[this.options.name];
-                }
+            if (this.attrs) {
+                Object.keys(this.attrs).forEach(function (attr) {
+                    button.setAttribute(attr, this.attrs[attr]);
+                }, this);
+            }
+
+            if (buttonLabels === 'fontawesome' && this.contentFA) {
+                content = this.contentFA;
             }
             button.innerHTML = content;
             return button;
         },
-        handleKeydown: function (evt) {
-            var key, action;
 
-            if (evt.ctrlKey || evt.metaKey) {
-                key = String.fromCharCode(evt.which || evt.keyCode).toLowerCase();
-                if (this.options.key === key) {
-                    evt.preventDefault();
-                    evt.stopPropagation();
-
-                    action = this.getAction();
-                    if (action) {
-                        this.base.execAction(action);
-                    }
-                }
-            }
-        },
-        handleClick: function (evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
+        handleClick: function (event) {
+            event.preventDefault();
+            event.stopPropagation();
 
             var action = this.getAction();
 
             if (action) {
-                this.base.execAction(action);
+                this.execAction(action);
             }
         },
+
         isActive: function () {
-            return this.button.classList.contains(this.base.options.activeButtonClass);
+            return this.button.classList.contains(this.getEditorOption('activeButtonClass'));
         },
+
         setInactive: function () {
-            this.button.classList.remove(this.base.options.activeButtonClass);
+            this.button.classList.remove(this.getEditorOption('activeButtonClass'));
             delete this.knownState;
         },
+
         setActive: function () {
-            this.button.classList.add(this.base.options.activeButtonClass);
+            this.button.classList.add(this.getEditorOption('activeButtonClass'));
             delete this.knownState;
         },
+
         queryCommandState: function () {
             var queryState = null;
-            if (this.options.useQueryState) {
+            if (this.useQueryState) {
                 queryState = this.base.queryCommandState(this.getAction());
             }
             return queryState;
         },
+
         isAlreadyApplied: function (node) {
             var isMatch = false,
                 tagNames = this.getTagNames(),
@@ -1924,20 +2877,20 @@ var DefaultButton;
                 return this.knownState;
             }
 
-            if (tagNames && tagNames.length > 0 && node.tagName) {
-                isMatch = tagNames.indexOf(node.tagName.toLowerCase()) !== -1;
+            if (tagNames && tagNames.length > 0) {
+                isMatch = tagNames.indexOf(node.nodeName.toLowerCase()) !== -1;
             }
 
-            if (!isMatch && this.options.style) {
-                styleVals = this.options.style.value.split('|');
-                computedStyle = this.base.options.contentWindow.getComputedStyle(node, null).getPropertyValue(this.options.style.prop);
+            if (!isMatch && this.style) {
+                styleVals = this.style.value.split('|');
+                computedStyle = this.window.getComputedStyle(node, null).getPropertyValue(this.style.prop);
                 styleVals.forEach(function (val) {
                     if (!this.knownState) {
                         isMatch = (computedStyle.indexOf(val) !== -1);
                         // text-decoration is not inherited by default
                         // so if the computed style for text-decoration doesn't match
                         // don't write to knownState so we can fallback to other checks
-                        if (isMatch || this.options.style.prop !== 'text-decoration') {
+                        if (isMatch || this.style.prop !== 'text-decoration') {
                             this.knownState = isMatch;
                         }
                     }
@@ -1946,9 +2899,1207 @@ var DefaultButton;
 
             return isMatch;
         }
+    });
+
+    Button.isBuiltInButton = function (name) {
+        return (typeof name === 'string') && Button.prototype.defaults.hasOwnProperty(name);
     };
 }());
 
+var FormExtension;
+(function () {
+    'use strict';
+
+    /* global Button */
+
+    var noop = function () {};
+
+    /* Base functionality for an extension whcih will display
+     * a 'form' inside the toolbar
+     */
+    FormExtension = Button.extend({
+
+        init: function () {
+            Button.prototype.init.apply(this, arguments);
+        },
+
+        // default labels for the form buttons
+        formSaveLabel: '&#10003;',
+        formCloseLabel: '&times;',
+
+        /* hasForm: [boolean]
+         *
+         * Setting this to true will cause getForm() to be called
+         * when the toolbar is created, so the form can be appended
+         * inside the toolbar container
+         */
+        hasForm: true,
+
+        /* getForm: [function ()]
+         *
+         * When hasForm is true, this function must be implemented
+         * and return a DOM Element which will be appended to
+         * the toolbar container. The form should start hidden, and
+         * the extension can choose when to hide/show it
+         */
+        getForm: noop,
+
+        /* isDisplayed: [function ()]
+         *
+         * This function should return true/false reflecting
+         * whether the form is currently displayed
+         */
+        isDisplayed: noop,
+
+        /* hideForm: [function ()]
+         *
+         * This function should hide the form element inside
+         * the toolbar container
+         */
+        hideForm: noop,
+
+        /************************ Helpers ************************
+         * The following are helpers that are either set by MediumEditor
+         * during initialization, or are helper methods which either
+         * route calls to the MediumEditor instance or provide common
+         * functionality for all form extensions
+         *********************************************************/
+
+        /* showToolbarDefaultActions: [function ()]
+         *
+         * Helper method which will turn back the toolbar after canceling
+         * the customized form
+         */
+        showToolbarDefaultActions: function () {
+            var toolbar = this.base.getExtensionByName('toolbar');
+            if (toolbar) {
+                toolbar.showToolbarDefaultActions();
+            }
+        },
+
+        /* hideToolbarDefaultActions: [function ()]
+         *
+         * Helper function which will hide the default contents of the
+         * toolbar, but leave the toolbar container in the same state
+         * to allow a form to display its custom contents inside the toolbar
+         */
+        hideToolbarDefaultActions: function () {
+            var toolbar = this.base.getExtensionByName('toolbar');
+            if (toolbar) {
+                toolbar.hideToolbarDefaultActions();
+            }
+        },
+
+        /* setToolbarPosition: [function ()]
+         *
+         * Helper function which will update the size and position
+         * of the toolbar based on the toolbar content and the current
+         * position of the user's selection
+         */
+        setToolbarPosition: function () {
+            var toolbar = this.base.getExtensionByName('toolbar');
+            if (toolbar) {
+                toolbar.setToolbarPosition();
+            }
+        }
+    });
+})();
+var AnchorForm;
+(function () {
+    'use strict';
+
+    /*global Util, Selection, FormExtension */
+
+    AnchorForm = FormExtension.extend({
+        /* Anchor Form Options */
+
+        /* customClassOption: [string]  (previously options.anchorButton + options.anchorButtonClass)
+         * Custom class name the user can optionally have added to their created links (ie 'button').
+         * If passed as a non-empty string, a checkbox will be displayed allowing the user to choose
+         * whether to have the class added to the created link or not.
+         */
+        customClassOption: null,
+
+        /* customClassOptionText: [string]
+         * text to be shown in the checkbox when the __customClassOption__ is being used.
+         */
+        customClassOptionText: 'Button',
+
+        /* linkValidation: [boolean]  (previously options.checkLinkFormat)
+         * enables/disables check for common URL protocols on anchor links.
+         */
+        linkValidation: false,
+
+        /* placeholderText: [string]  (previously options.anchorInputPlaceholder)
+         * text to be shown as placeholder of the anchor input.
+         */
+        placeholderText: 'Paste or type a link',
+
+        /* targetCheckbox: [boolean]  (previously options.anchorTarget)
+         * enables/disables displaying a "Open in new window" checkbox, which when checked
+         * changes the `target` attribute of the created link.
+         */
+        targetCheckbox: false,
+
+        /* targetCheckboxText: [string]  (previously options.anchorInputCheckboxLabel)
+         * text to be shown in the checkbox enabled via the __targetCheckbox__ option.
+         */
+        targetCheckboxText: 'Open in new window',
+
+        // Options for the Button base class
+        name: 'anchor',
+        action: 'createLink',
+        aria: 'link',
+        tagNames: ['a'],
+        contentDefault: '<b>#</b>',
+        contentFA: '<i class="fa fa-link"></i>',
+
+        init: function () {
+            FormExtension.prototype.init.apply(this, arguments);
+
+            this.subscribe('editableKeydown', this.handleKeydown.bind(this));
+        },
+
+        // Called when the button the toolbar is clicked
+        // Overrides ButtonExtension.handleClick
+        handleClick: function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            var selectedParentElement = Selection.getSelectedParentElement(Selection.getSelectionRange(this.document)),
+                firstTextNode = Util.getFirstTextNode(selectedParentElement);
+
+            if (Util.getClosestTag(firstTextNode, 'a')) {
+                return this.execAction('unlink');
+            }
+
+            if (!this.isDisplayed()) {
+                this.showForm();
+            }
+
+            return false;
+        },
+
+        // Called when user hits the defined shortcut (CTRL / COMMAND + K)
+        handleKeydown: function (event) {
+            if (Util.isKey(event, Util.keyCode.K) && Util.isMetaCtrlKey(event) && !event.shiftKey) {
+                this.handleClick(event);
+            }
+        },
+
+        // Called by medium-editor to append form to the toolbar
+        getForm: function () {
+            if (!this.form) {
+                this.form = this.createForm();
+            }
+            return this.form;
+        },
+
+        getTemplate: function () {
+            var template = [
+                '<input type="text" class="medium-editor-toolbar-input" placeholder="', this.placeholderText, '">'
+            ];
+
+            template.push(
+                '<a href="#" class="medium-editor-toolbar-save">',
+                this.getEditorOption('buttonLabels') === 'fontawesome' ? '<i class="fa fa-check"></i>' : this.formSaveLabel,
+                '</a>'
+            );
+
+            template.push('<a href="#" class="medium-editor-toolbar-close">',
+                this.getEditorOption('buttonLabels') === 'fontawesome' ? '<i class="fa fa-times"></i>' : this.formCloseLabel,
+                '</a>');
+
+            // both of these options are slightly moot with the ability to
+            // override the various form buildup/serialize functions.
+
+            if (this.targetCheckbox) {
+                // fixme: ideally, this targetCheckboxText would be a formLabel too,
+                // figure out how to deprecate? also consider `fa-` icon default implcations.
+                template.push(
+                    '<input type="checkbox" class="medium-editor-toolbar-anchor-target">',
+                    '<label>',
+                    this.targetCheckboxText,
+                    '</label>'
+                );
+            }
+
+            if (this.customClassOption) {
+                // fixme: expose this `Button` text as a formLabel property, too
+                // and provide similar access to a `fa-` icon default.
+                template.push(
+                    '<input type="checkbox" class="medium-editor-toolbar-anchor-button">',
+                    '<label>',
+                    this.customClassOptionText,
+                    '</label>'
+                );
+            }
+
+            return template.join('');
+
+        },
+
+        // Used by medium-editor when the default toolbar is to be displayed
+        isDisplayed: function () {
+            return this.getForm().style.display === 'block';
+        },
+
+        hideForm: function () {
+            this.getForm().style.display = 'none';
+            this.getInput().value = '';
+        },
+
+        showForm: function (linkValue) {
+            var input = this.getInput();
+
+            this.base.saveSelection();
+            this.hideToolbarDefaultActions();
+            this.getForm().style.display = 'block';
+            this.setToolbarPosition();
+
+            input.value = linkValue || '';
+            input.focus();
+        },
+
+        // Called by core when tearing down medium-editor (destroy)
+        destroy: function () {
+            if (!this.form) {
+                return false;
+            }
+
+            if (this.form.parentNode) {
+                this.form.parentNode.removeChild(this.form);
+            }
+
+            delete this.form;
+        },
+
+        // core methods
+
+        getFormOpts: function () {
+            // no notion of private functions? wanted `_getFormOpts`
+            var targetCheckbox = this.getForm().querySelector('.medium-editor-toolbar-anchor-target'),
+                buttonCheckbox = this.getForm().querySelector('.medium-editor-toolbar-anchor-button'),
+                opts = {
+                    url: this.getInput().value
+                };
+
+            if (this.linkValidation) {
+                opts.url = this.checkLinkFormat(opts.url);
+            }
+
+            opts.target = '_self';
+            if (targetCheckbox && targetCheckbox.checked) {
+                opts.target = '_blank';
+            }
+
+            if (buttonCheckbox && buttonCheckbox.checked) {
+                opts.buttonClass = this.customClassOption;
+            }
+
+            return opts;
+        },
+
+        doFormSave: function () {
+            var opts = this.getFormOpts();
+            this.completeFormSave(opts);
+        },
+
+        completeFormSave: function (opts) {
+            this.base.restoreSelection();
+            this.execAction(this.action, opts);
+            this.base.checkSelection();
+        },
+
+        checkLinkFormat: function (value) {
+            var re = /^(https?|ftps?|rtmpt?):\/\/|mailto:/;
+            return (re.test(value) ? '' : 'http://') + value;
+        },
+
+        doFormCancel: function () {
+            this.base.restoreSelection();
+            this.base.checkSelection();
+        },
+
+        // form creation and event handling
+        attachFormEvents: function (form) {
+            var close = form.querySelector('.medium-editor-toolbar-close'),
+                save = form.querySelector('.medium-editor-toolbar-save'),
+                input = form.querySelector('.medium-editor-toolbar-input');
+
+            // Handle clicks on the form itself
+            this.on(form, 'click', this.handleFormClick.bind(this));
+
+            // Handle typing in the textbox
+            this.on(input, 'keyup', this.handleTextboxKeyup.bind(this));
+
+            // Handle close button clicks
+            this.on(close, 'click', this.handleCloseClick.bind(this));
+
+            // Handle save button clicks (capture)
+            this.on(save, 'click', this.handleSaveClick.bind(this), true);
+
+        },
+
+        createForm: function () {
+            var doc = this.document,
+                form = doc.createElement('div');
+
+            // Anchor Form (div)
+            form.className = 'medium-editor-toolbar-form';
+            form.id = 'medium-editor-toolbar-form-anchor-' + this.getEditorId();
+            form.innerHTML = this.getTemplate();
+            this.attachFormEvents(form);
+
+            return form;
+        },
+
+        getInput: function () {
+            return this.getForm().querySelector('input.medium-editor-toolbar-input');
+        },
+
+        handleTextboxKeyup: function (event) {
+            // For ENTER -> create the anchor
+            if (event.keyCode === Util.keyCode.ENTER) {
+                event.preventDefault();
+                this.doFormSave();
+                return;
+            }
+
+            // For ESCAPE -> close the form
+            if (event.keyCode === Util.keyCode.ESCAPE) {
+                event.preventDefault();
+                this.doFormCancel();
+            }
+        },
+
+        handleFormClick: function (event) {
+            // make sure not to hide form when clicking inside the form
+            event.stopPropagation();
+        },
+
+        handleSaveClick: function (event) {
+            // Clicking Save -> create the anchor
+            event.preventDefault();
+            this.doFormSave();
+        },
+
+        handleCloseClick: function (event) {
+            // Click Close -> close the form
+            event.preventDefault();
+            this.doFormCancel();
+        }
+    });
+}());
+var AnchorPreview;
+(function () {
+    'use strict';
+
+    /*global Util, Extension */
+
+    AnchorPreview = Extension.extend({
+        name: 'anchor-preview',
+
+        // Anchor Preview Options
+
+        /* hideDelay: [number]  (previously options.anchorPreviewHideDelay)
+         * time in milliseconds to show the anchor tag preview after the mouse has left the anchor tag.
+         */
+        hideDelay: 500,
+
+        /* previewValueSelector: [string]
+         * the default selector to locate where to put the activeAnchor value in the preview
+         */
+        previewValueSelector: 'a',
+
+        init: function () {
+            this.anchorPreview = this.createPreview();
+
+            this.getEditorOption('elementsContainer').appendChild(this.anchorPreview);
+
+            this.attachToEditables();
+        },
+
+        getPreviewElement: function () {
+            return this.anchorPreview;
+        },
+
+        createPreview: function () {
+            var el = this.document.createElement('div');
+
+            el.id = 'medium-editor-anchor-preview-' + this.getEditorId();
+            el.className = 'medium-editor-anchor-preview';
+            el.innerHTML = this.getTemplate();
+
+            this.on(el, 'click', this.handleClick.bind(this));
+
+            return el;
+        },
+
+        getTemplate: function () {
+            return '<div class="medium-editor-toolbar-anchor-preview" id="medium-editor-toolbar-anchor-preview">' +
+                '    <a class="medium-editor-toolbar-anchor-preview-inner"></a>' +
+                '</div>';
+        },
+
+        destroy: function () {
+            if (this.anchorPreview) {
+                if (this.anchorPreview.parentNode) {
+                    this.anchorPreview.parentNode.removeChild(this.anchorPreview);
+                }
+                delete this.anchorPreview;
+            }
+        },
+
+        hidePreview: function () {
+            this.anchorPreview.classList.remove('medium-editor-anchor-preview-active');
+            this.activeAnchor = null;
+        },
+
+        showPreview: function (anchorEl) {
+            if (this.anchorPreview.classList.contains('medium-editor-anchor-preview-active') ||
+                    anchorEl.getAttribute('data-disable-preview')) {
+                return true;
+            }
+
+            if (this.previewValueSelector) {
+                this.anchorPreview.querySelector(this.previewValueSelector).textContent = anchorEl.attributes.href.value;
+                this.anchorPreview.querySelector(this.previewValueSelector).href = anchorEl.attributes.href.value;
+            }
+
+            this.anchorPreview.classList.add('medium-toolbar-arrow-over');
+            this.anchorPreview.classList.remove('medium-toolbar-arrow-under');
+
+            if (!this.anchorPreview.classList.contains('medium-editor-anchor-preview-active')) {
+                this.anchorPreview.classList.add('medium-editor-anchor-preview-active');
+            }
+
+            this.activeAnchor = anchorEl;
+
+            this.positionPreview();
+            this.attachPreviewHandlers();
+
+            return this;
+        },
+
+        positionPreview: function (activeAnchor) {
+            activeAnchor = activeAnchor || this.activeAnchor;
+            var buttonHeight = this.anchorPreview.offsetHeight,
+                boundary = activeAnchor.getBoundingClientRect(),
+                middleBoundary = (boundary.left + boundary.right) / 2,
+                diffLeft = this.diffLeft,
+                diffTop = this.diffTop,
+                halfOffsetWidth,
+                defaultLeft;
+
+            halfOffsetWidth = this.anchorPreview.offsetWidth / 2;
+            var toolbarExtension = this.base.getExtensionByName('toolbar');
+            if (toolbarExtension) {
+                diffLeft = toolbarExtension.diffLeft;
+                diffTop = toolbarExtension.diffTop;
+            }
+            defaultLeft = diffLeft - halfOffsetWidth;
+
+            this.anchorPreview.style.top = Math.round(buttonHeight + boundary.bottom - diffTop + this.window.pageYOffset - this.anchorPreview.offsetHeight) + 'px';
+            if (middleBoundary < halfOffsetWidth) {
+                this.anchorPreview.style.left = defaultLeft + halfOffsetWidth + 'px';
+            } else if ((this.window.innerWidth - middleBoundary) < halfOffsetWidth) {
+                this.anchorPreview.style.left = this.window.innerWidth + defaultLeft - halfOffsetWidth + 'px';
+            } else {
+                this.anchorPreview.style.left = defaultLeft + middleBoundary + 'px';
+            }
+        },
+
+        attachToEditables: function () {
+            this.subscribe('editableMouseover', this.handleEditableMouseover.bind(this));
+        },
+
+        handleClick: function (event) {
+            var anchorExtension = this.base.getExtensionByName('anchor'),
+                activeAnchor = this.activeAnchor;
+
+            if (anchorExtension && activeAnchor) {
+                event.preventDefault();
+
+                this.base.selectElement(this.activeAnchor);
+
+                // Using setTimeout + delay because:
+                // We may actually be displaying the anchor form, which should be controlled by delay
+                this.base.delay(function () {
+                    if (activeAnchor) {
+                        anchorExtension.showForm(activeAnchor.attributes.href.value);
+                        activeAnchor = null;
+                    }
+                }.bind(this));
+            }
+
+            this.hidePreview();
+        },
+
+        handleAnchorMouseout: function () {
+            this.anchorToPreview = null;
+            this.off(this.activeAnchor, 'mouseout', this.instanceHandleAnchorMouseout);
+            this.instanceHandleAnchorMouseout = null;
+        },
+
+        handleEditableMouseover: function (event) {
+            var target = Util.getClosestTag(event.target, 'a');
+
+            if (false === target) {
+                return;
+            }
+
+            // Detect empty href attributes
+            // The browser will make href="" or href="#top"
+            // into absolute urls when accessed as event.targed.href, so check the html
+            if (!/href=["']\S+["']/.test(target.outerHTML) || /href=["']#\S+["']/.test(target.outerHTML)) {
+                return true;
+            }
+
+            // only show when toolbar is not present
+            var toolbar = this.base.getExtensionByName('toolbar');
+            if (toolbar && toolbar.isDisplayed && toolbar.isDisplayed()) {
+                return true;
+            }
+
+            // detach handler for other anchor in case we hovered multiple anchors quickly
+            if (this.activeAnchor && this.activeAnchor !== target) {
+                this.detachPreviewHandlers();
+            }
+
+            this.anchorToPreview = target;
+
+            this.instanceHandleAnchorMouseout = this.handleAnchorMouseout.bind(this);
+            this.on(this.anchorToPreview, 'mouseout', this.instanceHandleAnchorMouseout);
+            // Using setTimeout + delay because:
+            // - We're going to show the anchor preview according to the configured delay
+            //   if the mouse has not left the anchor tag in that time
+            this.base.delay(function () {
+                if (this.anchorToPreview) {
+                    this.showPreview(this.anchorToPreview);
+                }
+            }.bind(this));
+        },
+
+        handlePreviewMouseover: function () {
+            this.lastOver = (new Date()).getTime();
+            this.hovering = true;
+        },
+
+        handlePreviewMouseout: function (event) {
+            if (!event.relatedTarget || !/anchor-preview/.test(event.relatedTarget.className)) {
+                this.hovering = false;
+            }
+        },
+
+        updatePreview: function () {
+            if (this.hovering) {
+                return true;
+            }
+            var durr = (new Date()).getTime() - this.lastOver;
+            if (durr > this.hideDelay) {
+                // hide the preview 1/2 second after mouse leaves the link
+                this.detachPreviewHandlers();
+            }
+        },
+
+        detachPreviewHandlers: function () {
+            // cleanup
+            clearInterval(this.intervalTimer);
+            if (this.instanceHandlePreviewMouseover) {
+                this.off(this.anchorPreview, 'mouseover', this.instanceHandlePreviewMouseover);
+                this.off(this.anchorPreview, 'mouseout', this.instanceHandlePreviewMouseout);
+                if (this.activeAnchor) {
+                    this.off(this.activeAnchor, 'mouseover', this.instanceHandlePreviewMouseover);
+                    this.off(this.activeAnchor, 'mouseout', this.instanceHandlePreviewMouseout);
+                }
+            }
+
+            this.hidePreview();
+
+            this.hovering = this.instanceHandlePreviewMouseover = this.instanceHandlePreviewMouseout = null;
+        },
+
+        // TODO: break up method and extract out handlers
+        attachPreviewHandlers: function () {
+            this.lastOver = (new Date()).getTime();
+            this.hovering = true;
+
+            this.instanceHandlePreviewMouseover = this.handlePreviewMouseover.bind(this);
+            this.instanceHandlePreviewMouseout = this.handlePreviewMouseout.bind(this);
+
+            this.intervalTimer = setInterval(this.updatePreview.bind(this), 200);
+
+            this.on(this.anchorPreview, 'mouseover', this.instanceHandlePreviewMouseover);
+            this.on(this.anchorPreview, 'mouseout', this.instanceHandlePreviewMouseout);
+            this.on(this.activeAnchor, 'mouseover', this.instanceHandlePreviewMouseover);
+            this.on(this.activeAnchor, 'mouseout', this.instanceHandlePreviewMouseout);
+        }
+    });
+}());
+
+var AutoLink,
+    WHITESPACE_CHARS,
+    KNOWN_TLDS_FRAGMENT,
+    LINK_REGEXP_TEXT;
+
+WHITESPACE_CHARS = [' ', '\t', '\n', '\r', '\u00A0', '\u2000', '\u2001', '\u2002', '\u2003',
+                                    '\u2028', '\u2029'];
+KNOWN_TLDS_FRAGMENT = 'com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|' +
+    'xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|' +
+    'bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|' +
+    'fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|' +
+    'is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|' +
+    'mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|' +
+    'pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|' +
+    'tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw';
+LINK_REGEXP_TEXT =
+    '(' +
+    // Version of Gruber URL Regexp optimized for JS: http://stackoverflow.com/a/17733640
+    '((?:(https?://|ftps?://|nntp://)|www\\d{0,3}[.]|[a-z0-9.\\-]+[.](' + KNOWN_TLDS_FRAGMENT + ')\\\/)\\S+(?:[^\\s`!\\[\\]{};:\'\".,?\u00AB\u00BB\u201C\u201D\u2018\u2019]))' +
+    // Addition to above Regexp to support bare domains/one level subdomains with common non-i18n TLDs and without www prefix:
+    ')|(([a-z0-9\\-]+\\.)?[a-z0-9\\-]+\\.(' + KNOWN_TLDS_FRAGMENT + '))';
+
+(function () {
+    'use strict';
+
+    var KNOWN_TLDS_REGEXP = new RegExp('^(' + KNOWN_TLDS_FRAGMENT + ')$', 'i');
+
+    function nodeIsNotInsideAnchorTag(node) {
+        return !Util.getClosestTag(node, 'a');
+    }
+
+    AutoLink = Extension.extend({
+        init: function () {
+            Extension.prototype.init.apply(this, arguments);
+
+            this.disableEventHandling = false;
+            this.subscribe('editableKeypress', this.onKeypress.bind(this));
+            this.subscribe('editableBlur', this.onBlur.bind(this));
+            // MS IE has it's own auto-URL detect feature but ours is better in some ways. Be consistent.
+            this.document.execCommand('AutoUrlDetect', false, false);
+        },
+
+        destroy: function () {
+            // Turn AutoUrlDetect back on
+            if (this.document.queryCommandSupported('AutoUrlDetect')) {
+                this.document.execCommand('AutoUrlDetect', false, true);
+            }
+        },
+
+        onBlur: function (blurEvent, editable) {
+            this.performLinking(editable);
+        },
+
+        onKeypress: function (keyPressEvent) {
+            if (this.disableEventHandling) {
+                return;
+            }
+
+            if (Util.isKey(keyPressEvent, [Util.keyCode.SPACE, Util.keyCode.ENTER])) {
+                clearTimeout(this.performLinkingTimeout);
+                // Saving/restoring the selection in the middle of a keypress doesn't work well...
+                this.performLinkingTimeout = setTimeout(function () {
+                    try {
+                        var sel = this.base.exportSelection();
+                        if (this.performLinking(keyPressEvent.target)) {
+                            // pass true for favorLaterSelectionAnchor - this is needed for links at the end of a
+                            // paragraph in MS IE, or MS IE causes the link to be deleted right after adding it.
+                            this.base.importSelection(sel, true);
+                        }
+                    } catch (e) {
+                        if (window.console) {
+                            window.console.error('Failed to perform linking', e);
+                        }
+                        this.disableEventHandling = true;
+                    }
+                }.bind(this), 0);
+            }
+        },
+
+        performLinking: function (contenteditable) {
+            // Perform linking on a paragraph level basis as otherwise the detection can wrongly find the end
+            // of one paragraph and the beginning of another paragraph to constitute a link, such as a paragraph ending
+            // "link." and the next paragraph beginning with "my" is interpreted into "link.my" and the code tries to create
+            // a link across paragraphs - which doesn't work and is terrible.
+            // (Medium deletes the spaces/returns between P tags so the textContent ends up without paragraph spacing)
+            var paragraphs = contenteditable.querySelectorAll('p'),
+                documentModified = false;
+            if (paragraphs.length === 0) {
+                paragraphs = [contenteditable];
+            }
+            for (var i = 0; i < paragraphs.length; i++) {
+                documentModified = this.removeObsoleteAutoLinkSpans(paragraphs[i]) || documentModified;
+                documentModified = this.performLinkingWithinElement(paragraphs[i]) || documentModified;
+            }
+            return documentModified;
+        },
+
+        removeObsoleteAutoLinkSpans: function (element) {
+            var spans = element.querySelectorAll('span[data-auto-link="true"]'),
+                documentModified = false;
+
+            for (var i = 0; i < spans.length; i++) {
+                var textContent = spans[i].textContent;
+                if (textContent.indexOf('://') === -1) {
+                    textContent = Util.ensureUrlHasProtocol(textContent);
+                }
+                if (spans[i].getAttribute('data-href') !== textContent && nodeIsNotInsideAnchorTag(spans[i])) {
+                    documentModified = true;
+                    var trimmedTextContent = textContent.replace(/\s+$/, '');
+                    if (spans[i].getAttribute('data-href') === trimmedTextContent) {
+                        var charactersTrimmed = textContent.length - trimmedTextContent.length,
+                            subtree = Util.splitOffDOMTree(spans[i], this.splitTextBeforeEnd(spans[i], charactersTrimmed));
+                        spans[i].parentNode.insertBefore(subtree, spans[i].nextSibling);
+                    } else {
+                        // Some editing has happened to the span, so just remove it entirely. The user can put it back
+                        // around just the href content if they need to prevent it from linking
+                        Util.unwrap(spans[i], this.document);
+                    }
+                }
+            }
+            return documentModified;
+        },
+
+        splitTextBeforeEnd: function (element, characterCount) {
+            var treeWalker = this.document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false),
+                lastChildNotExhausted = true;
+
+            // Start the tree walker at the last descendant of the span
+            while (lastChildNotExhausted) {
+                lastChildNotExhausted = treeWalker.lastChild() !== null;
+            }
+
+            var currentNode,
+                currentNodeValue,
+                previousNode;
+            while (characterCount > 0 && previousNode !== null) {
+                currentNode = treeWalker.currentNode;
+                currentNodeValue = currentNode.nodeValue;
+                if (currentNodeValue.length > characterCount) {
+                    previousNode = currentNode.splitText(currentNodeValue.length - characterCount);
+                    characterCount = 0;
+                } else {
+                    previousNode = treeWalker.previousNode();
+                    characterCount -= currentNodeValue.length;
+                }
+            }
+            return previousNode;
+        },
+
+        performLinkingWithinElement: function (element) {
+            var matches = this.findLinkableText(element),
+                linkCreated = false;
+
+            for (var matchIndex = 0; matchIndex < matches.length; matchIndex++) {
+                var matchingTextNodes = Util.findOrCreateMatchingTextNodes(this.document, element,
+                        matches[matchIndex]);
+                if (this.shouldNotLink(matchingTextNodes)) {
+                    continue;
+                }
+                this.createAutoLink(matchingTextNodes, matches[matchIndex].href);
+            }
+            return linkCreated;
+        },
+
+        shouldNotLink: function (textNodes) {
+            var shouldNotLink = false;
+            for (var i = 0; i < textNodes.length && shouldNotLink === false; i++) {
+                // Do not link if the text node is either inside an anchor or inside span[data-auto-link]
+                shouldNotLink = !!Util.traverseUp(textNodes[i], function (node) {
+                    return node.nodeName.toLowerCase() === 'a' ||
+                        (node.getAttribute && node.getAttribute('data-auto-link') === 'true');
+                });
+            }
+            return shouldNotLink;
+        },
+
+        findLinkableText: function (contenteditable) {
+            var linkRegExp = new RegExp(LINK_REGEXP_TEXT, 'gi'),
+                textContent = contenteditable.textContent,
+                match = null,
+                matches = [];
+
+            while ((match = linkRegExp.exec(textContent)) !== null) {
+                var matchOk = true,
+                    matchEnd = match.index + match[0].length;
+                // If the regexp detected something as a link that has text immediately preceding/following it, bail out.
+                matchOk = (match.index === 0 || WHITESPACE_CHARS.indexOf(textContent[match.index - 1]) !== -1) &&
+                    (matchEnd === textContent.length || WHITESPACE_CHARS.indexOf(textContent[matchEnd]) !== -1);
+                // If the regexp detected a bare domain that doesn't use one of our expected TLDs, bail out.
+                matchOk = matchOk && (match[0].indexOf('/') !== -1 ||
+                    KNOWN_TLDS_REGEXP.test(match[0].split('.').pop().split('?').shift()));
+
+                if (matchOk) {
+                    matches.push({
+                        href: match[0],
+                        start: match.index,
+                        end: matchEnd
+                    });
+                }
+            }
+            return matches;
+        },
+
+        createAutoLink: function (textNodes, href) {
+            href = Util.ensureUrlHasProtocol(href);
+            var anchor = Util.createLink(this.document, textNodes, href, this.getEditorOption('targetBlank') ? '_blank' : null),
+                span = this.document.createElement('span');
+            span.setAttribute('data-auto-link', 'true');
+            span.setAttribute('data-href', href);
+            anchor.insertBefore(span, anchor.firstChild);
+            while (anchor.childNodes.length > 1) {
+                span.appendChild(anchor.childNodes[1]);
+            }
+        }
+
+    });
+}());
+var FileDragging;
+
+(function () {
+    'use strict';
+
+    var CLASS_DRAG_OVER = 'medium-editor-dragover';
+
+    function clearClassNames(element) {
+        var editable = Util.getContainerEditorElement(element),
+            existing = Array.prototype.slice.call(editable.parentElement.querySelectorAll('.' + CLASS_DRAG_OVER));
+
+        existing.forEach(function (el) {
+            el.classList.remove(CLASS_DRAG_OVER);
+        });
+    }
+
+    FileDragging = Extension.extend({
+        name: 'fileDragging',
+
+        allowedTypes: ['image'],
+
+        init: function () {
+            Extension.prototype.init.apply(this, arguments);
+
+            this.subscribe('editableDrag', this.handleDrag.bind(this));
+            this.subscribe('editableDrop', this.handleDrop.bind(this));
+        },
+
+        handleDrag: function (event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+
+            var target = event.target.classList ? event.target : event.target.parentElement;
+
+            // Ensure the class gets removed from anything that had it before
+            clearClassNames(target);
+
+            if (event.type === 'dragover') {
+                target.classList.add(CLASS_DRAG_OVER);
+            }
+        },
+
+        handleDrop: function (event) {
+            // Prevent file from opening in the current window
+            event.preventDefault();
+            event.stopPropagation();
+
+            // IE9 does not support the File API, so prevent file from opening in the window
+            // but also don't try to actually get the file
+            if (event.dataTransfer.files) {
+                Array.prototype.slice.call(event.dataTransfer.files).forEach(function (file) {
+                    if (this.isAllowedFile(file)) {
+                        if (file.type.match('image')) {
+                            this.insertImageFile(file);
+                        }
+                    }
+                }, this);
+            }
+
+            // Make sure we remove our class from everything
+            clearClassNames(event.target);
+        },
+
+        isAllowedFile: function (file) {
+            return this.allowedTypes.some(function (fileType) {
+                return !!file.type.match(fileType);
+            });
+        },
+
+        insertImageFile: function (file) {
+            var fileReader = new FileReader();
+            fileReader.readAsDataURL(file);
+
+            var id = 'medium-img-' + (+new Date());
+            Util.insertHTMLCommand(this.document, '<img class="medium-editor-image-loading" id="' + id + '" />');
+
+            fileReader.onload = function () {
+                var img = this.document.getElementById(id);
+                if (img) {
+                    img.removeAttribute('id');
+                    img.removeAttribute('class');
+                    img.src = fileReader.result;
+                }
+            }.bind(this);
+        }
+    });
+}());
+
+var KeyboardCommands;
+(function () {
+    'use strict';
+
+    /*global Extension, Util */
+
+    KeyboardCommands = Extension.extend({
+        name: 'keyboard-commands',
+
+        /* KeyboardCommands Options */
+
+        /* commands: [Array]
+         * Array of objects describing each command and the combination of keys that will trigger it
+         * Required for each object:
+         *   command [String] (argument passed to editor.execAction())
+         *   key [String] (keyboard character that triggers this command)
+         *   meta [boolean] (whether the ctrl/meta key has to be active or inactive)
+         *   shift [boolean] (whether the shift key has to be active or inactive)
+         */
+        commands: [
+            {
+                command: 'bold',
+                key: 'B',
+                meta: true,
+                shift: false
+            },
+            {
+                command: 'italic',
+                key: 'I',
+                meta: true,
+                shift: false
+            },
+            {
+                command: 'underline',
+                key: 'U',
+                meta: true,
+                shift: false
+            }
+        ],
+
+        init: function () {
+            Extension.prototype.init.apply(this, arguments);
+
+            this.subscribe('editableKeydown', this.handleKeydown.bind(this));
+            this.keys = {};
+            this.commands.forEach(function (command) {
+                var keyCode = command.key.charCodeAt(0);
+                if (!this.keys[keyCode]) {
+                    this.keys[keyCode] = [];
+                }
+                this.keys[keyCode].push(command);
+            }, this);
+        },
+
+        handleKeydown: function (event) {
+            var keyCode = Util.getKeyCode(event);
+            if (!this.keys[keyCode]) {
+                return;
+            }
+
+            var isMeta = Util.isMetaCtrlKey(event),
+                isShift = !!event.shiftKey;
+
+            this.keys[keyCode].forEach(function (data) {
+                if (data.meta === isMeta &&
+                    data.shift === isShift) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    // command can be false so the shortcurt is just disabled
+                    if (false !== data.command) {
+                        this.execAction(data.command);
+                    }
+                }
+            }, this);
+        }
+    });
+}());
+
+var FontSizeForm;
+(function () {
+    'use strict';
+
+    /*global FormExtension, Selection */
+
+    FontSizeForm = FormExtension.extend({
+
+        name: 'fontsize',
+        action: 'fontSize',
+        aria: 'increase/decrease font size',
+        contentDefault: '&#xB1;', // ±
+        contentFA: '<i class="fa fa-text-height"></i>',
+
+        init: function () {
+            FormExtension.prototype.init.apply(this, arguments);
+        },
+
+        // Called when the button the toolbar is clicked
+        // Overrides ButtonExtension.handleClick
+        handleClick: function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (!this.isDisplayed()) {
+                // Get fontsize of current selection (convert to string since IE returns this as number)
+                var fontSize = this.document.queryCommandValue('fontSize') + '';
+                this.showForm(fontSize);
+            }
+
+            return false;
+        },
+
+        // Called by medium-editor to append form to the toolbar
+        getForm: function () {
+            if (!this.form) {
+                this.form = this.createForm();
+            }
+            return this.form;
+        },
+
+        // Used by medium-editor when the default toolbar is to be displayed
+        isDisplayed: function () {
+            return this.getForm().style.display === 'block';
+        },
+
+        hideForm: function () {
+            this.getForm().style.display = 'none';
+            this.getInput().value = '';
+        },
+
+        showForm: function (fontSize) {
+            var input = this.getInput();
+
+            this.base.saveSelection();
+            this.hideToolbarDefaultActions();
+            this.getForm().style.display = 'block';
+            this.setToolbarPosition();
+
+            input.value = fontSize || '';
+            input.focus();
+        },
+
+        // Called by core when tearing down medium-editor (destroy)
+        destroy: function () {
+            if (!this.form) {
+                return false;
+            }
+
+            if (this.form.parentNode) {
+                this.form.parentNode.removeChild(this.form);
+            }
+
+            delete this.form;
+        },
+
+        // core methods
+
+        doFormSave: function () {
+            this.base.restoreSelection();
+            this.base.checkSelection();
+        },
+
+        doFormCancel: function () {
+            this.base.restoreSelection();
+            this.clearFontSize();
+            this.base.checkSelection();
+        },
+
+        // form creation and event handling
+        createForm: function () {
+            var doc = this.document,
+                form = doc.createElement('div'),
+                input = doc.createElement('input'),
+                close = doc.createElement('a'),
+                save = doc.createElement('a');
+
+            // Font Size Form (div)
+            form.className = 'medium-editor-toolbar-form';
+            form.id = 'medium-editor-toolbar-form-fontsize-' + this.getEditorId();
+
+            // Handle clicks on the form itself
+            this.on(form, 'click', this.handleFormClick.bind(this));
+
+            // Add font size slider
+            input.setAttribute('type', 'range');
+            input.setAttribute('min', '1');
+            input.setAttribute('max', '7');
+            input.className = 'medium-editor-toolbar-input';
+            form.appendChild(input);
+
+            // Handle typing in the textbox
+            this.on(input, 'change', this.handleSliderChange.bind(this));
+
+            // Add save buton
+            save.setAttribute('href', '#');
+            save.className = 'medium-editor-toobar-save';
+            save.innerHTML = this.getEditorOption('buttonLabels') === 'fontawesome' ?
+                             '<i class="fa fa-check"></i>' :
+                             '&#10003;';
+            form.appendChild(save);
+
+            // Handle save button clicks (capture)
+            this.on(save, 'click', this.handleSaveClick.bind(this), true);
+
+            // Add close button
+            close.setAttribute('href', '#');
+            close.className = 'medium-editor-toobar-close';
+            close.innerHTML = this.getEditorOption('buttonLabels') === 'fontawesome' ?
+                              '<i class="fa fa-times"></i>' :
+                              '&times;';
+            form.appendChild(close);
+
+            // Handle close button clicks
+            this.on(close, 'click', this.handleCloseClick.bind(this));
+
+            return form;
+        },
+
+        getInput: function () {
+            return this.getForm().querySelector('input.medium-editor-toolbar-input');
+        },
+
+        clearFontSize: function () {
+            Selection.getSelectedElements(this.document).forEach(function (el) {
+                if (el.nodeName.toLowerCase() === 'font' && el.hasAttribute('size')) {
+                    el.removeAttribute('size');
+                }
+            });
+        },
+
+        handleSliderChange: function () {
+            var size = this.getInput().value;
+            if (size === '4') {
+                this.clearFontSize();
+            } else {
+                this.execAction('fontSize', { size: size });
+            }
+        },
+
+        handleFormClick: function (event) {
+            // make sure not to hide form when clicking inside the form
+            event.stopPropagation();
+        },
+
+        handleSaveClick: function (event) {
+            // Clicking Save -> create the font size
+            event.preventDefault();
+            this.doFormSave();
+        },
+
+        handleCloseClick: function (event) {
+            // Click Close -> close the form
+            event.preventDefault();
+            this.doFormCancel();
+        }
+    });
+}());
 var PasteHandler;
 
 (function () {
@@ -1998,7 +4149,6 @@ var PasteHandler;
     /*jslint regexp: false*/
 
     PasteHandler = Extension.extend({
-
         /* Paste Options */
 
         /* forcePlainText: [boolean]
@@ -2029,18 +4179,11 @@ var PasteHandler;
          */
         cleanTags: ['meta'],
 
-        /* ----- internal options needed from base ----- */
-        'window': window,
-        'document': document,
-        targetBlank: false,
-        disableReturn: false,
-
-        // Need a reference to MediumEditor (this.base)
-        parent: true,
-
         init: function () {
+            Extension.prototype.init.apply(this, arguments);
+
             if (this.forcePlainText || this.cleanPastedHTML) {
-                this.base.subscribe('editablePaste', this.handlePaste.bind(this));
+                this.subscribe('editablePaste', this.handlePaste.bind(this));
             }
         },
 
@@ -2072,15 +4215,11 @@ var PasteHandler;
                 pastedHTML = event.clipboardData.getData(dataFormatHTML);
                 pastedPlain = event.clipboardData.getData(dataFormatPlain);
 
-                if (!pastedHTML) {
-                    pastedHTML = pastedPlain;
-                }
-
                 if (this.cleanPastedHTML && pastedHTML) {
                     return this.cleanPaste(pastedHTML);
                 }
 
-                if (!(this.disableReturn || element.getAttribute('data-disable-return'))) {
+                if (!(this.getEditorOption('disableReturn') || element.getAttribute('data-disable-return'))) {
                     paragraphs = pastedPlain.split(/[\r\n]+/g);
                     // If there are no \r\n in data, don't wrap in <p>
                     if (paragraphs.length > 1) {
@@ -2109,32 +4248,30 @@ var PasteHandler;
                 text = text.replace(replacements[i][0], replacements[i][1]);
             }
 
-            if (multiline) {
-                // double br's aren't converted to p tags, but we want paragraphs.
-                elList = text.split('<br><br>');
+            if (!multiline) {
+                return this.pasteHTML(text);
+            }
 
-                this.pasteHTML('<p>' + elList.join('</p><p>') + '</p>');
+            // double br's aren't converted to p tags, but we want paragraphs.
+            elList = text.split('<br><br>');
 
-                try {
-                    this.document.execCommand('insertText', false, '\n');
-                } catch (ignore) { }
+            this.pasteHTML('<p>' + elList.join('</p><p>') + '</p>');
 
-                // block element cleanup
-                elList = el.querySelectorAll('a,p,div,br');
-                for (i = 0; i < elList.length; i += 1) {
-                    workEl = elList[i];
+            try {
+                this.document.execCommand('insertText', false, '\n');
+            } catch (ignore) { }
 
-                    // Microsoft Word replaces some spaces with newlines.
-                    // While newlines between block elements are meaningless, newlines within
-                    // elements are sometimes actually spaces.
-                    workEl.innerHTML = workEl.innerHTML.replace(/\n/gi, ' ');
+            // block element cleanup
+            elList = el.querySelectorAll('a,p,div,br');
+            for (i = 0; i < elList.length; i += 1) {
+                workEl = elList[i];
 
-                    switch (workEl.tagName.toLowerCase()) {
-                    case 'a':
-                        if (this.targetBlank) {
-                            Util.setTargetBlank(workEl);
-                        }
-                        break;
+                // Microsoft Word replaces some spaces with newlines.
+                // While newlines between block elements are meaningless, newlines within
+                // elements are sometimes actually spaces.
+                workEl.innerHTML = workEl.innerHTML.replace(/\n/gi, ' ');
+
+                switch (workEl.nodeName.toLowerCase()) {
                     case 'p':
                     case 'div':
                         this.filterCommonBlocks(workEl);
@@ -2142,10 +4279,7 @@ var PasteHandler;
                     case 'br':
                         this.filterLineBreak(workEl);
                         break;
-                    }
                 }
-            } else {
-                this.pasteHTML(text);
             }
         },
 
@@ -2168,6 +4302,11 @@ var PasteHandler;
 
             for (i = 0; i < elList.length; i += 1) {
                 workEl = elList[i];
+
+                if ('a' === workEl.nodeName.toLowerCase() && this.getEditorOption('targetBlank')) {
+                    Util.setTargetBlank(workEl);
+                }
+
                 Util.cleanupAttrs(workEl, options.cleanAttrs);
                 Util.cleanupTags(workEl, options.cleanTags);
             }
@@ -2176,7 +4315,7 @@ var PasteHandler;
         },
 
         isCommonBlock: function (el) {
-            return (el && (el.tagName.toLowerCase() === 'p' || el.tagName.toLowerCase() === 'div'));
+            return (el && (el.nodeName.toLowerCase() === 'p' || el.nodeName.toLowerCase() === 'div'));
         },
 
         filterCommonBlocks: function (el) {
@@ -2186,7 +4325,6 @@ var PasteHandler;
         },
 
         filterLineBreak: function (el) {
-
             if (this.isCommonBlock(el.previousElementSibling)) {
                 // remove stray br's following common block elements
                 this.removeWithParent(el);
@@ -2246,716 +4384,220 @@ var PasteHandler;
             }
         }
     });
-
 }());
 
-var AnchorExtension;
+var Placeholder;
 
 (function () {
     'use strict';
 
-    function AnchorDerived() {
-        this.parent = true;
-        this.options = {
-            name: 'anchor',
-            action: 'createLink',
-            aria: 'link',
-            tagNames: ['a'],
-            contentDefault: '<b>#</b>',
-            contentFA: '<i class="fa fa-link"></i>'
-        };
-        this.name = 'anchor';
-        this.hasForm = true;
-    }
+    /*global Extension */
 
-    AnchorDerived.prototype = {
+    Placeholder = Extension.extend({
+        name: 'placeholder',
 
-        // Button and Extension handling
+        /* Placeholder Options */
 
-        // labels for the anchor-edit form buttons
-        formSaveLabel: '&#10003;',
-        formCloseLabel: '&times;',
+        /* text: [string]
+         * Text to display in the placeholder
+         */
+        text: 'Type your text',
 
-        // Called when the button the toolbar is clicked
-        // Overrides DefaultButton.handleClick
-        handleClick: function (evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
+        /* hideOnClick: [boolean]
+         * Should we hide the placeholder on click (true) or when user starts typing (false)
+         */
+        hideOnClick: true,
 
-            var selectedParentElement = Selection.getSelectedParentElement(Util.getSelectionRange(this.base.options.ownerDocument));
-            if (selectedParentElement.tagName &&
-                    selectedParentElement.tagName.toLowerCase() === 'a') {
-                return this.base.execAction('unlink');
-            }
+        init: function () {
+            Extension.prototype.init.apply(this, arguments);
 
-            if (!this.isDisplayed()) {
-                this.showForm();
-            }
-
-            return false;
+            this.initPlaceholders();
+            this.attachEventHandlers();
         },
 
-        // Called by medium-editor to append form to the toolbar
-        getForm: function () {
-            if (!this.form) {
-                this.form = this.createForm();
-            }
-            return this.form;
+        initPlaceholders: function () {
+            this.getEditorElements().forEach(function (el) {
+                if (!el.getAttribute('data-placeholder')) {
+                    el.setAttribute('data-placeholder', this.text);
+                }
+                this.updatePlaceholder(el);
+            }, this);
         },
 
-        getTemplate: function () {
-
-            var template = [
-                '<input type="text" class="medium-editor-toolbar-input" placeholder="', this.base.options.anchorInputPlaceholder, '">'
-            ];
-
-            template.push(
-                '<a href="#" class="medium-editor-toolbar-save">',
-                this.base.options.buttonLabels === 'fontawesome' ? '<i class="fa fa-check"></i>' : this.formSaveLabel,
-                '</a>'
-            );
-
-            template.push('<a href="#" class="medium-editor-toolbar-close">',
-                this.base.options.buttonLabels === 'fontawesome' ? '<i class="fa fa-times"></i>' : this.formCloseLabel,
-                '</a>');
-
-            // both of these options are slightly moot with the ability to
-            // override the various form buildup/serialize functions.
-
-            if (this.base.options.anchorTarget) {
-                // fixme: ideally, this options.anchorInputCheckboxLabel would be a formLabel too,
-                // figure out how to deprecate? also consider `fa-` icon default implcations.
-                template.push(
-                    '<input type="checkbox" class="medium-editor-toolbar-anchor-target">',
-                    '<label>',
-                    this.base.options.anchorInputCheckboxLabel,
-                    '</label>'
-                );
-            }
-
-            if (this.base.options.anchorButton) {
-                // fixme: expose this `Button` text as a formLabel property, too
-                // and provide similar access to a `fa-` icon default.
-                template.push(
-                    '<input type="checkbox" class="medium-editor-toolbar-anchor-button">',
-                    '<label>Button</label>'
-                );
-            }
-
-            return template.join('');
-
+        destroy: function () {
+            this.getEditorElements().forEach(function (el) {
+                if (el.getAttribute('data-placeholder') === this.text) {
+                    el.removeAttribute('data-placeholder');
+                }
+            }, this);
         },
 
-        // Used by medium-editor when the default toolbar is to be displayed
-        isDisplayed: function () {
-            return this.getForm().style.display === 'block';
+        showPlaceholder: function (el) {
+            if (el) {
+                el.classList.add('medium-editor-placeholder');
+            }
         },
 
-        hideForm: function () {
-            this.getForm().style.display = 'none';
-            this.getInput().value = '';
+        hidePlaceholder: function (el) {
+            if (el) {
+                el.classList.remove('medium-editor-placeholder');
+            }
         },
 
-        showForm: function (linkValue) {
-            var input = this.getInput();
-
-            this.base.saveSelection();
-            this.base.hideToolbarDefaultActions();
-            this.getForm().style.display = 'block';
-            this.base.setToolbarPosition();
-
-            input.value = linkValue || '';
-            input.focus();
-        },
-
-        // Called by core when tearing down medium-editor (deactivate)
-        deactivate: function () {
-            if (!this.form) {
-                return false;
+        updatePlaceholder: function (el) {
+            // if one of these element ('img, blockquote, ul, ol') are found inside the given element, we won't display the placeholder
+            if (!(el.querySelector('img, blockquote, ul, ol')) && el.textContent.replace(/^\s+|\s+$/g, '') === '') {
+                return this.showPlaceholder(el);
             }
 
-            if (this.form.parentNode) {
-                this.form.parentNode.removeChild(this.form);
-            }
-
-            delete this.form;
+            this.hidePlaceholder(el);
         },
 
-        // core methods
+        attachEventHandlers: function () {
+            // Custom events
+            this.subscribe('blur', this.handleExternalInteraction.bind(this));
 
-        getFormOpts: function () {
-            // no notion of private functions? wanted `_getFormOpts`
-            var targetCheckbox = this.getForm().querySelector('.medium-editor-toolbar-anchor-target'),
-                buttonCheckbox = this.getForm().querySelector('.medium-editor-toolbar-anchor-button'),
-                opts = {
-                    url: this.getInput().value
-                };
+            // Check placeholder on blur
+            this.subscribe('editableBlur', this.handleBlur.bind(this));
 
-            if (this.base.options.checkLinkFormat) {
-                opts.url = this.checkLinkFormat(opts.url);
-            }
-
-            if (targetCheckbox && targetCheckbox.checked) {
-                opts.target = '_blank';
+            // if we don't want the placeholder to be removed on click but when user start typing
+            if (this.hideOnClick) {
+                this.subscribe('editableClick', this.handleHidePlaceholderEvent.bind(this));
             } else {
-                opts.target = '_self';
+                this.subscribe('editableKeyup', this.handleBlur.bind(this));
             }
 
-            if (buttonCheckbox && buttonCheckbox.checked) {
-                opts.buttonClass = this.base.options.anchorButtonClass;
-            }
-
-            return opts;
+            // Events where we always hide the placeholder
+            this.subscribe('editableKeypress', this.handleHidePlaceholderEvent.bind(this));
+            this.subscribe('editablePaste', this.handleHidePlaceholderEvent.bind(this));
         },
 
-        doFormSave: function () {
-            var opts = this.getFormOpts();
-            this.completeFormSave(opts);
+        handleHidePlaceholderEvent: function (event, element) {
+            // Events where we hide the placeholder
+            this.hidePlaceholder(element);
         },
 
-        completeFormSave: function (opts) {
-            this.base.restoreSelection();
-            this.base.createLink(opts);
-            this.base.checkSelection();
+        handleBlur: function (event, element) {
+            // Update placeholder for element that lost focus
+            this.updatePlaceholder(element);
         },
 
-        checkLinkFormat: function (value) {
-            var re = /^(https?|ftps?|rtmpt?):\/\/|mailto:/;
-            return (re.test(value) ? '' : 'http://') + value;
-        },
-
-        doFormCancel: function () {
-            this.base.restoreSelection();
-            this.base.checkSelection();
-        },
-
-        // form creation and event handling
-
-        attachFormEvents: function (form) {
-            var close = form.querySelector('.medium-editor-toolbar-close'),
-                save = form.querySelector('.medium-editor-toolbar-save'),
-                input = form.querySelector('.medium-editor-toolbar-input');
-
-            // Handle clicks on the form itself
-            this.base.on(form, 'click', this.handleFormClick.bind(this));
-
-            // Handle typing in the textbox
-            this.base.on(input, 'keyup', this.handleTextboxKeyup.bind(this));
-
-            // Handle close button clicks
-            this.base.on(close, 'click', this.handleCloseClick.bind(this));
-
-            // Handle save button clicks (capture)
-            this.base.on(save, 'click', this.handleSaveClick.bind(this), true);
-
-        },
-
-        createForm: function () {
-            var doc = this.base.options.ownerDocument,
-                form = doc.createElement('div');
-
-            // Anchor Form (div)
-            form.className = 'medium-editor-toolbar-form';
-            form.id = 'medium-editor-toolbar-form-anchor-' + this.base.id;
-            form.innerHTML = this.getTemplate();
-            this.attachFormEvents(form);
-
-            return form;
-        },
-
-        getInput: function () {
-            return this.getForm().querySelector('input.medium-editor-toolbar-input');
-        },
-
-        handleTextboxKeyup: function (event) {
-            // For ENTER -> create the anchor
-            if (event.keyCode === Util.keyCode.ENTER) {
-                event.preventDefault();
-                this.doFormSave();
-                return;
-            }
-
-            // For ESCAPE -> close the form
-            if (event.keyCode === Util.keyCode.ESCAPE) {
-                event.preventDefault();
-                this.doFormCancel();
-            }
-        },
-
-        handleFormClick: function (event) {
-            // make sure not to hide form when clicking inside the form
-            event.stopPropagation();
-        },
-
-        handleSaveClick: function (event) {
-            // Clicking Save -> create the anchor
-            event.preventDefault();
-            this.doFormSave();
-        },
-
-        handleCloseClick: function (event) {
-            // Click Close -> close the form
-            event.preventDefault();
-            this.doFormCancel();
+        handleExternalInteraction: function () {
+            // Update all placeholders
+            this.initPlaceholders();
         }
-    };
-
-    AnchorExtension = Util.derives(DefaultButton, AnchorDerived);
-
-}());
-
-var AnchorPreview;
-
-(function () {
-    'use strict';
-
-    AnchorPreview = function () {
-        this.parent = true;
-        this.name = 'anchor-preview';
-    };
-
-    AnchorPreview.prototype = {
-
-        // the default selector to locate where to
-        // put the activeAnchor value in the preview
-        previewValueSelector: 'a',
-
-        init: function (instance) {
-
-            this.base = instance;
-            this.anchorPreview = this.createPreview();
-            this.base.options.elementsContainer.appendChild(this.anchorPreview);
-
-            this.attachToEditables();
-        },
-
-        getPreviewElement: function () {
-            return this.anchorPreview;
-        },
-
-        createPreview: function () {
-            var el = this.base.options.ownerDocument.createElement('div');
-
-            el.id = 'medium-editor-anchor-preview-' + this.base.id;
-            el.className = 'medium-editor-anchor-preview';
-            el.innerHTML = this.getTemplate();
-
-            this.base.on(el, 'click', this.handleClick.bind(this));
-
-            return el;
-        },
-
-        getTemplate: function () {
-            return '<div class="medium-editor-toolbar-anchor-preview" id="medium-editor-toolbar-anchor-preview">' +
-                '    <a class="medium-editor-toolbar-anchor-preview-inner"></a>' +
-                '</div>';
-        },
-
-        deactivate: function () {
-            if (this.anchorPreview) {
-                if (this.anchorPreview.parentNode) {
-                    this.anchorPreview.parentNode.removeChild(this.anchorPreview);
-                }
-                delete this.anchorPreview;
-            }
-        },
-
-        hidePreview: function () {
-            this.anchorPreview.classList.remove('medium-editor-anchor-preview-active');
-            this.activeAnchor = null;
-        },
-
-        showPreview: function (anchorEl) {
-            if (this.anchorPreview.classList.contains('medium-editor-anchor-preview-active') ||
-                    anchorEl.getAttribute('data-disable-preview')) {
-                return true;
-            }
-
-            if (this.previewValueSelector) {
-                this.anchorPreview.querySelector(this.previewValueSelector).textContent = anchorEl.attributes.href.value;
-                this.anchorPreview.querySelector(this.previewValueSelector).href = anchorEl.attributes.href.value;
-            }
-
-            this.anchorPreview.classList.add('medium-toolbar-arrow-over');
-            this.anchorPreview.classList.remove('medium-toolbar-arrow-under');
-
-            if (!this.anchorPreview.classList.contains('medium-editor-anchor-preview-active')) {
-                this.anchorPreview.classList.add('medium-editor-anchor-preview-active');
-            }
-
-            this.activeAnchor = anchorEl;
-
-            this.positionPreview();
-            this.attachPreviewHandlers();
-
-            return this;
-        },
-
-        positionPreview: function () {
-            var buttonHeight = 40,
-                boundary = this.activeAnchor.getBoundingClientRect(),
-                middleBoundary = (boundary.left + boundary.right) / 2,
-                halfOffsetWidth,
-                defaultLeft;
-
-            halfOffsetWidth = this.anchorPreview.offsetWidth / 2;
-            defaultLeft = this.base.options.diffLeft - halfOffsetWidth;
-
-            this.anchorPreview.style.top = Math.round(buttonHeight + boundary.bottom - this.base.options.diffTop + this.base.options.contentWindow.pageYOffset - this.anchorPreview.offsetHeight) + 'px';
-            if (middleBoundary < halfOffsetWidth) {
-                this.anchorPreview.style.left = defaultLeft + halfOffsetWidth + 'px';
-            } else if ((this.base.options.contentWindow.innerWidth - middleBoundary) < halfOffsetWidth) {
-                this.anchorPreview.style.left = this.base.options.contentWindow.innerWidth + defaultLeft - halfOffsetWidth + 'px';
-            } else {
-                this.anchorPreview.style.left = defaultLeft + middleBoundary + 'px';
-            }
-        },
-
-        attachToEditables: function () {
-            this.base.subscribe('editableMouseover', this.handleEditableMouseover.bind(this));
-        },
-
-        handleClick: function (event) {
-            var anchorExtension = this.base.getExtensionByName('anchor'),
-                activeAnchor = this.activeAnchor;
-
-            if (anchorExtension && activeAnchor) {
-                event.preventDefault();
-
-                this.base.selectElement(this.activeAnchor);
-
-                // Using setTimeout + options.delay because:
-                // We may actually be displaying the anchor form, which should be controlled by options.delay
-                this.base.delay(function () {
-                    if (activeAnchor) {
-                        anchorExtension.showForm(activeAnchor.attributes.href.value);
-                        activeAnchor = null;
-                    }
-                }.bind(this));
-            }
-
-            this.hidePreview();
-        },
-
-        handleAnchorMouseout: function () {
-            this.anchorToPreview = null;
-            this.base.off(this.activeAnchor, 'mouseout', this.instanceHandleAnchorMouseout);
-            this.instanceHandleAnchorMouseout = null;
-        },
-
-        handleEditableMouseover: function (event) {
-            var target = Util.getClosestTag(event.target, 'a');
-
-            if (target) {
-
-                // Detect empty href attributes
-                // The browser will make href="" or href="#top"
-                // into absolute urls when accessed as event.targed.href, so check the html
-                if (!/href=["']\S+["']/.test(target.outerHTML) || /href=["']#\S+["']/.test(target.outerHTML)) {
-                    return true;
-                }
-
-                // only show when hovering on anchors
-                if (this.base.toolbar && this.base.toolbar.isDisplayed()) {
-                    // only show when toolbar is not present
-                    return true;
-                }
-
-                // detach handler for other anchor in case we hovered multiple anchors quickly
-                if (this.activeAnchor && this.activeAnchor !== target) {
-                    this.detachPreviewHandlers();
-                }
-
-                this.anchorToPreview = target;
-
-                this.instanceHandleAnchorMouseout = this.handleAnchorMouseout.bind(this);
-                this.base.on(this.anchorToPreview, 'mouseout', this.instanceHandleAnchorMouseout);
-                // Using setTimeout + options.delay because:
-                // - We're going to show the anchor preview according to the configured delay
-                //   if the mouse has not left the anchor tag in that time
-                this.base.delay(function () {
-                    if (this.anchorToPreview) {
-                        //this.activeAnchor = this.anchorToPreview;
-                        this.showPreview(this.anchorToPreview);
-                    }
-                }.bind(this));
-            }
-        },
-
-        handlePreviewMouseover: function () {
-            this.lastOver = (new Date()).getTime();
-            this.hovering = true;
-        },
-
-        handlePreviewMouseout: function (event) {
-            if (!event.relatedTarget || !/anchor-preview/.test(event.relatedTarget.className)) {
-                this.hovering = false;
-            }
-        },
-
-        updatePreview: function () {
-            if (this.hovering) {
-                return true;
-            }
-            var durr = (new Date()).getTime() - this.lastOver;
-            if (durr > this.base.options.anchorPreviewHideDelay) {
-                // hide the preview 1/2 second after mouse leaves the link
-                this.detachPreviewHandlers();
-            }
-        },
-
-        detachPreviewHandlers: function () {
-            // cleanup
-            clearInterval(this.intervalTimer);
-            if (this.instanceHandlePreviewMouseover) {
-                this.base.off(this.anchorPreview, 'mouseover', this.instanceHandlePreviewMouseover);
-                this.base.off(this.anchorPreview, 'mouseout', this.instanceHandlePreviewMouseout);
-                if (this.activeAnchor) {
-                    this.base.off(this.activeAnchor, 'mouseover', this.instanceHandlePreviewMouseover);
-                    this.base.off(this.activeAnchor, 'mouseout', this.instanceHandlePreviewMouseout);
-                }
-            }
-
-            this.hidePreview();
-
-            this.hovering = this.instanceHandlePreviewMouseover = this.instanceHandlePreviewMouseout = null;
-        },
-
-        // TODO: break up method and extract out handlers
-        attachPreviewHandlers: function () {
-            this.lastOver = (new Date()).getTime();
-            this.hovering = true;
-
-            this.instanceHandlePreviewMouseover = this.handlePreviewMouseover.bind(this);
-            this.instanceHandlePreviewMouseout = this.handlePreviewMouseout.bind(this);
-
-            this.intervalTimer = setInterval(this.updatePreview.bind(this), 200);
-
-            this.base.on(this.anchorPreview, 'mouseover', this.instanceHandlePreviewMouseover);
-            this.base.on(this.anchorPreview, 'mouseout', this.instanceHandlePreviewMouseout);
-            this.base.on(this.activeAnchor, 'mouseover', this.instanceHandlePreviewMouseover);
-            this.base.on(this.activeAnchor, 'mouseout', this.instanceHandlePreviewMouseout);
-        }
-    };
-}());
-
-var FontSizeExtension;
-
-(function () {
-    'use strict';
-
-    function FontSizeDerived() {
-        this.parent = true;
-        this.options = {
-            name: 'fontsize',
-            action: 'fontSize',
-            aria: 'increase/decrease font size',
-            contentDefault: '&#xB1;', // ±
-            contentFA: '<i class="fa fa-text-height"></i>'
-        };
-        this.name = 'fontsize';
-        this.hasForm = true;
-    }
-
-    FontSizeDerived.prototype = {
-
-        // Button and Extension handling
-
-        // Called when the button the toolbar is clicked
-        // Overrides DefaultButton.handleClick
-        handleClick: function (evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
-
-            if (!this.isDisplayed()) {
-                // Get fontsize of current selection (convert to string since IE returns this as number)
-                var fontSize = this.base.options.ownerDocument.queryCommandValue('fontSize') + '';
-                this.showForm(fontSize);
-            }
-
-            return false;
-        },
-
-        // Called by medium-editor to append form to the toolbar
-        getForm: function () {
-            if (!this.form) {
-                this.form = this.createForm();
-            }
-            return this.form;
-        },
-
-        // Used by medium-editor when the default toolbar is to be displayed
-        isDisplayed: function () {
-            return this.getForm().style.display === 'block';
-        },
-
-        hideForm: function () {
-            this.getForm().style.display = 'none';
-            this.getInput().value = '';
-        },
-
-        showForm: function (fontSize) {
-            var input = this.getInput();
-
-            this.base.saveSelection();
-            this.base.hideToolbarDefaultActions();
-            this.getForm().style.display = 'block';
-            this.base.setToolbarPosition();
-
-            input.value = fontSize || '';
-            input.focus();
-        },
-
-        // Called by core when tearing down medium-editor (deactivate)
-        deactivate: function () {
-            if (!this.form) {
-                return false;
-            }
-
-            if (this.form.parentNode) {
-                this.form.parentNode.removeChild(this.form);
-            }
-
-            delete this.form;
-        },
-
-        // core methods
-
-        doFormSave: function () {
-            this.base.restoreSelection();
-            this.base.checkSelection();
-        },
-
-        doFormCancel: function () {
-            this.base.restoreSelection();
-            this.clearFontSize();
-            this.base.checkSelection();
-        },
-
-        // form creation and event handling
-
-        createForm: function () {
-            var doc = this.base.options.ownerDocument,
-                form = doc.createElement('div'),
-                input = doc.createElement('input'),
-                close = doc.createElement('a'),
-                save = doc.createElement('a');
-
-            // Font Size Form (div)
-            form.className = 'medium-editor-toolbar-form';
-            form.id = 'medium-editor-toolbar-form-fontsize-' + this.base.id;
-
-            // Handle clicks on the form itself
-            this.base.on(form, 'click', this.handleFormClick.bind(this));
-
-            // Add font size slider
-            input.setAttribute('type', 'range');
-            input.setAttribute('min', '1');
-            input.setAttribute('max', '7');
-            input.className = 'medium-editor-toolbar-input';
-            form.appendChild(input);
-
-            // Handle typing in the textbox
-            this.base.on(input, 'change', this.handleSliderChange.bind(this));
-
-            // Add save buton
-            save.setAttribute('href', '#');
-            save.className = 'medium-editor-toobar-save';
-            save.innerHTML = this.base.options.buttonLabels === 'fontawesome' ?
-                             '<i class="fa fa-check"></i>' :
-                             '&#10003;';
-            form.appendChild(save);
-
-            // Handle save button clicks (capture)
-            this.base.on(save, 'click', this.handleSaveClick.bind(this), true);
-
-            // Add close button
-            close.setAttribute('href', '#');
-            close.className = 'medium-editor-toobar-close';
-            close.innerHTML = this.base.options.buttonLabels === 'fontawesome' ?
-                              '<i class="fa fa-times"></i>' :
-                              '&times;';
-            form.appendChild(close);
-
-            // Handle close button clicks
-            this.base.on(close, 'click', this.handleCloseClick.bind(this));
-
-            return form;
-        },
-
-        getInput: function () {
-            return this.getForm().querySelector('input.medium-editor-toolbar-input');
-        },
-
-        clearFontSize: function () {
-            Selection.getSelectedElements(this.base.options.ownerDocument).forEach(function (el) {
-                if (el.tagName === 'FONT' && el.hasAttribute('size')) {
-                    el.removeAttribute('size');
-                }
-            });
-        },
-
-        handleSliderChange: function () {
-            var size = this.getInput().value;
-            if (size === '4') {
-                this.clearFontSize();
-            } else {
-                this.base.execAction('fontSize', { size: size });
-            }
-        },
-
-        handleFormClick: function (event) {
-            // make sure not to hide form when clicking inside the form
-            event.stopPropagation();
-        },
-
-        handleSaveClick: function (event) {
-            // Clicking Save -> create the font size
-            event.preventDefault();
-            this.doFormSave();
-        },
-
-        handleCloseClick: function (event) {
-            // Click Close -> close the form
-            event.preventDefault();
-            this.doFormCancel();
-        }
-    };
-
-    FontSizeExtension = Util.derives(DefaultButton, FontSizeDerived);
+    });
 }());
 
 var Toolbar;
-
 (function () {
     'use strict';
 
-    Toolbar = function Toolbar(instance) {
-        this.base = instance;
-        this.options = instance.options;
-        this.initThrottledMethods();
-    };
+    /*global Util, Selection, Extension */
 
-    Toolbar.prototype = {
+    Toolbar = Extension.extend({
+        name: 'toolbar',
+
+        /* Toolbar Options */
+
+        /* align: ['left'|'center'|'right']
+         * When the __static__ option is true, this aligns the static toolbar
+         * relative to the medium-editor element.
+         */
+        align: 'center',
+
+        /* allowMultiParagraphSelection: [boolean]
+         * enables/disables whether the toolbar should be displayed when
+         * selecting multiple paragraphs/block elements
+         */
+        allowMultiParagraphSelection: true,
+
+        /* buttons: [Array]
+         * the names of the set of buttons to display on the toolbar.
+         */
+        buttons: ['bold', 'italic', 'underline', 'anchor', 'h2', 'h3', 'quote'],
+
+        /* diffLeft: [Number]
+         * value in pixels to be added to the X axis positioning of the toolbar.
+         */
+        diffLeft: 0,
+
+        /* diffTop: [Number]
+         * value in pixels to be added to the Y axis positioning of the toolbar.
+         */
+        diffTop: -10,
+
+        /* firstButtonClass: [string]
+         * CSS class added to the first button in the toolbar.
+         */
+        firstButtonClass: 'medium-editor-button-first',
+
+        /* lastButtonClass: [string]
+         * CSS class added to the last button in the toolbar.
+         */
+        lastButtonClass: 'medium-editor-button-last',
+
+        /* standardizeSelectionStart: [boolean]
+         * enables/disables standardizing how the beginning of a range is decided
+         * between browsers whenever the selected text is analyzed for updating toolbar buttons status.
+         */
+        standardizeSelectionStart: false,
+
+        /* static: [boolean]
+         * enable/disable the toolbar always displaying in the same location
+         * relative to the medium-editor element.
+         */
+        static: false,
+
+        /* sticky: [boolean]
+         * When the __static__ option is true, this enables/disables the toolbar
+         * "sticking" to the viewport and staying visible on the screen while
+         * the page scrolls.
+         */
+        sticky: false,
+
+        /* updateOnEmptySelection: [boolean]
+         * When the __static__ option is true, this enables/disables updating
+         * the state of the toolbar buttons even when the selection is collapsed
+         * (there is no selection, just a cursor).
+         */
+        updateOnEmptySelection: false,
+
+        init: function () {
+            Extension.prototype.init.apply(this, arguments);
+
+            this.initThrottledMethods();
+            this.getEditorOption('elementsContainer').appendChild(this.getToolbarElement());
+        },
+
+        // Helper method to execute method for every extension, but ignoring the toolbar extension
+        forEachExtension: function (iterator, context) {
+            return this.base.extensions.forEach(function (command) {
+                if (command === this) {
+                    return;
+                }
+                return iterator.apply(context || this, arguments);
+            }, this);
+        },
 
         // Toolbar creation/deletion
 
         createToolbar: function () {
-            var toolbar = this.base.options.ownerDocument.createElement('div');
+            var toolbar = this.document.createElement('div');
 
-            toolbar.id = 'medium-editor-toolbar-' + this.base.id;
+            toolbar.id = 'medium-editor-toolbar-' + this.getEditorId();
             toolbar.className = 'medium-editor-toolbar';
 
-            if (this.options.staticToolbar) {
+            if (this.static) {
                 toolbar.className += ' static-toolbar';
             } else {
-                toolbar.className += ' stalker-toolbar';
+                toolbar.className += ' medium-editor-stalker-toolbar';
             }
 
             toolbar.appendChild(this.createToolbarButtons());
 
             // Add any forms that extensions may have
-            this.base.commands.forEach(function (extension) {
+            this.forEachExtension(function (extension) {
                 if (extension.hasForm) {
                     toolbar.appendChild(extension.getForm());
                 }
@@ -2967,21 +4609,34 @@ var Toolbar;
         },
 
         createToolbarButtons: function () {
-            var ul = this.base.options.ownerDocument.createElement('ul'),
+            var ul = this.document.createElement('ul'),
                 li,
                 btn,
                 buttons,
-                extension;
+                extension,
+                buttonName,
+                buttonOpts;
 
-            ul.id = 'medium-editor-toolbar-actions' + this.base.id;
-            ul.className = 'medium-editor-toolbar-actions clearfix';
+            ul.id = 'medium-editor-toolbar-actions' + this.getEditorId();
+            ul.className = 'medium-editor-toolbar-actions';
             ul.style.display = 'block';
 
-            this.base.options.buttons.forEach(function (button) {
-                extension = this.base.getExtensionByName(button);
-                if (typeof extension.getButton === 'function') {
+            this.buttons.forEach(function (button) {
+                if (typeof button === 'string') {
+                    buttonName = button;
+                    buttonOpts = null;
+                } else {
+                    buttonName = button.name;
+                    buttonOpts = button;
+                }
+
+                // If the button already exists as an extension, it'll be returned
+                // othwerise it'll create the default built-in button
+                extension = this.base.addBuiltInExtension(buttonName, buttonOpts);
+
+                if (extension && typeof extension.getButton === 'function') {
                     btn = extension.getButton(this.base);
-                    li = this.base.options.ownerDocument.createElement('li');
+                    li = this.document.createElement('li');
                     if (Util.isElement(btn)) {
                         li.appendChild(btn);
                     } else {
@@ -2989,18 +4644,18 @@ var Toolbar;
                     }
                     ul.appendChild(li);
                 }
-            }.bind(this));
+            }, this);
 
             buttons = ul.querySelectorAll('button');
             if (buttons.length > 0) {
-                buttons[0].classList.add(this.options.firstButtonClass);
-                buttons[buttons.length - 1].classList.add(this.options.lastButtonClass);
+                buttons[0].classList.add(this.firstButtonClass);
+                buttons[buttons.length - 1].classList.add(this.lastButtonClass);
             }
 
             return ul;
         },
 
-        deactivate: function () {
+        destroy: function () {
             if (this.toolbar) {
                 if (this.toolbar.parentNode) {
                     this.toolbar.parentNode.removeChild(this.toolbar);
@@ -3037,26 +4692,25 @@ var Toolbar;
         },
 
         attachEventHandlers: function () {
-
             // MediumEditor custom events for when user beings and ends interaction with a contenteditable and its elements
-            this.base.subscribe('blur', this.handleBlur.bind(this));
-            this.base.subscribe('focus', this.handleFocus.bind(this));
+            this.subscribe('blur', this.handleBlur.bind(this));
+            this.subscribe('focus', this.handleFocus.bind(this));
 
             // Updating the state of the toolbar as things change
-            this.base.subscribe('editableClick', this.handleEditableClick.bind(this));
-            this.base.subscribe('editableKeyup', this.handleEditableKeyup.bind(this));
+            this.subscribe('editableClick', this.handleEditableClick.bind(this));
+            this.subscribe('editableKeyup', this.handleEditableKeyup.bind(this));
 
             // Handle mouseup on document for updating the selection in the toolbar
-            this.base.on(this.options.ownerDocument.documentElement, 'mouseup', this.handleDocumentMouseup.bind(this));
+            this.on(this.document.documentElement, 'mouseup', this.handleDocumentMouseup.bind(this));
 
             // Add a scroll event for sticky toolbar
-            if (this.options.staticToolbar && this.options.stickyToolbar) {
+            if (this.static && this.sticky) {
                 // On scroll (capture), re-position the toolbar
-                this.base.on(this.options.contentWindow, 'scroll', this.handleWindowScroll.bind(this), true);
+                this.on(this.window, 'scroll', this.handleWindowScroll.bind(this), true);
             }
 
             // On resize, re-position the toolbar
-            this.base.on(this.options.contentWindow, 'resize', this.handleWindowResize.bind(this));
+            this.on(this.window, 'resize', this.handleWindowResize.bind(this));
         },
 
         handleWindowScroll: function () {
@@ -3117,24 +4771,14 @@ var Toolbar;
             clearTimeout(this.hideTimeout);
             if (!this.isDisplayed()) {
                 this.getToolbarElement().classList.add('medium-editor-toolbar-active');
-                if (typeof this.options.onShowToolbar === 'function') {
-                    this.options.onShowToolbar();
-                }
+                this.trigger('showToolbar', {}, this.base.getFocusedElement());
             }
         },
 
         hideToolbar: function () {
             if (this.isDisplayed()) {
-                this.base.commands.forEach(function (extension) {
-                    if (typeof extension.onHide === 'function') {
-                        extension.onHide();
-                    }
-                });
-
                 this.getToolbarElement().classList.remove('medium-editor-toolbar-active');
-                if (typeof this.options.onHideToolbar === 'function') {
-                    this.options.onHideToolbar();
-                }
+                this.trigger('hideToolbar', {}, this.base.getFocusedElement());
             }
         },
 
@@ -3164,7 +4808,7 @@ var Toolbar;
 
         hideExtensionForms: function () {
             // Hide all extension forms
-            this.base.commands.forEach(function (extension) {
+            this.forEachExtension(function (extension) {
                 if (extension.hasForm && extension.isDisplayed()) {
                     extension.hideForm();
                 }
@@ -3175,16 +4819,16 @@ var Toolbar;
 
         // Checks for existance of multiple block elements in the current selection
         multipleBlockElementsSelected: function () {
-            /*jslint regexp: true*/
-            var selectionHtml = Selection.getSelectionHtml.call(this).replace(/<[\S]+><\/[\S]+>/gim, ''),
-                hasMultiParagraphs = selectionHtml.match(/<(p|h[1-6]|blockquote)[^>]*>/g);
-            /*jslint regexp: false*/
+            var regexEmptyHTMLTags = /<[^\/>][^>]*><\/[^>]+>/gim, // http://stackoverflow.com/questions/3129738/remove-empty-tags-using-regex
+                regexBlockElements = new RegExp('<(' + Util.blockContainerElementNames.join('|') + ')[^>]*>', 'g'),
+                selectionHTML = Selection.getSelectionHtml(this.document).replace(regexEmptyHTMLTags, ''), // Filter out empty blocks from selection
+                hasMultiParagraphs = selectionHTML.match(regexBlockElements); // Find how many block elements are within the html
 
             return !!hasMultiParagraphs && hasMultiParagraphs.length > 1;
         },
 
         modifySelection: function () {
-            var selection = this.options.contentWindow.getSelection(),
+            var selection = this.window.getSelection(),
                 selectionRange = selection.getRangeAt(0);
 
             /*
@@ -3203,73 +4847,57 @@ var Toolbar;
             * So, for cases where the selectionRange start is at the end of an element/node, find the next
             * adjacent text node that actually has content in it, and move the selectionRange start there.
             */
-            if (this.options.standardizeSelectionStart &&
+            if (this.standardizeSelectionStart &&
                     selectionRange.startContainer.nodeValue &&
                     (selectionRange.startOffset === selectionRange.startContainer.nodeValue.length)) {
-                var adjacentNode = Util.findAdjacentTextNodeWithContent(Selection.getSelectionElement(this.options.contentWindow), selectionRange.startContainer, this.options.ownerDocument);
+                var adjacentNode = Util.findAdjacentTextNodeWithContent(Selection.getSelectionElement(this.window), selectionRange.startContainer, this.document);
                 if (adjacentNode) {
                     var offset = 0;
                     while (adjacentNode.nodeValue.substr(offset, 1).trim().length === 0) {
                         offset = offset + 1;
                     }
-                    var newRange = this.options.ownerDocument.createRange();
-                    newRange.setStart(adjacentNode, offset);
-                    newRange.setEnd(selectionRange.endContainer, selectionRange.endOffset);
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                    selectionRange = newRange;
+                    selectionRange = Selection.select(this.document, adjacentNode, offset,
+                        selectionRange.endContainer, selectionRange.offset);
                 }
             }
         },
 
         checkState: function () {
-
-            if (!this.base.preventSelectionUpdates) {
-
-                // If no editable has focus OR selection is inside contenteditable = false
-                // hide toolbar
-                if (!this.getFocusedElement() ||
-                        Selection.selectionInContentEditableFalse(this.options.contentWindow)) {
-                    this.hideToolbar();
-                    return;
-                }
-
-                // If there's no selection element, selection element doesn't belong to this editor
-                // or toolbar is disabled for this selection element
-                // hide toolbar
-                var selectionElement = Selection.getSelectionElement(this.options.contentWindow);
-                if (!selectionElement ||
-                        this.base.elements.indexOf(selectionElement) === -1 ||
-                        selectionElement.getAttribute('data-disable-toolbar')) {
-                    this.hideToolbar();
-                    return;
-                }
-
-                // Now we know there's a focused editable with a selection
-
-                // If the updateOnEmptySelection option is true, show the toolbar
-                if (this.options.updateOnEmptySelection && this.options.staticToolbar) {
-                    this.showAndUpdateToolbar();
-                    return;
-                }
-
-                // If we don't have a 'valid' selection -> hide toolbar
-                if (this.options.contentWindow.getSelection().toString().trim() === '' ||
-                    (this.options.allowMultiParagraphSelection === false && this.multipleBlockElementsSelected())) {
-                    this.hideToolbar();
-                } else {
-                    this.showAndUpdateToolbar();
-                }
+            if (this.base.preventSelectionUpdates) {
+                return;
             }
-        },
 
-        getFocusedElement: function () {
-            for (var i = 0; i < this.base.elements.length; i += 1) {
-                if (this.base.elements[i].getAttribute('data-medium-focused')) {
-                    return this.base.elements[i];
-                }
+            // If no editable has focus OR selection is inside contenteditable = false
+            // hide toolbar
+            if (!this.base.getFocusedElement() ||
+                    Selection.selectionInContentEditableFalse(this.window)) {
+                return this.hideToolbar();
             }
-            return null;
+
+            // If there's no selection element, selection element doesn't belong to this editor
+            // or toolbar is disabled for this selection element
+            // hide toolbar
+            var selectionElement = Selection.getSelectionElement(this.window);
+            if (!selectionElement ||
+                    this.getEditorElements().indexOf(selectionElement) === -1 ||
+                    selectionElement.getAttribute('data-disable-toolbar')) {
+                return this.hideToolbar();
+            }
+
+            // Now we know there's a focused editable with a selection
+
+            // If the updateOnEmptySelection option is true, show the toolbar
+            if (this.updateOnEmptySelection && this.static) {
+                return this.showAndUpdateToolbar();
+            }
+
+            // If we don't have a 'valid' selection -> hide toolbar
+            if (this.window.getSelection().toString().trim() === '' ||
+                (this.allowMultiParagraphSelection === false && this.multipleBlockElementsSelected())) {
+                return this.hideToolbar();
+            }
+
+            this.showAndUpdateToolbar();
         },
 
         // Updating the toolbar
@@ -3277,24 +4905,26 @@ var Toolbar;
         showAndUpdateToolbar: function () {
             this.modifySelection();
             this.setToolbarButtonStates();
+            this.trigger('positionToolbar', {}, this.base.getFocusedElement());
             this.showToolbarDefaultActions();
             this.setToolbarPosition();
         },
 
         setToolbarButtonStates: function () {
-            this.base.commands.forEach(function (extension) {
+            this.forEachExtension(function (extension) {
                 if (typeof extension.isActive === 'function' &&
                     typeof extension.setInactive === 'function') {
                     extension.setInactive();
                 }
-            }.bind(this));
+            });
+
             this.checkActiveButtons();
         },
 
         checkActiveButtons: function () {
             var manualStateChecks = [],
                 queryState = null,
-                selectionRange = Util.getSelectionRange(this.options.ownerDocument),
+                selectionRange = Selection.getSelectionRange(this.document),
                 parentNode,
                 updateExtensionState = function (extension) {
                     if (typeof extension.checkState === 'function') {
@@ -3312,32 +4942,39 @@ var Toolbar;
                 return;
             }
 
-            parentNode = Selection.getSelectedParentElement(selectionRange);
-
-            // Loop through all commands
-            this.base.commands.forEach(function (command) {
-                // For those commands where we can use document.queryCommandState(), do so
-                if (typeof command.queryCommandState === 'function') {
-                    queryState = command.queryCommandState();
+            // Loop through all extensions
+            this.forEachExtension(function (extension) {
+                // For those extensions where we can use document.queryCommandState(), do so
+                if (typeof extension.queryCommandState === 'function') {
+                    queryState = extension.queryCommandState();
                     // If queryCommandState returns a valid value, we can trust the browser
                     // and don't need to do our manual checks
                     if (queryState !== null) {
-                        if (queryState && typeof command.setActive === 'function') {
-                            command.setActive();
+                        if (queryState && typeof extension.setActive === 'function') {
+                            extension.setActive();
                         }
                         return;
                     }
                 }
-                // We can't use queryCommandState for this command, so add to manualStateChecks
-                manualStateChecks.push(command);
+                // We can't use queryCommandState for this extension, so add to manualStateChecks
+                manualStateChecks.push(extension);
             });
 
-            // Climb up the DOM and do manual checks for whether a certain command is currently enabled for this node
-            while (parentNode.tagName !== undefined && Util.parentElements.indexOf(parentNode.tagName.toLowerCase) === -1) {
+            parentNode = Selection.getSelectedParentElement(selectionRange);
+
+            // Make sure the selection parent isn't outside of the contenteditable
+            if (!this.getEditorElements().some(function (element) {
+                    return Util.isDescendant(element, parentNode, true);
+                })) {
+                return;
+            }
+
+            // Climb up the DOM and do manual checks for whether a certain extension is currently enabled for this node
+            while (parentNode) {
                 manualStateChecks.forEach(updateExtensionState);
 
                 // we can abort the search upwards if we leave the contentEditable element
-                if (this.base.elements.indexOf(parentNode) !== -1) {
+                if (Util.isMediumEditorElement(parentNode)) {
                     break;
                 }
                 parentNode = parentNode.parentNode;
@@ -3353,8 +4990,8 @@ var Toolbar;
         },
 
         setToolbarPosition: function () {
-            var container = this.getFocusedElement(),
-                selection = this.options.contentWindow.getSelection(),
+            var container = this.base.getFocusedElement(),
+                selection = this.window.getSelection(),
                 anchorPreview;
 
             // If there isn't a valid selection, bail
@@ -3362,10 +4999,9 @@ var Toolbar;
                 return this;
             }
 
-            if (this.options.staticToolbar) {
+            if (this.static) {
                 this.showToolbar();
                 this.positionStaticToolbar(container);
-
             } else if (!selection.isCollapsed) {
                 this.showToolbar();
                 this.positionToolbar(selection);
@@ -3383,8 +5019,8 @@ var Toolbar;
             this.getToolbarElement().style.left = '0';
 
             // document.documentElement for IE 9
-            var scrollTop = (this.options.ownerDocument.documentElement && this.options.ownerDocument.documentElement.scrollTop) || this.options.ownerDocument.body.scrollTop,
-                windowWidth = this.options.contentWindow.innerWidth,
+            var scrollTop = (this.document.documentElement && this.document.documentElement.scrollTop) || this.document.body.scrollTop,
+                windowWidth = this.window.innerWidth,
                 toolbarElement = this.getToolbarElement(),
                 containerRect = container.getBoundingClientRect(),
                 containerTop = containerRect.top + scrollTop,
@@ -3394,32 +5030,38 @@ var Toolbar;
                 halfOffsetWidth = toolbarWidth / 2,
                 targetLeft;
 
-            if (this.options.stickyToolbar) {
+            if (this.sticky) {
                 // If it's beyond the height of the editor, position it at the bottom of the editor
                 if (scrollTop > (containerTop + container.offsetHeight - toolbarHeight)) {
                     toolbarElement.style.top = (containerTop + container.offsetHeight - toolbarHeight) + 'px';
-                    toolbarElement.classList.remove('sticky-toolbar');
+                    toolbarElement.classList.remove('medium-editor-sticky-toolbar');
 
                 // Stick the toolbar to the top of the window
                 } else if (scrollTop > (containerTop - toolbarHeight)) {
-                    toolbarElement.classList.add('sticky-toolbar');
+                    toolbarElement.classList.add('medium-editor-sticky-toolbar');
                     toolbarElement.style.top = '0px';
 
                 // Normal static toolbar position
                 } else {
-                    toolbarElement.classList.remove('sticky-toolbar');
+                    toolbarElement.classList.remove('medium-editor-sticky-toolbar');
                     toolbarElement.style.top = containerTop - toolbarHeight + 'px';
                 }
             } else {
                 toolbarElement.style.top = containerTop - toolbarHeight + 'px';
             }
 
-            if (this.options.toolbarAlign === 'left') {
-                targetLeft = containerRect.left;
-            } else if (this.options.toolbarAlign === 'center') {
-                targetLeft = containerCenter - halfOffsetWidth;
-            } else if (this.options.toolbarAlign === 'right') {
-                targetLeft = containerRect.right - toolbarWidth;
+            switch (this.align) {
+                case 'left':
+                    targetLeft = containerRect.left;
+                    break;
+
+                case 'right':
+                    targetLeft = containerRect.right - toolbarWidth;
+                    break;
+
+                case 'center':
+                    targetLeft = containerCenter - halfOffsetWidth;
+                    break;
             }
 
             if (targetLeft < 0) {
@@ -3435,7 +5077,7 @@ var Toolbar;
             // position the toolbar at left 0, so we can get the real width of the toolbar
             this.getToolbarElement().style.left = '0';
 
-            var windowWidth = this.options.contentWindow.innerWidth,
+            var windowWidth = this.window.innerWidth,
                 range = selection.getRangeAt(0),
                 boundary = range.getBoundingClientRect(),
                 middleBoundary = (boundary.left + boundary.right) / 2,
@@ -3444,17 +5086,18 @@ var Toolbar;
                 toolbarWidth = toolbarElement.offsetWidth,
                 halfOffsetWidth = toolbarWidth / 2,
                 buttonHeight = 50,
-                defaultLeft = this.options.diffLeft - halfOffsetWidth;
+                defaultLeft = this.diffLeft - halfOffsetWidth;
 
             if (boundary.top < buttonHeight) {
                 toolbarElement.classList.add('medium-toolbar-arrow-over');
                 toolbarElement.classList.remove('medium-toolbar-arrow-under');
-                toolbarElement.style.top = buttonHeight + boundary.bottom - this.options.diffTop + this.options.contentWindow.pageYOffset - toolbarHeight + 'px';
+                toolbarElement.style.top = buttonHeight + boundary.bottom - this.diffTop + this.window.pageYOffset - toolbarHeight + 'px';
             } else {
                 toolbarElement.classList.add('medium-toolbar-arrow-under');
                 toolbarElement.classList.remove('medium-toolbar-arrow-over');
-                toolbarElement.style.top = boundary.top + this.options.diffTop + this.options.contentWindow.pageYOffset - toolbarHeight + 'px';
+                toolbarElement.style.top = boundary.top + this.diffTop + this.window.pageYOffset - toolbarHeight + 'px';
             }
+
             if (middleBoundary < halfOffsetWidth) {
                 toolbarElement.style.left = defaultLeft + halfOffsetWidth + 'px';
             } else if ((windowWidth - middleBoundary) < halfOffsetWidth) {
@@ -3463,80 +5106,67 @@ var Toolbar;
                 toolbarElement.style.left = defaultLeft + middleBoundary + 'px';
             }
         }
-    };
+    });
 }());
 
-var Placeholders;
+var ImageDragging;
 
 (function () {
     'use strict';
 
-    Placeholders = function (instance) {
-        this.base = instance;
+    ImageDragging = Extension.extend({
+        init: function () {
+            Extension.prototype.init.apply(this, arguments);
 
-        this.initPlaceholders();
-        this.attachEventHandlers();
-    };
-
-    Placeholders.prototype = {
-
-        initPlaceholders: function () {
-            this.base.elements.forEach(function (el) {
-                this.updatePlaceholder(el);
-            }, this);
+            this.subscribe('editableDrag', this.handleDrag.bind(this));
+            this.subscribe('editableDrop', this.handleDrop.bind(this));
         },
 
-        showPlaceholder: function (el) {
-            if (el) {
-                el.classList.add('medium-editor-placeholder');
+        handleDrag: function (event) {
+            var className = 'medium-editor-dragover';
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+
+            if (event.type === 'dragover') {
+                event.target.classList.add(className);
+            } else if (event.type === 'dragleave') {
+                event.target.classList.remove(className);
             }
         },
 
-        hidePlaceholder: function (el) {
-            if (el) {
-                el.classList.remove('medium-editor-placeholder');
+        handleDrop: function (event) {
+            var className = 'medium-editor-dragover',
+                files;
+            event.preventDefault();
+            event.stopPropagation();
+
+            // IE9 does not support the File API, so prevent file from opening in a new window
+            // but also don't try to actually get the file
+            if (event.dataTransfer.files) {
+                files = Array.prototype.slice.call(event.dataTransfer.files, 0);
+                files.some(function (file) {
+                    if (file.type.match('image')) {
+                        var fileReader, id;
+                        fileReader = new FileReader();
+                        fileReader.readAsDataURL(file);
+
+                        id = 'medium-img-' + (+new Date());
+                        Util.insertHTMLCommand(this.document, '<img class="medium-editor-image-loading" id="' + id + '" />');
+
+                        fileReader.onload = function () {
+                            var img = this.document.getElementById(id);
+                            if (img) {
+                                img.removeAttribute('id');
+                                img.removeAttribute('class');
+                                img.src = fileReader.result;
+                            }
+                        }.bind(this);
+                    }
+                }.bind(this));
             }
-        },
-
-        updatePlaceholder: function (el) {
-            if (!(el.querySelector('img')) &&
-                    !(el.querySelector('blockquote')) &&
-                    el.textContent.replace(/^\s+|\s+$/g, '') === '') {
-                this.showPlaceholder(el);
-            } else {
-                this.hidePlaceholder(el);
-            }
-        },
-
-        attachEventHandlers: function () {
-            // Custom events
-            this.base.subscribe('blur', this.handleExternalInteraction.bind(this));
-
-            // Check placeholder on blur
-            this.base.subscribe('editableBlur', this.handleBlur.bind(this));
-
-            // Events where we always hide the placeholder
-            this.base.subscribe('editableClick', this.handleHidePlaceholderEvent.bind(this));
-            this.base.subscribe('editableKeypress', this.handleHidePlaceholderEvent.bind(this));
-            this.base.subscribe('editablePaste', this.handleHidePlaceholderEvent.bind(this));
-        },
-
-        handleHidePlaceholderEvent: function (event, element) {
-            // Events where we hide the placeholder
-            this.hidePlaceholder(element);
-        },
-
-        handleBlur: function (event, element) {
-            // Update placeholder for element that lost focus
-            this.updatePlaceholder(element);
-        },
-
-        handleExternalInteraction: function () {
-            // Update all placeholders
-            this.initPlaceholders();
+            event.target.classList.remove(className);
         }
-    };
-
+    });
 }());
 
 var extensionDefaults;
@@ -3544,7 +5174,19 @@ var extensionDefaults;
     // for now this is empty because nothing interally uses an Extension default.
     // as they are converted, provide them here.
     extensionDefaults = {
-        paste: PasteHandler
+        button: Button,
+        form: FormExtension,
+
+        anchor: AnchorForm,
+        anchorPreview: AnchorPreview,
+        autoLink: AutoLink,
+        fileDragging: FileDragging,
+        fontSize: FontSizeForm,
+        imageDragging: ImageDragging, // deprecated
+        keyboardCommands: KeyboardCommands,
+        paste: PasteHandler,
+        placeholder: Placeholder,
+        toolbar: Toolbar
     };
 })();
 
@@ -3561,9 +5203,12 @@ function MediumEditor(elements, options) {
     function handleDisabledEnterKeydown(event, element) {
         if (this.options.disableReturn || element.getAttribute('data-disable-return')) {
             event.preventDefault();
-        } else if (this.options.disableDoubleReturn || this.getAttribute('data-disable-double-return')) {
-            var node = Util.getSelectionStart(this.options.ownerDocument);
-            if (node && node.textContent.trim() === '') {
+        } else if (this.options.disableDoubleReturn || element.getAttribute('data-disable-double-return')) {
+            var node = Selection.getSelectionStart(this.options.ownerDocument);
+
+            // if current text selection is empty OR previous sibling text is empty
+            if ((node && node.textContent.trim() === '') ||
+                (node.previousElementSibling && node.previousElementSibling.textContent.trim() === '')) {
                 event.preventDefault();
             }
         }
@@ -3571,8 +5216,8 @@ function MediumEditor(elements, options) {
 
     function handleTabKeydown(event) {
         // Override tab only for pre nodes
-        var node = Util.getSelectionStart(this.options.ownerDocument),
-            tag = node && node.tagName.toLowerCase();
+        var node = Selection.getSelectionStart(this.options.ownerDocument),
+            tag = node && node.nodeName.toLowerCase();
 
         if (tag === 'pre') {
             event.preventDefault();
@@ -3593,25 +5238,25 @@ function MediumEditor(elements, options) {
     }
 
     function handleBlockDeleteKeydowns(event) {
-        var range, sel, p, node = Util.getSelectionStart(this.options.ownerDocument),
-            tagName = node.tagName.toLowerCase(),
+        var p, node = Selection.getSelectionStart(this.options.ownerDocument),
+            tagName = node.nodeName.toLowerCase(),
             isEmpty = /^(\s+|<br\/?>)?$/i,
             isHeader = /h\d/i;
 
-        if ((event.which === Util.keyCode.BACKSPACE || event.which === Util.keyCode.ENTER) &&
+        if (Util.isKey(event, [Util.keyCode.BACKSPACE, Util.keyCode.ENTER]) &&
                 // has a preceeding sibling
                 node.previousElementSibling &&
                 // in a header
                 isHeader.test(tagName) &&
                 // at the very end of the block
                 Selection.getCaretOffsets(node).left === 0) {
-            if (event.which === Util.keyCode.BACKSPACE && isEmpty.test(node.previousElementSibling.innerHTML)) {
+            if (Util.isKey(event, Util.keyCode.BACKSPACE) && isEmpty.test(node.previousElementSibling.innerHTML)) {
                 // backspacing the begining of a header into an empty previous element will
                 // change the tagName of the current node to prevent one
                 // instead delete previous node and cancel the event.
                 node.previousElementSibling.parentNode.removeChild(node.previousElementSibling);
                 event.preventDefault();
-            } else if (event.which === Util.keyCode.ENTER) {
+            } else if (Util.isKey(event, Util.keyCode.ENTER)) {
                 // hitting return in the begining of a header will create empty header elements before the current one
                 // instead, make "<p><br></p>" element, which are what happens if you hit return in an empty paragraph
                 p = this.options.ownerDocument.createElement('p');
@@ -3619,7 +5264,7 @@ function MediumEditor(elements, options) {
                 node.previousElementSibling.parentNode.insertBefore(p, node);
                 event.preventDefault();
             }
-        } else if (event.which === Util.keyCode.DELETE &&
+        } else if (Util.isKey(event, Util.keyCode.DELETE) &&
                     // between two sibling elements
                     node.nextElementSibling &&
                     node.previousElementSibling &&
@@ -3628,26 +5273,19 @@ function MediumEditor(elements, options) {
                     // in an empty tag
                     isEmpty.test(node.innerHTML) &&
                     // when the next tag *is* a header
-                    isHeader.test(node.nextElementSibling.tagName)) {
+                    isHeader.test(node.nextElementSibling.nodeName.toLowerCase())) {
             // hitting delete in an empty element preceding a header, ex:
             //  <p>[CURSOR]</p><h1>Header</h1>
             // Will cause the h1 to become a paragraph.
             // Instead, delete the paragraph node and move the cursor to the begining of the h1
 
             // remove node and move cursor to start of header
-            range = this.options.ownerDocument.createRange();
-            sel = this.options.ownerDocument.getSelection();
-
-            range.setStart(node.nextElementSibling, 0);
-            range.collapse(true);
-
-            sel.removeAllRanges();
-            sel.addRange(range);
+            Selection.moveCursor(this.options.ownerDocument, node.nextElementSibling);
 
             node.previousElementSibling.parentNode.removeChild(node);
 
             event.preventDefault();
-        } else if (event.which === Util.keyCode.BACKSPACE &&
+        } else if (Util.isKey(event, Util.keyCode.BACKSPACE) &&
                 tagName === 'li' &&
                 // hitting backspace inside an empty li
                 isEmpty.test(node.innerHTML) &&
@@ -3656,7 +5294,8 @@ function MediumEditor(elements, options) {
                 // parent also does not have a sibling
                 !node.parentElement.previousElementSibling &&
                 // is not the only li in a list
-                node.nextElementSibling.tagName.toLowerCase() === 'li') {
+                node.nextElementSibling &&
+                node.nextElementSibling.nodeName.toLowerCase() === 'li') {
             // backspacing in an empty first list element in the first list (with more elements) ex:
             //  <ul><li>[CURSOR]</li><li>List Item 2</li></ul>
             // will remove the first <li> but add some extra element before (varies based on browser)
@@ -3671,12 +5310,7 @@ function MediumEditor(elements, options) {
             node.parentElement.parentElement.insertBefore(p, node.parentElement);
 
             // move the cursor into the new paragraph
-            range = this.options.ownerDocument.createRange();
-            sel = this.options.ownerDocument.getSelection();
-            range.setStart(p, 0);
-            range.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(range);
+            Selection.moveCursor(this.options.ownerDocument, p);
 
             // remove the list element
             node.parentElement.removeChild(node);
@@ -3685,69 +5319,24 @@ function MediumEditor(elements, options) {
         }
     }
 
-    function handleDrag(event) {
-        var className = 'medium-editor-dragover';
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy';
-
-        if (event.type === 'dragover') {
-            event.target.classList.add(className);
-        } else if (event.type === 'dragleave') {
-            event.target.classList.remove(className);
-        }
-    }
-
-    function handleDrop(event) {
-        var className = 'medium-editor-dragover',
-            files;
-        event.preventDefault();
-        event.stopPropagation();
-
-        // IE9 does not support the File API, so prevent file from opening in a new window
-        // but also don't try to actually get the file
-        if (event.dataTransfer.files) {
-            files = Array.prototype.slice.call(event.dataTransfer.files, 0);
-            files.some(function (file) {
-                if (file.type.match('image')) {
-                    var fileReader, id;
-                    fileReader = new FileReader();
-                    fileReader.readAsDataURL(file);
-
-                    id = 'medium-img-' + (+new Date());
-                    Util.insertHTMLCommand(this.options.ownerDocument, '<img class="medium-image-loading" id="' + id + '" />');
-
-                    fileReader.onload = function () {
-                        var img = this.options.ownerDocument.getElementById(id);
-                        if (img) {
-                            img.removeAttribute('id');
-                            img.removeAttribute('class');
-                            img.src = fileReader.result;
-                        }
-                    }.bind(this);
-                }
-            }.bind(this));
-        }
-        event.target.classList.remove(className);
-    }
-
     function handleKeyup(event) {
-        var node = Util.getSelectionStart(this.options.ownerDocument),
+        var node = Selection.getSelectionStart(this.options.ownerDocument),
             tagName;
 
         if (!node) {
             return;
         }
 
-        if (node.getAttribute('data-medium-element') && node.children.length === 0) {
+        if (Util.isMediumEditorElement(node) && node.children.length === 0) {
             this.options.ownerDocument.execCommand('formatBlock', false, 'p');
         }
 
-        if (event.which === Util.keyCode.ENTER && !Util.isListItem(node)) {
-            tagName = node.tagName.toLowerCase();
+        if (Util.isKey(event, Util.keyCode.ENTER) && !Util.isListItem(node)) {
+            tagName = node.nodeName.toLowerCase();
             // For anchor tags, unlink
             if (tagName === 'a') {
                 this.options.ownerDocument.execCommand('unlink', false, null);
-            } else if (!event.shiftKey) {
+            } else if (!event.shiftKey && !event.ctrlKey) {
                 // only format block if this is not a header tag
                 if (!/h\d/.test(tagName)) {
                     this.options.ownerDocument.execCommand('formatBlock', false, 'p');
@@ -3757,6 +5346,37 @@ function MediumEditor(elements, options) {
     }
 
     // Internal helper methods which shouldn't be exposed externally
+
+    function addToEditors(win) {
+        if (!win._mediumEditors) {
+            // To avoid breaking users who are assuming that the unique id on
+            // medium-editor elements will start at 1, inserting a 'null' in the
+            // array so the unique-id can always map to the index of the editor instance
+            win._mediumEditors = [null];
+        }
+
+        // If this already has a unique id, re-use it
+        if (!this.id) {
+            this.id = win._mediumEditors.length;
+        }
+
+        win._mediumEditors[this.id] = this;
+    }
+
+    function removeFromEditors(win) {
+        if (!win._mediumEditors || !win._mediumEditors[this.id]) {
+            return;
+        }
+
+        /* Setting the instance to null in the array instead of deleting it allows:
+         * 1) Each instance to preserve its own unique-id, even after being destroyed
+         *    and initialized again
+         * 2) The unique-id to always correspond to an index in the array of medium-editor
+         *    instances. Thus, we will be able to look at a contenteditable, and determine
+         *    which instance it belongs to, by indexing into the global array.
+         */
+        win._mediumEditors[this.id] = null;
+    }
 
     function createElementsArray(selector) {
         if (!selector) {
@@ -3775,58 +5395,93 @@ function MediumEditor(elements, options) {
 
         // Loop through elements and convert textarea's into divs
         this.elements = [];
-        elements.forEach(function (element) {
-            if (element.tagName.toLowerCase() === 'textarea') {
-                this.elements.push(createContentEditable.call(this, element));
+        elements.forEach(function (element, index) {
+            if (element.nodeName.toLowerCase() === 'textarea') {
+                this.elements.push(createContentEditable.call(this, element, index));
             } else {
                 this.elements.push(element);
             }
         }, this);
     }
 
+    function setExtensionDefaults(extension, defaults) {
+        Object.keys(defaults).forEach(function (prop) {
+            if (extension[prop] === undefined) {
+                extension[prop] = defaults[prop];
+            }
+        });
+        return extension;
+    }
+
     function initExtension(extension, name, instance) {
-        if (extension.parent) {
-            extension.base = instance;
-        }
+        var extensionDefaults = {
+            'window': instance.options.contentWindow,
+            'document': instance.options.ownerDocument,
+            'base': instance
+        };
+
+        // Add default options into the extension
+        extension = setExtensionDefaults(extension, extensionDefaults);
+
+        // Call init on the extension
         if (typeof extension.init === 'function') {
-            extension.init(instance);
+            extension.init();
         }
+
+        // Set extension name (if not already set)
         if (!extension.name) {
             extension.name = name;
         }
         return extension;
     }
 
-    function shouldAddDefaultAnchorPreview() {
-        var i,
-            shouldAdd = false;
-
-        // If anchor-preview is disabled, don't add
-        if (this.options.disableAnchorPreview) {
+    function isToolbarEnabled() {
+        // If any of the elements don't have the toolbar disabled
+        // We need a toolbar
+        if (this.elements.every(function (element) {
+                return !!element.getAttribute('data-disable-toolbar');
+            })) {
             return false;
-        }
-        // If anchor-preview extension has been overriden, don't add
-        if (this.options.extensions['anchor-preview']) {
-            return false;
-        }
-        // If toolbar is disabled, don't add
-        if (this.options.disableToolbar) {
-            return false;
-        }
-        // If all elements have 'data-disable-toolbar' attribute, don't add
-        for (i = 0; i < this.elements.length; i += 1) {
-            if (!this.elements[i].getAttribute('data-disable-toolbar')) {
-                shouldAdd = true;
-                break;
-            }
         }
 
-        return shouldAdd;
+        return this.options.toolbar !== false;
     }
 
-    function createContentEditable(textarea) {
+    function isAnchorPreviewEnabled() {
+        // If toolbar is disabled, don't add
+        if (!isToolbarEnabled.call(this)) {
+            return false;
+        }
+
+        return this.options.anchorPreview !== false;
+    }
+
+    function isPlaceholderEnabled() {
+        return this.options.placeholder !== false;
+    }
+
+    function isAutoLinkEnabled() {
+        return this.options.autoLink !== false;
+    }
+
+    function isImageDraggingEnabled() {
+        return this.options.imageDragging !== false;
+    }
+
+    function isKeyboardCommandsEnabled() {
+        return this.options.keyboardCommands !== false;
+    }
+
+    function shouldUseFileDraggingExtension() {
+        // Since the file-dragging extension replaces the image-dragging extension,
+        // we need to check if the user passed an overrided image-dragging extension.
+        // If they have, to avoid breaking users, we won't use file-dragging extension.
+        return !this.options.extensions['imageDragging'];
+    }
+
+    function createContentEditable(textarea, id) {
         var div = this.options.ownerDocument.createElement('div'),
-            id = (+new Date()),
+            uniqueId = 'medium-editor-' + Date.now() + '-' + id,
             attributesToClone = [
                 'data-disable-editing',
                 'data-disable-toolbar',
@@ -3838,7 +5493,7 @@ function MediumEditor(elements, options) {
             ];
 
         div.className = textarea.className;
-        div.id = id;
+        div.id = uniqueId;
         div.innerHTML = textarea.value;
         div.setAttribute('medium-editor-textarea-id', id);
         attributesToClone.forEach(function (attr) {
@@ -3858,17 +5513,15 @@ function MediumEditor(elements, options) {
     }
 
     function initElements() {
-        this.elements.forEach(function (element) {
+        this.elements.forEach(function (element, index) {
             if (!this.options.disableEditing && !element.getAttribute('data-disable-editing')) {
                 element.setAttribute('contentEditable', true);
                 element.setAttribute('spellcheck', this.options.spellcheck);
             }
-            if (!element.getAttribute('data-placeholder')) {
-                element.setAttribute('data-placeholder', this.options.placeholder);
-            }
-            element.setAttribute('data-medium-element', true);
+            element.setAttribute('data-medium-editor-element', true);
             element.setAttribute('role', 'textbox');
             element.setAttribute('aria-multiline', true);
+            element.setAttribute('medium-editor-index', index);
 
             if (element.hasAttribute('medium-editor-textarea-id')) {
                 this.on(element, 'input', function (event) {
@@ -3880,21 +5533,6 @@ function MediumEditor(elements, options) {
                 }.bind(this));
             }
         }, this);
-    }
-
-    function initToolbar() {
-        if (this.toolbar || this.options.disableToolbar) {
-            return false;
-        }
-
-        var addToolbar = this.elements.some(function (element) {
-            return !element.getAttribute('data-disable-toolbar');
-        });
-
-        if (addToolbar) {
-            this.toolbar = new Toolbar(this);
-            this.options.elementsContainer.appendChild(this.toolbar.getToolbarElement());
-        }
     }
 
     function attachHandlers() {
@@ -3928,99 +5566,97 @@ function MediumEditor(elements, options) {
                 }
             }, this);
         }
-
-        // drag and drop of images
-        if (this.options.imageDragging) {
-            this.subscribe('editableDrag', handleDrag.bind(this));
-            this.subscribe('editableDrop', handleDrop.bind(this));
-        }
     }
 
-    function initPasteHandler(options) {
-        // Backwards compatability
-        var defaultsBC = {
-            forcePlainText: this.options.forcePlainText, // deprecated
-            cleanPastedHTML: this.options.cleanPastedHTML, // deprecated
-            disableReturn: this.options.disableReturn,
-            targetBlank: this.options.targetBlank,
-            'window': this.options.contentWindow,
-            'document': this.options.ownerDocument
-        };
+    function initExtensions() {
 
-        return new MediumEditor.extensions.paste(
-            Util.extend({}, options, defaultsBC)
-        );
-    }
+        this.extensions = [];
 
-    function initCommands() {
-        var buttons = this.options.buttons,
-            extensions = this.options.extensions,
-            ext,
-            name;
-        this.commands = [];
-
-        buttons.forEach(function (buttonName) {
-            if (extensions[buttonName]) {
-                ext = initExtension(extensions[buttonName], buttonName, this);
-                this.commands.push(ext);
-            } else if (buttonName === 'anchor') {
-                ext = initExtension(new AnchorExtension(), buttonName, this);
-                this.commands.push(ext);
-            } else if (buttonName === 'fontsize') {
-                ext = initExtension(new FontSizeExtension(), buttonName, this);
-                this.commands.push(ext);
-            } else if (ButtonsData.hasOwnProperty(buttonName)) {
-                ext = new DefaultButton(ButtonsData[buttonName], this);
-                this.commands.push(ext);
+        // Passed in extensions
+        Object.keys(this.options.extensions).forEach(function (name) {
+            // Always save the toolbar extension for last
+            if (name !== 'toolbar' && this.options.extensions[name]) {
+                this.extensions.push(initExtension(this.options.extensions[name], name, this));
             }
         }, this);
 
-        for (name in extensions) {
-            if (extensions.hasOwnProperty(name) && buttons.indexOf(name) === -1) {
-                ext = initExtension(extensions[name], name, this);
-                this.commands.push(ext);
+        // 4 Cases for imageDragging + fileDragging extensons:
+        //
+        // 1. ImageDragging ON + No Custom Image Dragging Extension:
+        //    * Use fileDragging extension (default options)
+        // 2. ImageDragging OFF + No Custom Image Dragging Extension:
+        //    * Use fileDragging extension w/ images turned off
+        // 3. ImageDragging ON + Custom Image Dragging Extension:
+        //    * Don't use fileDragging (could interfere with custom image dragging extension)
+        // 4. ImageDragging OFF + Custom Image Dragging:
+        //    * Don't use fileDragging (could interfere with custom image dragging extension)
+        if (shouldUseFileDraggingExtension.call(this)) {
+            var opts = this.options.fileDragging;
+            if (!opts) {
+                opts = {};
+
+                // Image is in the 'allowedTypes' list by default.
+                // If imageDragging is off override the 'allowedTypes' list with an empty one
+                if (!isImageDraggingEnabled.call(this)) {
+                    opts.allowedTypes = [];
+                }
             }
+            this.addBuiltInExtension('fileDragging', opts);
         }
 
-        // Only add default paste extension if it wasn't overriden
-        if (!this.options.extensions['paste']) {
-            this.commands.push(initExtension(initPasteHandler.call(this, this.options.paste), 'paste', this));
+        // Built-in extensions
+        var builtIns = {
+            paste: true,
+            anchorPreview: isAnchorPreviewEnabled.call(this),
+            autoLink: isAutoLinkEnabled.call(this),
+            keyboardCommands: isKeyboardCommandsEnabled.call(this),
+            placeholder: isPlaceholderEnabled.call(this)
+        };
+        Object.keys(builtIns).forEach(function (name) {
+            if (builtIns[name]) {
+                this.addBuiltInExtension(name);
+            }
+        }, this);
+
+        // Users can pass in a custom toolbar extension
+        // so check for that first and if it's not present
+        // just create the default toolbar
+        var toolbarExtension = this.options.extensions['toolbar'];
+        if (!toolbarExtension && isToolbarEnabled.call(this)) {
+            // Backwards compatability
+            var toolbarOptions = Util.extend({}, this.options.toolbar, {
+                allowMultiParagraphSelection: this.options.allowMultiParagraphSelection // deprecated
+            });
+            toolbarExtension = new MediumEditor.extensions.toolbar(toolbarOptions);
         }
 
-        // Add AnchorPreview as extension if needed
-        if (shouldAddDefaultAnchorPreview.call(this)) {
-            this.commands.push(initExtension(new AnchorPreview(), 'anchor-preview', this));
+        // If the toolbar is not disabled, so we actually have an extension
+        // initialize it and add it to the extensions array
+        if (toolbarExtension) {
+            this.extensions.push(initExtension(toolbarExtension, 'toolbar', this));
         }
     }
 
     function mergeOptions(defaults, options) {
+        var deprecatedProperties = [
+            ['allowMultiParagraphSelection', 'toolbar.allowMultiParagraphSelection']
+        ];
         // warn about using deprecated properties
         if (options) {
-            [['forcePlainText', 'paste.forcePlainText'],
-             ['cleanPastedHTML', 'paste.cleanPastedHTML']].forEach(function (pair) {
+            deprecatedProperties.forEach(function (pair) {
                 if (options.hasOwnProperty(pair[0]) && options[pair[0]] !== undefined) {
-                    Util.deprecated(pair[0], pair[1], 'v5.0.0');
+                    Util.deprecated(pair[0], pair[1], 'v6.0.0');
                 }
             });
         }
 
-        var nestedMerges = ['paste'],
-            tempOpts = Util.extend({}, options);
-
-        nestedMerges.forEach(function (toMerge) {
-            if (!tempOpts[toMerge]) {
-                tempOpts[toMerge] = defaults[toMerge];
-            } else {
-                tempOpts[toMerge] = Util.defaults({}, tempOpts[toMerge], defaults[toMerge]);
-            }
-        });
-
-        return Util.defaults(tempOpts, defaults);
+        return Util.defaults({}, options, defaults);
     }
 
     function execActionInternal(action, opts) {
         /*jslint regexp: true*/
         var appendAction = /^append-(.+)$/gi,
+            justifyAction = /justify([A-Za-z]*)$/g, /* Detecting if is justifyCenter|Right|Left */
             match;
         /*jslint regexp: false*/
 
@@ -4043,18 +5679,65 @@ function MediumEditor(elements, options) {
             return this.options.ownerDocument.execCommand('insertImage', false, this.options.contentWindow.getSelection());
         }
 
+        /* Issue: https://github.com/yabwe/medium-editor/issues/595
+         * If the action is to justify the text */
+        if (justifyAction.exec(action)) {
+            var result = this.options.ownerDocument.execCommand(action, false, null),
+                parentNode = Selection.getSelectedParentElement(Selection.getSelectionRange(this.options.ownerDocument));
+            if (parentNode) {
+                cleanupJustifyDivFragments.call(this, Util.getTopBlockContainer(parentNode));
+            }
+
+            return result;
+        }
+
         return this.options.ownerDocument.execCommand(action, false, null);
     }
 
-    // deprecate
-    MediumEditor.statics = {
-        ButtonsData: ButtonsData,
-        DefaultButton: DefaultButton,
-        AnchorExtension: AnchorExtension,
-        FontSizeExtension: FontSizeExtension,
-        Toolbar: Toolbar,
-        AnchorPreview: AnchorPreview
-    };
+    /* If we've just justified text within a container block
+     * Chrome may have removed <br> elements and instead wrapped lines in <div> elements
+     * with a text-align property.  If so, we want to fix this
+     */
+    function cleanupJustifyDivFragments(blockContainer) {
+        if (!blockContainer) {
+            return;
+        }
+
+        var textAlign,
+            childDivs = Array.prototype.slice.call(blockContainer.childNodes).filter(function (element) {
+                var isDiv = element.nodeName.toLowerCase() === 'div';
+                if (isDiv && !textAlign) {
+                    textAlign = element.style.textAlign;
+                }
+                return isDiv;
+            });
+
+        /* If we found child <div> elements with text-align style attributes
+         * we should fix this by:
+         *
+         * 1) Unwrapping each <div> which has a text-align style
+         * 2) Insert a <br> element after each set of 'unwrapped' div children
+         * 3) Set the text-align style of the parent block element
+         */
+        if (childDivs.length) {
+            // Since we're mucking with the HTML, preserve selection
+            this.saveSelection();
+            childDivs.forEach(function (div) {
+                if (div.style.textAlign === textAlign) {
+                    var lastChild = div.lastChild;
+                    if (lastChild) {
+                        // Instead of a div, extract the child elements and add a <br>
+                        Util.unwrap(div, this.options.ownerDocument);
+                        var br = this.options.ownerDocument.createElement('BR');
+                        lastChild.parentNode.insertBefore(br, lastChild.nextSibling);
+                    }
+                }
+            }, this);
+            blockContainer.style.textAlign = textAlign;
+            // We're done, so restore selection
+            this.restoreSelection();
+        }
+    }
 
     MediumEditor.Extension = Extension;
 
@@ -4063,28 +5746,16 @@ function MediumEditor(elements, options) {
     MediumEditor.selection = Selection;
 
     MediumEditor.prototype = {
-
         defaults: editorDefaults,
 
         // NOT DOCUMENTED - exposed for backwards compatability
         init: function (elements, options) {
-            var uniqueId = 1;
-
             this.options = mergeOptions.call(this, this.defaults, options);
-            createElementsArray.call(this, elements);
-            if (this.elements.length === 0) {
-                return;
-            }
+            this.origElements = elements;
 
             if (!this.options.elementsContainer) {
                 this.options.elementsContainer = this.options.ownerDocument.body;
             }
-
-            while (this.options.elementsContainer.querySelector('#medium-editor-toolbar-' + uniqueId)) {
-                uniqueId = uniqueId + 1;
-            }
-
-            this.id = uniqueId;
 
             return this.setup();
         },
@@ -4094,18 +5765,21 @@ function MediumEditor(elements, options) {
                 return;
             }
 
-            this.events = new Events(this);
+            createElementsArray.call(this, this.origElements);
+
+            if (this.elements.length === 0) {
+                return;
+            }
+
             this.isActive = true;
+            addToEditors.call(this, this.options.contentWindow);
+
+            this.events = new Events(this);
 
             // Call initialization helpers
             initElements.call(this);
-            initCommands.call(this);
-            initToolbar.call(this);
+            initExtensions.call(this);
             attachHandlers.call(this);
-
-            if (!this.options.disablePlaceholders) {
-                this.placeholders = new Placeholders(this);
-            }
         },
 
         destroy: function () {
@@ -4113,29 +5787,45 @@ function MediumEditor(elements, options) {
                 return;
             }
 
-            var i;
-
             this.isActive = false;
 
-            if (this.toolbar !== undefined) {
-                this.toolbar.deactivate();
-                delete this.toolbar;
-            }
-
-            for (i = 0; i < this.elements.length; i += 1) {
-                this.elements[i].removeAttribute('contentEditable');
-                this.elements[i].removeAttribute('spellcheck');
-                this.elements[i].removeAttribute('data-medium-element');
-            }
-
-            this.commands.forEach(function (extension) {
-                if (typeof extension.deactivate === 'function') {
-                    extension.deactivate();
+            this.extensions.forEach(function (extension) {
+                if (typeof extension.destroy === 'function') {
+                    extension.destroy();
                 }
             }, this);
 
-            this.events.detachAllDOMEvents();
-            this.events.detachAllCustomEvents();
+            this.events.destroy();
+
+            this.elements.forEach(function (element) {
+                // Reset elements content, fix for issue where after editor destroyed the red underlines on spelling errors are left
+                if (this.options.spellcheck) {
+                    element.innerHTML = element.innerHTML;
+                }
+
+                // cleanup extra added attributes
+                element.removeAttribute('contentEditable');
+                element.removeAttribute('spellcheck');
+                element.removeAttribute('data-medium-editor-element');
+                element.removeAttribute('role');
+                element.removeAttribute('aria-multiline');
+                element.removeAttribute('medium-editor-index');
+
+                // Remove any elements created for textareas
+                if (element.hasAttribute('medium-editor-textarea-id')) {
+                    var textarea = element.parentNode.querySelector('textarea[medium-editor-textarea-id="' + element.getAttribute('medium-editor-textarea-id') + '"]');
+                    if (textarea) {
+                        // Un-hide the textarea
+                        textarea.classList.remove('medium-editor-hidden');
+                    }
+                    if (element.parentNode) {
+                        element.parentNode.removeChild(element);
+                    }
+                }
+            }, this);
+            this.elements = [];
+
+            removeFromEditors.call(this, this.options.contentWindow);
         },
 
         on: function (target, event, listener, useCapture) {
@@ -4152,6 +5842,10 @@ function MediumEditor(elements, options) {
 
         unsubscribe: function (event, listener) {
             this.events.detachCustomEvent(event, listener);
+        },
+
+        trigger: function (name, data, editable) {
+            this.events.triggerCustomEvent(name, data, editable);
         },
 
         delay: function (fn) {
@@ -4178,8 +5872,8 @@ function MediumEditor(elements, options) {
 
         getExtensionByName: function (name) {
             var extension;
-            if (this.commands && this.commands.length) {
-                this.commands.some(function (ext) {
+            if (this.extensions && this.extensions.length) {
+                this.extensions.some(function (ext) {
                     if (ext.name === name) {
                         extension = ext;
                         return true;
@@ -4191,31 +5885,59 @@ function MediumEditor(elements, options) {
         },
 
         /**
-         * NOT DOCUMENTED - exposed for backwards compatability
-         * Helper function to call a method with a number of parameters on all registered extensions.
-         * The function assures that the function exists before calling.
-         *
-         * @param {string} funcName name of the function to call
-         * @param [args] arguments passed into funcName
+         * NOT DOCUMENTED - exposed as a helper for other extensions to use
          */
-        callExtensions: function (funcName) {
-            if (arguments.length < 1) {
-                return;
+        addBuiltInExtension: function (name, opts) {
+            var extension = this.getExtensionByName(name),
+                merged;
+            if (extension) {
+                return extension;
             }
 
-            var args = Array.prototype.slice.call(arguments, 1),
-                ext,
-                name;
-
-            for (name in this.options.extensions) {
-                if (this.options.extensions.hasOwnProperty(name)) {
-                    ext = this.options.extensions[name];
-                    if (ext[funcName] !== undefined) {
-                        ext[funcName].apply(ext, args);
+            switch (name) {
+                case 'anchor':
+                    merged = Util.extend({}, this.options.anchor, opts);
+                    extension = new MediumEditor.extensions.anchor(merged);
+                    break;
+                case 'anchorPreview':
+                    extension = new MediumEditor.extensions.anchorPreview(this.options.anchorPreview);
+                    break;
+                case 'autoLink':
+                    extension = new MediumEditor.extensions.autoLink();
+                    break;
+                case 'fileDragging':
+                    extension = new MediumEditor.extensions.fileDragging(opts);
+                    break;
+                case 'fontsize':
+                    extension = new MediumEditor.extensions.fontSize(opts);
+                    break;
+                case 'keyboardCommands':
+                    extension = new MediumEditor.extensions.keyboardCommands(this.options.keyboardCommands);
+                    break;
+                case 'paste':
+                    extension = new MediumEditor.extensions.paste(this.options.paste);
+                    break;
+                case 'placeholder':
+                    extension = new MediumEditor.extensions.placeholder(this.options.placeholder);
+                    break;
+                default:
+                    // All of the built-in buttons for MediumEditor are extensions
+                    // so check to see if the extension we're creating is a built-in button
+                    if (MediumEditor.extensions.button.isBuiltInButton(name)) {
+                        if (opts) {
+                            merged = Util.defaults({}, opts, MediumEditor.extensions.button.prototype.defaults[name]);
+                            extension = new MediumEditor.extensions.button(merged);
+                        } else {
+                            extension = new MediumEditor.extensions.button(name);
+                        }
                     }
-                }
             }
-            return this;
+
+            if (extension) {
+                this.extensions.push(initExtension(extension, name, this));
+            }
+
+            return extension;
         },
 
         stopSelectionUpdates: function () {
@@ -4226,10 +5948,10 @@ function MediumEditor(elements, options) {
             this.preventSelectionUpdates = false;
         },
 
-        // NOT DOCUMENTED - exposed as extension helper and for backwards compatability
         checkSelection: function () {
-            if (this.toolbar) {
-                this.toolbar.checkState();
+            var toolbar = this.getExtensionByName('toolbar');
+            if (toolbar) {
+                toolbar.checkState();
             }
             return this;
         },
@@ -4280,7 +6002,7 @@ function MediumEditor(elements, options) {
 
             // do some DOM clean-up for known browser issues after the action
             if (action === 'insertunorderedlist' || action === 'insertorderedlist') {
-                Util.cleanListDOM(this.getSelectedParentElement());
+                Util.cleanListDOM(this.options.ownerDocument, this.getSelectedParentElement());
             }
 
             this.checkSelection();
@@ -4292,21 +6014,6 @@ function MediumEditor(elements, options) {
                 range = this.options.contentWindow.getSelection().getRangeAt(0);
             }
             return Selection.getSelectedParentElement(range);
-        },
-
-        // NOT DOCUMENTED - exposed as extension helper
-        hideToolbarDefaultActions: function () {
-            if (this.toolbar) {
-                this.toolbar.hideToolbarDefaultActions();
-            }
-            return this;
-        },
-
-        // NOT DOCUMENTED - exposed as extension helper and for backwards compatability
-        setToolbarPosition: function () {
-            if (this.toolbar) {
-                this.toolbar.setToolbarPosition();
-            }
         },
 
         selectAllContents: function () {
@@ -4331,45 +6038,34 @@ function MediumEditor(elements, options) {
             }
         },
 
-        // http://stackoverflow.com/questions/17678843/cant-restore-selection-after-html-modify-even-if-its-the-same-html
-        // Tim Down
-        // TODO: move to selection.js and clean up old methods there
-        exportSelection: function () {
-            var selectionState = null,
-                selection = this.options.contentWindow.getSelection(),
-                range,
-                preSelectionRange,
-                start,
-                editableElementIndex = -1;
-
-            if (selection.rangeCount > 0) {
-                range = selection.getRangeAt(0);
-                preSelectionRange = range.cloneRange();
-
-                // Find element current selection is inside
-                this.elements.some(function (el, index) {
-                    if (el === range.startContainer || Util.isDescendant(el, range.startContainer)) {
-                        editableElementIndex = index;
-                        return true;
-                    }
-                    return false;
-                });
-
-                if (editableElementIndex > -1) {
-                    preSelectionRange.selectNodeContents(this.elements[editableElementIndex]);
-                    preSelectionRange.setEnd(range.startContainer, range.startOffset);
-                    start = preSelectionRange.toString().length;
-
-                    selectionState = {
-                        start: start,
-                        end: start + range.toString().length,
-                        editableElementIndex: editableElementIndex
-                    };
+        getFocusedElement: function () {
+            var focused;
+            this.elements.some(function (element) {
+                // Find the element that has focus
+                if (!focused && element.getAttribute('data-medium-focused')) {
+                    focused = element;
                 }
+
+                // bail if we found the element that had focus
+                return !!focused;
+            }, this);
+
+            return focused;
+        },
+
+        // Export the state of the selection in respect to one of this
+        // instance of MediumEditor's elements
+        exportSelection: function () {
+            var selectionElement = Selection.getSelectionElement(this.options.contentWindow),
+                editableElementIndex = this.elements.indexOf(selectionElement),
+                selectionState = null;
+
+            if (editableElementIndex >= 0) {
+                selectionState = Selection.exportSelection(selectionElement, this.options.ownerDocument);
             }
 
-            if (selectionState !== null && selectionState.editableElementIndex === 0) {
-                delete selectionState.editableElementIndex;
+            if (selectionState !== null && editableElementIndex !== 0) {
+                selectionState.editableElementIndex = editableElementIndex;
             }
 
             return selectionState;
@@ -4379,63 +6075,15 @@ function MediumEditor(elements, options) {
             this.selectionState = this.exportSelection();
         },
 
-        // http://stackoverflow.com/questions/17678843/cant-restore-selection-after-html-modify-even-if-its-the-same-html
-        // Tim Down
-        // TODO: move to selection.js and clean up old methods there
-        importSelection: function (inSelectionState) {
-            if (!inSelectionState) {
+        // Restore a selection based on a selectionState returned by a call
+        // to MediumEditor.exportSelection
+        importSelection: function (selectionState, favorLaterSelectionAnchor) {
+            if (!selectionState) {
                 return;
             }
 
-            var editableElementIndex = inSelectionState.editableElementIndex === undefined ?
-                                                0 : inSelectionState.editableElementIndex,
-                selectionState = {
-                    editableElementIndex: editableElementIndex,
-                    start: inSelectionState.start,
-                    end: inSelectionState.end
-                },
-                editableElement = this.elements[selectionState.editableElementIndex],
-                charIndex = 0,
-                range = this.options.ownerDocument.createRange(),
-                nodeStack = [editableElement],
-                node,
-                foundStart = false,
-                stop = false,
-                i,
-                sel,
-                nextCharIndex;
-
-            range.setStart(editableElement, 0);
-            range.collapse(true);
-
-            node = nodeStack.pop();
-            while (!stop && node) {
-                if (node.nodeType === 3) {
-                    nextCharIndex = charIndex + node.length;
-                    if (!foundStart && selectionState.start >= charIndex && selectionState.start <= nextCharIndex) {
-                        range.setStart(node, selectionState.start - charIndex);
-                        foundStart = true;
-                    }
-                    if (foundStart && selectionState.end >= charIndex && selectionState.end <= nextCharIndex) {
-                        range.setEnd(node, selectionState.end - charIndex);
-                        stop = true;
-                    }
-                    charIndex = nextCharIndex;
-                } else {
-                    i = node.childNodes.length - 1;
-                    while (i >= 0) {
-                        nodeStack.push(node.childNodes[i]);
-                        i -= 1;
-                    }
-                }
-                if (!stop) {
-                    node = nodeStack.pop();
-                }
-            }
-
-            sel = this.options.contentWindow.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
+            var editableElement = this.elements[selectionState.editableElementIndex || 0];
+            Selection.importSelection(selectionState, editableElement, this.options.ownerDocument, favorLaterSelectionAnchor);
         },
 
         restoreSelection: function () {
@@ -4447,14 +6095,74 @@ function MediumEditor(elements, options) {
                 i;
 
             if (opts.url && opts.url.trim().length > 0) {
-                this.options.ownerDocument.execCommand('createLink', false, opts.url);
+                var currentSelection = this.options.contentWindow.getSelection();
+                if (currentSelection) {
+                    var exportedSelection,
+                        startContainerParentElement,
+                        endContainerParentElement,
+                        textNodes;
 
-                if (this.options.targetBlank || opts.target === '_blank') {
-                    Util.setTargetBlank(Util.getSelectionStart(this.options.ownerDocument));
-                }
+                    startContainerParentElement = Util.getClosestBlockContainer(
+                        currentSelection.getRangeAt(0).startContainer);
+                    endContainerParentElement = Util.getClosestBlockContainer(
+                        currentSelection.getRangeAt(0).endContainer);
 
-                if (opts.buttonClass) {
-                    Util.addClassToAnchors(Util.getSelectionStart(this.options.ownerDocument), opts.buttonClass);
+                    if (startContainerParentElement === endContainerParentElement) {
+                        var currentEditor = Selection.getSelectionElement(this.options.contentWindow),
+                            parentElement = (startContainerParentElement || currentEditor),
+                            fragment = this.options.ownerDocument.createDocumentFragment();
+                        exportedSelection = this.exportSelection();
+                        fragment.appendChild(parentElement.cloneNode(true));
+                        if (currentEditor === parentElement) {
+                            // We have to avoid the editor itself being wiped out when it's the only block element,
+                            // as our reference inside this.elements gets detached from the page when insertHTML runs.
+                            // If we just use [parentElement, 0] and [parentElement, parentElement.childNodes.length]
+                            // as the range boundaries, this happens whenever parentElement === currentEditor.
+                            // The tradeoff to this workaround is that a orphaned tag can sometimes be left behind at
+                            // the end of the editor's content.
+                            // In Gecko:
+                            // as an empty <strong></strong> if parentElement.lastChild is a <strong> tag.
+                            // In WebKit:
+                            // an invented <br /> tag at the end in the same situation
+
+                            Selection.select(this.options.ownerDocument,
+                                parentElement.firstChild, 0,
+                                parentElement.lastChild, parentElement.lastChild.nodeType === 3 ?
+                                parentElement.lastChild.nodeValue.length : parentElement.lastChild.childNodes.length);
+                        } else {
+                            Selection.select(this.options.ownerDocument,
+                                parentElement, 0,
+                                parentElement, parentElement.childNodes.length);
+                        }
+                        var modifiedExportedSelection = this.exportSelection();
+
+                        textNodes = Util.findOrCreateMatchingTextNodes(this.options.ownerDocument,
+                                fragment,
+                                {
+                                    start: exportedSelection.start - modifiedExportedSelection.start,
+                                    end: exportedSelection.end - modifiedExportedSelection.start,
+                                    editableElementIndex: exportedSelection.editableElementIndex
+                                });
+                        // Creates the link in the document fragment
+                        Util.createLink(this.options.ownerDocument, textNodes, opts.url.trim());
+                        // Chrome trims the leading whitespaces when inserting HTML, which messes up restoring the selection.
+                        var leadingWhitespacesCount = (fragment.firstChild.innerHTML.match(/^\s+/) || [''])[0].length;
+                        // Now move the created link back into the original document in a way to preserve undo/redo history
+                        Util.insertHTMLCommand(this.options.ownerDocument,
+                            fragment.firstChild.innerHTML.replace(/^\s+/, ''));
+                        exportedSelection.start -= leadingWhitespacesCount;
+                        exportedSelection.end -= leadingWhitespacesCount;
+                        this.importSelection(exportedSelection);
+                    } else {
+                        this.options.ownerDocument.execCommand('createLink', false, opts.url);
+                    }
+                    if (this.options.targetBlank || opts.target === '_blank') {
+                        Util.setTargetBlank(Selection.getSelectionStart(this.options.ownerDocument), opts.url);
+                    }
+
+                    if (opts.buttonClass) {
+                        Util.addClassToAnchors(Selection.getSelectionStart(this.options.ownerDocument), opts.buttonClass);
+                    }
                 }
             }
 
@@ -4467,16 +6175,6 @@ function MediumEditor(elements, options) {
             }
         },
 
-        // alias for setup - keeping for backwards compatability
-        activate: function () {
-            Util.deprecatedMethod.call(this, 'activate', 'setup', arguments, 'v5.0.0');
-        },
-
-        // alias for destroy - keeping for backwards compatability
-        deactivate: function () {
-            Util.deprecatedMethod.call(this, 'deactivate', 'destroy', arguments, 'v5.0.0');
-        },
-
         cleanPaste: function (text) {
             this.getExtensionByName('paste').cleanPaste(text);
         },
@@ -4487,19 +6185,25 @@ function MediumEditor(elements, options) {
     };
 }());
 
-MediumEditor.version = (function (major, minor, revision) {
+MediumEditor.parseVersionString = function (release) {
+    var split = release.split('-'),
+        version = split[0].split('.'),
+        preRelease = (split.length > 1) ? split[1] : '';
     return {
-        major: parseInt(major, 10),
-        minor: parseInt(minor, 10),
-        revision: parseInt(revision, 10),
+        major: parseInt(version[0], 10),
+        minor: parseInt(version[1], 10),
+        revision: parseInt(version[2], 10),
+        preRelease: preRelease,
         toString: function () {
-            return [major, minor, revision].join('.');
+            return [version[0], version[1], version[2]].join('.') + (preRelease ? '-' + preRelease : '');
         }
     };
-}).apply(this, ({
+};
+
+MediumEditor.version = MediumEditor.parseVersionString.call(this, ({
     // grunt-bump looks for this:
-    'version': '4.7.0'
-}).version.split('.'));
+    'version': '5.3.0'
+}).version);
 
     return MediumEditor;
 }()));

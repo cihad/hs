@@ -49,9 +49,7 @@ EDITOR.controller('AppController', ['$rootScope', '$scope', '$document', 'Widget
     }
 
     $scope.addWidget = function (widget) {
-      var timestamp = Date.now();
       var newWidget = angular.copy(widget);
-      newWidget['timestamp'] = timestamp;
       $scope.widgets.push(newWidget);
       console.log(widget);
     }
