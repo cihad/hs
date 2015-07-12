@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150712134212) do
+ActiveRecord::Schema.define(version: 20150712140523) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -45,15 +45,6 @@ ActiveRecord::Schema.define(version: 20150712134212) do
 
   add_index "comments", ["author_id"], name: "index_comments_on_author_id", using: :btree
   add_index "comments", ["node_id"], name: "index_comments_on_node_id", using: :btree
-
-  create_table "content_images", force: :cascade do |t|
-    t.integer  "content_id"
-    t.integer  "image_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  add_index "content_images", ["image_id"], name: "index_content_images_on_image_id", using: :btree
 
   create_table "contents", force: :cascade do |t|
     t.string   "title"
