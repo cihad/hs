@@ -62,8 +62,8 @@ class ConvertBodyToJsonWidgets
       end
     end
 
-    rowCount = element.xpath("//th").size
-    columnCount = element.xpath("//tr").size
+    rowCount = element.xpath("//tr").size
+    columnCount = element.xpath("//th").size
 
     {
       name: "Table",
