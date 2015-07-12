@@ -68,13 +68,14 @@ class ProductJsonToModel
     image_path  = widget[:value][:url]
     caption     = widget[:value][:caption]
     type        = widget[:config][:type]
+    is_caption  = widget[:config][:caption]
 
     str = "<figure>"
     str << "<img src=\"%s\" " % image_path
     str << "class=\"img-%s\" " % type
-    str << "title=\"%s\" " % caption unless caption.blank?
+    str << "title=\"%s\" " % caption if is_caption and caption.present?
     str << "/>"
-    str << "<figcaption>%s</figcaption>" % caption unless caption.blank?
+    str << "<figcaption>%s</figcaption>" % caption if is_caption and caption.present?
     str << "</figure>"
   end
 
