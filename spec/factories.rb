@@ -60,12 +60,6 @@ FactoryGirl.define do
 
     title Faker::Name.title
     body Faker::Lorem.paragraphs.join("\n\n")
-    
-    # factory :content_with_images do
-    #   after(:create) do |content, evaluator|
-    #     create_list :content_image, 4, content: content
-    #   end
-    # end
 
     after(:create) do |product, evaluator|
       product.node.update author: evaluator.author if evaluator.author

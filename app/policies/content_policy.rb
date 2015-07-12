@@ -23,13 +23,6 @@ class ContentPolicy < Struct.new(:current_user, :content)
   def permitted_attributes
     # Content attributes
     attrs = [:title, :body, :body_widgets]
-
-    # Association model attributes
-    nested_attrs = { 
-      content_images_attributes: [
-        :id, :_destroy, image_attributes: [:id, :image, :title]
-      ]
-    }
     
     # Add attributes for policy
     node_attrs = { node_attributes: [:id, tag_list: []] }
