@@ -28,11 +28,8 @@ class ContentPolicy < Struct.new(:current_user, :content)
     node_attrs = { node_attributes: [:id, tag_list: []] }
     node_attrs[:node_attributes] << :status if current_user.manager?
 
-    # Merge nested attributes
-    nested_attrs.merge! node_attrs
-
     # Add nested attributes to content attributes
-    attrs << nested_attrs
+    attrs << node_attrs
 
     # Return attributes
     attrs
