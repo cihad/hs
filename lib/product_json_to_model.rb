@@ -105,8 +105,9 @@ class ProductJsonToModel
 
   def to_bootstrap_grid widget
     str = "<div class=\"row\">"
+
     widget[:config][:columns].each do |column|
-      str << "<div class=\"col-md-%s\">" % column.size
+      str << "<div class=\"col-md-%s\">" % column[:size]
       str << to_view(column)
       str << "</div>"
     end
