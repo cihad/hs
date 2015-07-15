@@ -40,13 +40,14 @@ EDITOR.factory('WidgetType', function($http) {
         "machineName": "bootstrap/table",
         "version": 1,
         "value": [
-          ["first", "last", "age"],
-          ["cihad", "paksoy", "28"],
-          ["huseyin", "gurluk", "25"]
+          ["", "", ""],
+          ["", "", ""],
+          ["", "", ""]
         ],
         "config": {
           "rowCount": 3,
-          "columnCount": 3
+          "columnCount": 3,
+          "bordered": true
         }
       },
       {

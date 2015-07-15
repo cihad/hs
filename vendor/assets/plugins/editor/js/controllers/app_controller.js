@@ -73,9 +73,20 @@ EDITOR.controller('AppController', ['$rootScope', '$scope', '$document', 'Widget
     }
 
     $scope.oneLineMedium = {
-      "placeholder": false,
-      "paste": { "forcePlainText": true },
-      "disableReturn": true
+      placeholder: false,
+      paste: { forcePlainText: true },
+      disableReturn: true,
+      toolbar: {
+        buttons: ['bold', 'italic', 'underline', 'anchor']
+      }
+    }
+
+    $scope.paragraphOptions = {
+      toolbar: {
+        buttons: ['bold', 'italic', 'underline', 'anchor', 'quote', 'orderedlist', 'unorderedlist']
+      },
+      disableDoubleReturn: true,
+      paste: { forcePlainText: true }
     }
 
     $scope.upload = function (files, widget) {
