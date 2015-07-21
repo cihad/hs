@@ -14,7 +14,10 @@ class NodesController < ApplicationController
   end
 
   def show
-    @comments = @node.comments.where(approved: true).order(:created_at)
+    table = Comment.arel_table
+    @comments = @node.comments.
+                      where(table[:author_id].not_eq(nil).or(table[:approved].eq(true))).
+                      order(:created_at)
   end
 
   def destroy
