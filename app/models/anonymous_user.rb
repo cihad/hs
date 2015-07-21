@@ -1,4 +1,5 @@
 class AnonymousUser < User
+
   def name
     "Anonymous"
   end
@@ -8,7 +9,7 @@ class AnonymousUser < User
   end
 
   def email
-    "anonymous@example.com"
+    self[:email] || "anonymous@example.com"
   end
 
   def role
@@ -17,6 +18,10 @@ class AnonymousUser < User
 
   def anonymous?
     true
+  end
+
+  def registered?
+    false
   end
 
   defined_enums["role"].keys.delete_if { |role| role == "anonymous" }.each do |role|

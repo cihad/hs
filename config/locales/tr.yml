@@ -114,6 +114,9 @@ tr:
     flash:
       created: "Yorum eklendi."
       destroyed: "Yorum silindi."
+      approved: "Yorumunuz onaylandı"
+      not_approved: "İşlem başarısız! Size gönderilen URL'yi doğru bir şekilde ziyaret ettiğinizden emin olun."
+      awaiting_authenticate: "Yorum eklendi. Fakat yayınlanması için mail adresinize gönderdiğimiz bağlantıyı tıklamanız gerekmektedir."
     comment_count: "Yorum sayısı"
     zero: "0 yorum"
     one: "1 yorum"
@@ -211,3 +214,7 @@ tr:
     product:
       name: "Ürün"
       desc: "Ürün"
+
+  comment_mailer:
+    authentication:
+      subject: "Halkinsesi.com'daki yorumunuz için email adresinizi onaylayın"

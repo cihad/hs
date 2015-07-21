@@ -5,7 +5,7 @@ class CommentPolicy < Struct.new(:current_user, :comment)
   end
 
   def create?
-    current_user.registered?
+    true
   end
 
   def update?
@@ -18,6 +18,16 @@ class CommentPolicy < Struct.new(:current_user, :comment)
 
   def destroy?
     update?
+  end
+
+  def permitted_attributes
+    # Comment attributes
+    attrs = [:body]
+    
+    attrs << :email if current_user.anonymous?
+
+    # Return attributes
+    attrs
   end
 
 end

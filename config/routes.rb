@@ -25,7 +25,9 @@ Rails.application.routes.draw do
   root "nodes#index"
 
   resources :nodes, only: [:index, :new, :show, :destroy] do
-    resources :comments, only: [:create, :edit, :update, :destroy]
+    resources :comments, only: [:create, :edit, :update, :destroy] do
+      get :authenticate, on: :member
+    end
   end
 
   get 'nodes/new/content', to: "contents#new", as: :new_content

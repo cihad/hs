@@ -14,6 +14,7 @@ class NodesController < ApplicationController
   end
 
   def show
+    @comments = @node.comments.where(approved: true).order(:created_at)
   end
 
   def destroy

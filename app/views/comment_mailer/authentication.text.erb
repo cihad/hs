@@ -1,0 +1,14 @@
+<%= Rails.application.secrets.host %> sitemizde:
+
+===================
+<%= @comment.body %>
+===================
+
+yorumunda bulunuldu. Eğer bu yorum size ait ise yorumun yayınlanması 
+için aşağıdaki doğrulama bağlantısına tıklamanız gerekmektedir.
+
+Doğrulama bağlantısı:
+
+<%= authenticate_node_comment_url(@comment.node, @comment, key: @comment.authenticate_key) %>
+
+İlginiz için teşekkür ederiz.

@@ -1,8 +1,6 @@
 <%= render @node %>
-<%= render @node.comments.order(:created_at) %>
+<%= render @comments %>
 
 <% if policy(Comment).create? %>
   <%= render 'comments/form' %>
-<% else %>
-  <%= render 'comments/user_not_signed_in' %>
 <% end %>

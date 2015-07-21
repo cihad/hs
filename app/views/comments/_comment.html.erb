@@ -2,7 +2,7 @@
 
   <%= render  partial: 'comments/comment_author',
               layout: 'nodes/templates/author',
-              locals: { author: comment.author } %>
+              locals: { author: comment.user } %>
 
 
   <%= render layout: 'nodes/templates/panel' do %>
@@ -13,7 +13,7 @@
     <% end %>
 
     <article>
-      <%= markdown comment.author.username + ": " + comment.body %>
+      <%= markdown comment.user.username + ": " + comment.body %>
     </article>
 
     <% content_for :bottom, flush: true do %>

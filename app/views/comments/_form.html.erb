@@ -7,12 +7,13 @@
 
   <%= render layout: 'nodes/templates/panel' do %>
 
-    <%= simple_form_for [@node, (@comment or @node.comments.build(author: current_user))],
+    <%= simple_form_for [@node, (@comment or @node.comments.build)],
                         wrapper: :vertical_form,
                         html: { class: 'form-vertial' } do |f| %>
 
       <%= f.error_notification %>
-      <%= f.input :body %>
+      <%= f.input :email unless current_user.registered? %>
+      <%= f.input :body, input_html: { rows: 3 } %>
       <span class="help-block"><%= t 'simple_form.hints.node.body' %></span>
       <%= f.button :submit %>
     <% end %>

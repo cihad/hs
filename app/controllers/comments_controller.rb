@@ -1,7 +1,7 @@
 class CommentsController < ApplicationController
 
   before_action :set_node
-  before_action :set_comment, only: [:edit, :update, :destroy]
+  before_action :set_comment, only: [:edit, :update, :destroy, :authenticate]
 
   respond_to :html
 
@@ -9,14 +9,28 @@ class CommentsController < ApplicationController
 
   def create
     @comment = Comment.new(comment_params).tap do |c|
-      c.author  = current_user
+      c.approved = current_user.registered?
+      c.author  = current_user if current_user.registered?
       c.node    = @node
     end
 
     if @comment.save
-      redirect_to @node, notice: I18n.t('comments.flash.created')
+      if @comment.email and !@comment.author and current_user.anonymous?
+        CommentMailer.authentication(@comment).deliver_now!
+        redirect_to @node, notice: I18n.t('comments.flash.awaiting_authenticate')
+      else
+        redirect_to @node, notice: I18n.t('comments.flash.created')
+      end
     else
       render "nodes/show"
+    end
+  end
+
+  def authenticate
+    if @comment.valid_key? params[:key] and @comment.update approved: true
+      redirect_to @node, notice: I18n.t('comments.flash.approved')
+    else
+      redirect_to @node, notice: I18n.t('comments.flash.not_approved')
     end
   end
 
@@ -47,7 +61,7 @@ class CommentsController < ApplicationController
     end
 
     def comment_params
-      params.require(:comment).permit(:body)
+      params.require(:comment).permit(*policy(@comment || Comment).permitted_attributes)
     end
 
 end
