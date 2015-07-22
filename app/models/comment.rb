@@ -6,7 +6,14 @@ class Comment < ActiveRecord::Base
 
   # Validations
   validates :body, :node_id, presence: true
+  validates :email, format: { with: Devise.email_regexp }, allow_nil: true
   validate :email_or_author
+
+  # Scopes
+  scope :approved_or_commented_by_user_comments, -> {
+    where(arel_table[:author_id].not_eq(nil).or(arel_table[:approved].eq(true))).
+    order(:created_at)
+  }
 
   def owner? user
     author == user

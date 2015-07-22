@@ -14,6 +14,7 @@ class CommentsController < ApplicationController
       c.node    = @node
     end
 
+
     if @comment.save
       if @comment.email and !@comment.author and current_user.anonymous?
         CommentMailer.authentication(@comment).deliver_now!
@@ -22,12 +23,16 @@ class CommentsController < ApplicationController
         redirect_to @node, notice: I18n.t('comments.flash.created')
       end
     else
+      @comments = @node.comments.approved_or_commented_by_user_comments
       render "nodes/show"
     end
   end
 
   def authenticate
     if @comment.valid_key? params[:key] and @comment.update approved: true
+      if user = User.find_by(email: @comment.email)
+        @comment.update author: user
+      end
       redirect_to @node, notice: I18n.t('comments.flash.approved')
     else
       redirect_to @node, notice: I18n.t('comments.flash.not_approved')
