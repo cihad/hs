@@ -9,7 +9,7 @@ class Comment < ActiveRecord::Base
   validate :email_or_author
 
   def owner? user
-    author_id == user.try(:id)
+    author == user
   end
 
   def user
