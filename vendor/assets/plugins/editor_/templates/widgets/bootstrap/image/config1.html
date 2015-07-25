@@ -1,0 +1,27 @@
+<div class="form-group">
+  <label>Select Image</label>
+  <input  type="file"
+          class="form-control"
+          ngf-select
+          ngf-change="upload($files, widget)"
+          ng-model="widget.config.files" />
+</div>
+
+<div class="checkbox">
+  <label>
+    <input type="checkbox" ng-model="widget.config.caption"> Caption
+  </label>
+</div>
+
+
+<div class="form-group">
+  <div class="btn-group">
+    <label  class="btn btn-default"
+            ng-model="widget.config.type"
+            btn-radio="type"
+            uncheckable
+            ng-repeat="type in ['thumbnail', 'circle', 'rounded']">
+      {{ type }}
+    </label>
+  </div>
+</div>

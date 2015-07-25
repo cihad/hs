@@ -10,107 +10,18 @@
   <link rel="stylesheet" href="css/jquery-ui-1.11.3.css">
   <link rel="stylesheet" href="css/menu.css">
   <link rel="stylesheet" href="css/navbar.css">
+  <style type="text/css">
+    .container { width: 700px; }
+  </style>
 </head>
-<body ng-controller="ProductController">
 
-<nav class="navbar navbar-inverse navbar-static-top">
-  <div class="container">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="#">Editor</a>
-    </div>
-  </div>
-</nav>
+<body ng-controller="MainController">
 
 <div class="container" id="body">
-  <div class="row">
-    <header class="col-md-12">
-      <div class="page-header">
-        <h1 class="h2" medium-editor ng-model="product.title" bind-options='titleOptions'>
-        </h1>
-      </div>
-    </header>
-
-
-    <main class="col-md-9 col-sm-9">
-      <div class="panel panel-default">
-        <div class="panel-body" id="view">
-          <div widgets="product.body"></div>
-        </div>
-
-
-        <div class="navbar navbar-fixed-bottom panel-footer">
-          <div class="container-fluid">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#nav_node_213">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-            </div>
-
-            <div class="collapse navbar-collapse" id="nav_node_213">
-              <p class="navbar-text">
-                <a class="label label-primary" ng-repeat="tag in product.tags">{{ tag }} <span ng-click="removeTag(tag)" class="glyphicon glyphicon-remove"></span></a>
-                <input type="text" class="unstyled" placeholder="new tag" ng-model="product.newTag" ng-enter="addTag()" ng-backspace="removeTagIfEmpty()">
-              </p>
-
-              <ul class="nav navbar-nav navbar-right">
-                <li>
-                  <div class="navbar-text text-muted">
-                    <time datetime="2015-05-24T11:39:34+03:00">24 Mayis 2015, Pazar, 11:39</time>
-                  </div>
-                </li>
-                
-                <li class="dropdown dropup">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                    <span class="glyphicon glyphicon-cog"></span>
-                  </a>
-                  <ul class="dropdown-menu" role="menu">
-                  </ul>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <pre ng-mouseenter="height='auto'" ng-mouseleave="height='100px'" ng-style="{ height: height }">{{ product | json }}</pre>
-      </div>
-    </main>
-
-    <aside class="col-md-3 col-sm-3">
-
-      <div class="panel">
-        <button class="btn btn-large btn-block btn-primary">
-          <i class="glyphicon glyphicon-send"></i>
-        </button>
-        
-      </div>
-
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title">Ayarlar</h3>
-        </div>
-
-        <div class="panel-body">
-          <p title="click & change status" ng-click="changeStatus()">
-            <span class="glyphicon" ng-class="'glyphicon-' + product.status[1]"></span>
-            {{ product.status[0] }}
-          </p>
-        </div>
-      </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title">Benzer Icerikler</h3>
-        </div>
-
-        <div class="panel-body">
-          Hmmm...
-        </div>
-      </div>
-    </aside>
+  <div class="panel panel-default">
+    <div class="panel-body" id="view">
+      <div widgets ng-model="widgets"></div>
+    </div>
   </div>
 </div>
 
@@ -128,15 +39,13 @@
 <script src="js/services/widget_type.js"></script> 
 
 <script src="js/directives/header_tag.js"></script> 
-<script src="js/directives/img_src.js"></script> 
-<script src="js/directives/resizable.js"></script> 
-<script src="js/directives/widget.js"></script> 
+<script src="js/directives/resizable_column.js"></script>
 <script src="js/directives/widgets.js"></script> 
 
 <script src="js/filters/widget_template_url.js"></script> 
 <script src="js/filters/widget_config_template_url.js"></script> 
 
-<script src="js/myapp.js"></script> 
+<script src="js/myapp.js"></script>
 
 </body>
 </html>

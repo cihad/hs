@@ -1,0 +1,18 @@
+<figure>
+  <img  ng-if="widget.value.url != ''"
+        ng-src="{{widget.value.url}}"
+        ng-class="'img-' + widget.config.type">
+
+  <img  ngf-src="widget.config.files[0]"
+        ng-if="widget.value.url == ''"
+        ngf-default-src="/assets/editor/images/example_image.png"
+        ngf-accept="'.gif,.jpg,.png'"
+        class="img-responsive"
+        ng-class="'img-' + widget.config.type">
+
+  <figcaption ng-if="widget.config.caption"
+              medium-editor
+              bind-options='{ disableReturn: true, disableToolbar: true }'
+              ng-model="widget.value.caption">
+  </figcaption>
+</figure>
