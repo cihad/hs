@@ -7,7 +7,8 @@
         ng-click="setCurrentWidgetFromDirective(widget)"
         data-drop="true"
         jqyoui-droppable="{onDrop: 'dropCallback'}"
-        ng-model="widget">
+        ng-model="widget"
+        class="resizable-widget">
   </div>
 
   <div class="col-md-2 pdng" ng-if="isShowAddColumn(widget)" ng-click="widget.config.columns.push({ name: 'Blank Column', machineName: 'bootstrap/blank_column', version: 1, size: 3 })">
