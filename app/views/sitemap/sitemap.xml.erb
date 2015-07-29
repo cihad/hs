@@ -6,33 +6,24 @@
     <loc><%= root_url %></loc>
   </url>
 
+  <url>
+    <loc><%= new_node_url %></loc> 
+    <lastmod><%= l Product.first.created_at, format: :w3c %></lastmod>
+  </url>
 
   <% Node.published.each do |node| %>
     <url>
       <loc><%= node_url node %></loc> 
       <lastmod><%= l node.updated_at, format: :w3c %></lastmod>
-      <% if node.images.count > 0 %>
-        <% node.images.each do |image| %>
-          <image:image>
-             <image:loc><%= asset_url image.image_url(:medium) %></image:loc> 
-             <image:title><%= image.title %></image:title>
-          </image:image>
+      <%= node.content.tap do |c| %>
+        <% if c.imageable? and c.images.count > 0 %>
+          <% c.images.each do |image| %>
+            <image:image>
+               <image:loc><%= asset_url image.image_url(:medium) %></image:loc> 
+            </image:image>
+          <% end %>
         <% end %>
       <% end %>
-    </url>
-  <% end %>
-
-  <% Image.all.each do |image| %>
-    <url>
-      <loc><%= image_url image %></loc>
-      <image:image>
-        <image:loc><%= asset_url image.image_url %></image:loc>
-        <image:title><%= image.title %></image:title>
-      </image:image>
-      <image:image>
-        <image:loc><%= asset_url image.image_url(:medium) %></image:loc>
-        <image:title><%= image.title %></image:title>
-      </image:image>
     </url>
   <% end %>
 

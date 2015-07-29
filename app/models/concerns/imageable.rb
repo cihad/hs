@@ -46,4 +46,8 @@ module Imageable
     url.split('/').last
   end
 
+  def imageable?
+    true
+  end
+
 end
