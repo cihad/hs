@@ -15,7 +15,7 @@
     <url>
       <loc><%= node_url node %></loc> 
       <lastmod><%= l node.updated_at, format: :w3c %></lastmod>
-      <%= node.content.tap do |c| %>
+      <% node.content.tap do |c| %>
         <% if c.imageable? and c.images.count > 0 %>
           <% c.images.each do |image| %>
             <image:image>
