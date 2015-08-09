@@ -7,14 +7,6 @@ EDITOR.controller('AppController', ['$rootScope', '$scope', '$document', 'Widget
       return new Array(number);
     }
 
-    $scope.isShowAddColumn = function(widget) {
-      total = 0
-      angular.forEach(widget.config.columns, function(col) {
-        total += col.size;
-      })
-      return widget.config.showAdd && total < 12;
-    }
-
     $document.on('click', function() {
       $rootScope.$apply(function(){
         $rootScope.currentWidget = null;

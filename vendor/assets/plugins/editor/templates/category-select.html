@@ -1,0 +1,19 @@
+<div ng-controller="CategoriesController">
+  <ol class="breadcrumb" ng-cloak>
+    <li ng-repeat="category in categories">
+      <div class="btn-group" ng-class="{ open: (categoryList.length - 1 == $index && categoryList[categoryList.length - 1].length > 0) }">
+        <input type="text" ng-model="category.name" class="link-text" placeholder="yeni kategori" pu-elastic-input pu-elastic-input-maxwidth="none">
+        <a href id="category_{{$index}}" data-toggle="dropdown" ng-if="categoryList[$index] && categoryList[$index].length > 0">
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="category_{{$index}}">
+          <li ng-repeat="cat in categoryList[$index]">
+            <a href ng-click="setCurrentCategory($parent.$index, cat)">{{cat}}</a>
+          </li>
+        </ul>
+      </div>
+    </li>
+    <li><button class="btn btn-xs" ng-click="addCategory()"><i class="glyphicon glyphicon-plus"></i></button></li>
+    <li><input type="text" ng-model="title" placeholder="başlık" pu-elastic-input pu-elastic-input-maxwidth="none"></li>
+  </ol>
+</div>

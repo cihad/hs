@@ -16,6 +16,7 @@ tr:
     add: "Ekle"
     new: "Yeni"
     similarly: "Benzer"
+    choose: "Seç"
 
   time:
     today: "Bugün"

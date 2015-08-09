@@ -34,7 +34,12 @@ Rails.application.routes.draw do
   resources :contents
 
   get 'nodes/new/product', to: "products#new", as: :new_product
-  resources :products
+  resources :categories, only: :index
+  resources :products do
+    resources :categories, only: [] do
+      get :menu, on: :member
+    end
+  end
 
 
   resources :comments, only: :show

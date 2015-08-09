@@ -25,18 +25,17 @@ EDITOR.directive('resizableColumn', function () {
         eWidth = elem.width();
         elem.css('width', '');
         elem.css('height', '');
+        elem.attr('class', elem.attr('class').replace(/\bcol-.*?\b/g, ''));
         
-        for (i = 12; i >= 0; i--) {
+        for (i = 11; i >= 0; i--) {
           colWidth = rowWidth * i / 12
 
-          if(eWidth >= colWidth) {
+          if(eWidth > colWidth) {
             elem.addClass('col-md-' + (i + 1));
             scope.ngModel.size = i+1;
             return;
           }
         }
-
-        elem.attr('class', elem.attr('class').replace(/\bcol-.*?\b/g, ''));
 
       }
     },

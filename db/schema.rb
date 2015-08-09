@@ -11,13 +11,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150720210048) do
+ActiveRecord::Schema.define(version: 20150808203231) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "pg_trgm"
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
+
+  create_table "categories", force: :cascade do |t|
+    t.string   "name"
+    t.string   "ancestry"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "categories", ["ancestry"], name: "index_categories_on_ancestry", using: :btree
 
   create_table "ckeditor_assets", force: :cascade do |t|
     t.string   "data_file_name",               null: false
@@ -95,7 +104,10 @@ ActiveRecord::Schema.define(version: 20150720210048) do
     t.datetime "created_at",                  null: false
     t.datetime "updated_at",                  null: false
     t.text     "body_widgets", default: "[]", null: false
+    t.integer  "category_id"
   end
+
+  add_index "products", ["category_id"], name: "index_products_on_category_id", using: :btree
 
   create_table "taggings", force: :cascade do |t|
     t.integer "taggable_id"
@@ -133,4 +145,5 @@ ActiveRecord::Schema.define(version: 20150720210048) do
   add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
   add_index "users", ["username"], name: "index_users_on_username", using: :btree
 
+  add_foreign_key "products", "categories"
 end

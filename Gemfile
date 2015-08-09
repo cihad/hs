@@ -26,6 +26,7 @@ gem 'pundit', '~> 0.3'
 gem 'nprogress-rails'
 gem 'kaminari', '~> 0.16'
 gem 'high_voltage', '~> 2.2.1'
+gem 'ancestry', '~> 2.1'
 
 group :development, :test do
   gem 'byebug'

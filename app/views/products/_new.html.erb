@@ -25,6 +25,9 @@
       <div class="panel-body">
         <article>
           <p><%= @content.node.author.username %>:</p>
+
+          <div category-select ng-model="productModel.categories" title="productModel.title"></div>
+
           <div ng-model="productModel.bodyWidgets" widgets required name="widgets"></div>
         </article>
       </div>
@@ -109,17 +112,19 @@
 <%#= "End of Right Column" %>
 
 <script type="text/javascript">
-  angular.module('hs', ['editor','templates'])
+  angular.module('hs', ['editor','templates', 'categories'])
 
   .config(function($httpProvider) {
     $httpProvider.defaults.headers.common['X-CSRF-Token'] = angular.element('meta[name=csrf-token]').attr('content')
   })
 
   .constant('imageUploadUrl', "<%= images_url %>")
+  .constant('categoriesUrl', "<%= categories_url %>")
 
   .factory('productModel', function() {
     return <%= @content.to_builder.html_safe %>;
   })
+
 
   .service('product', function(productModel) {
 
@@ -159,8 +164,6 @@
       i = statusKeys.indexOf(productModel.status);
       productModel.status = statusKeys[(i+1) % statusKeys.length];
     }
-
-
   })
 
   .controller('ProductController', function($scope, $http, product, productModel) {
@@ -189,6 +192,43 @@
       disableReturn: true,
       disableToolbar: true 
     }
+
+    // CATEGORY SELECT
+    $scope.categories = ["Marka"];
+    $scope.categoryList = [];
+
+    $scope.setCurrentCategory = function(index, cat) {
+      $scope.categories[index] = cat
+    }
+
+    $scope.addCategory = function() {
+      $scope.categories.push("");
+    }
+
+    $scope.$watch('categories', function(newValue, oldValue) {
+      console.log("adad");
+
+      $http({
+        url: "<%= categories_url %>",
+        params: { "terms[]": $scope.categories }
+      }).then(function(response) {
+        $scope.categoryList = response.data;
+        console.log($scope.categoryList);
+      })
+    }, true);
+  })
+
+  .directive('searchCategory', function() {
+    return function (scope, element, attrs) {
+      element.bind("keydown keypress", function (event) {
+
+        scope.$apply(function (){
+          scope.$eval(attrs.ngEnter);
+        });
+
+        event.preventDefault();
+      });
+    }
   })
 
   .directive('ngEnter', function () {
@@ -216,6 +256,5 @@
       });
     };
   })
-
 ;
 </script>

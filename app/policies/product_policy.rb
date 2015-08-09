@@ -2,7 +2,7 @@ class ProductPolicy < ContentPolicy
 
   def permitted_attributes
     # Product attributes
-    attrs = [:title, :body, :body_widgets]
+    attrs = [:title, :body, :body_widgets, categories: [:name]]
     
     # Add attributes for policy
     node_attrs = { node_attributes: [:id, tag_list: []] }

@@ -17,7 +17,7 @@
     <button popover-placement="bottom" popover-template="'templates/add.html'" class="btn btn-default"><i class="glyphicon glyphicon-plus"></i></button>
   </div>
   
-  <nav class="c-menu c-menu--slide-right" ng-class="{ 'is-active': $root.currentWidget}" ng-click="$event.stopPropagation()">
+  <nav class="c-menu c-menu--slide-right" ng-class="{ 'is-active': $root.currentWidget}" ng-click="$event.stopPropagation()" resizable-config>
     <h3>{{ $root.currentWidget.name }} Config</h3>
     <div ng-include="(widget = $root.currentWidget) | widgetConfigTemplateUrl"></div>
   </nav><!-- /c-menu slide-right -->

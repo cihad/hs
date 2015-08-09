@@ -17,7 +17,9 @@
 //= require editor/js/ng-file-upload-shim-5.0.9.js
 //= require editor/js/ng-file-upload.js
 //= require editor/js/angular-dragdrop-1.0.11.js
+//= require editor/js/angular-elastic-input-2.0.2.js
 //= require editor/js/app.js
+//= require editor/js/categories.js
 //= require_tree ../../../vendor/assets/plugins/editor/js/controllers
 //= require_tree ../../../vendor/assets/plugins/editor/templates
 //= require_tree ../../../vendor/assets/plugins/editor/js/services

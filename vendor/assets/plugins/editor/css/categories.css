@@ -1,0 +1,18 @@
+.breadcrumb input[type=text].link-text {
+  color: #337ab7;
+}
+
+.breadcrumb input[type=text] {
+  border: none;
+  background: none;
+  border: 1px solid rgba(0, 0, 0, 0);
+}
+
+.breadcrumb input[type=text]:hover {
+  border: 1px solid #b5e4f6;
+}
+
+.breadcrumb input[type=text]:focus {
+  border: 1px solid #2eb2e4;
+  outline: 0;
+}

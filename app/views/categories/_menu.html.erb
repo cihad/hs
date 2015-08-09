@@ -1,0 +1,29 @@
+<ul class="breadcrumb">
+  <% categories.each do |cats| %>
+    <li class="dropdown">
+      <%= link_to "#", data: { toggle: "dropdown"} do %>
+        <%= cats.first.name %>
+        <span class="caret"></span>
+      <% end %>
+      <ul class="dropdown-menu">
+        <%= content_tag_for :li, cats.last do |c| %>
+          <%= link_to c.name, menu_product_category_path(product, c), remote: true %>
+        <% end %>
+      </ul>
+    </li>
+  <% end %>
+
+  <% if product_siblings.exists? %>
+    <li class="dropdown">
+      <%= link_to "#", data: { toggle: "dropdown"} do %>
+        <%= t 'common.choose' %>
+        <span class="caret"></span>
+      <% end %>
+      <ul class="dropdown-menu">
+          <%= content_tag_for :li, product_siblings do |product| %>
+            <%= link_to product.title, node_path(product.node) %>
+          <% end %>
+      </ul>
+    </li>
+  <% end %>
+</ul>
