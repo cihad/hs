@@ -33,7 +33,7 @@ class Product < ActiveRecord::Base
     end
 
     categories_array.each_with_index do |term, index|
-      categories << categories[index].children.find_or_create_by(name: term)
+      categories << (categories[index].try(:children) || Category).find_or_create_by(name: term)    
     end
 
     if categories.last.has_children?
