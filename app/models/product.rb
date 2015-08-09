@@ -26,14 +26,14 @@ class Product < ActiveRecord::Base
 
     categories_array = categories_array.select { |term| term["name"].present? }.map { |t| t["name"] }
 
-    root_cat = Category.find_by name: categories_array.shift
+    root_cat = Category.find_or_create_by name: categories_array.shift
 
     if root_cat and root_cat.root?
       categories << root_cat
     end
 
     categories_array.each_with_index do |term, index|
-      categories << (categories[index].try(:children) || Category).find_or_create_by(name: term)    
+      categories << categories[index].children.find_or_create_by(name: term)    
     end
 
     if categories.last.has_children?
