@@ -1,8 +1,9 @@
 angular.module('categories', ['puElasticInput'])
-  
+    
   .constant("categoriesUrl", "categories.json")
 
-  .controller('CategoriesController', function($scope, $http, categoriesUrl) {
+  .controller('CategoriesController', ['$scope', '$http', 'categoriesUrl',
+  function($scope, $http, categoriesUrl) {
     $scope.categoryList = [];
 
     $scope.setCurrentCategory = function(index, cat) {
@@ -37,5 +38,5 @@ angular.module('categories', ['puElasticInput'])
       })
     }, true);
 
-  })
+  }])
 ;
