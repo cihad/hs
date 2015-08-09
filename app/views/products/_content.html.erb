@@ -1,9 +1,11 @@
 <%= provide :page_type, t('content_types.product.name') %>
 
-<%= render 'categories/menu',
-      categories: content.category.menu,
-      product: content,
-      product_siblings: content.siblings %>
+<% if content.category %>
+  <%= render 'categories/menu',
+        categories: content.category.menu,
+        product: content,
+        product_siblings: content.siblings %>
+<% end %>
 
 <%= markdown content.body %>
 
